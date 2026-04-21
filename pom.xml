@@ -18,6 +18,7 @@
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <spring-boot-maven-plugin.version>3.2.4</spring-boot-maven-plugin.version>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
+        <org.testcontainers.version>1.21.4</org.testcontainers.version>
     </properties>
 
     <dependencies>
@@ -52,9 +53,15 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>2.4.240</version>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>${org.testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${org.testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
