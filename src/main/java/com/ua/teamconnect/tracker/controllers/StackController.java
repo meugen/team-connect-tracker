@@ -2,6 +2,7 @@ package com.ua.teamconnect.tracker.controllers;
 
 import com.ua.teamconnect.tracker.dto.StackDto;
 import com.ua.teamconnect.tracker.services.StackService;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,7 +19,7 @@ public class StackController {
         this.stackService = stackService;
     }
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public List<StackDto> findAll() {
         return stackService.findAll();
     }
