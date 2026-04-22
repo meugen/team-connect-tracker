@@ -1,4 +1,4 @@
-package com.ua.teamconnect.tracker.congigs;
+package com.ua.teamconnect.tracker.configs;
 
 import com.ua.teamconnect.tracker.mappers.StackMapper;
 import org.mapstruct.factory.Mappers;
