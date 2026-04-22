@@ -42,8 +42,8 @@ class StackControllerTest {
     @Test
     void findAll_stacksExists_isOk() {
         stackRepository.saveAll(List.of(
-            newStack("Java"), newStack("Python"),
-            newStack("Ruby"), newStack("JavaScript")
+            newStack("Java"), newStack("JavaScript"),
+            newStack("Python"), newStack("Ruby")
         ));
 
         var spec = buildClient(port).get()
@@ -54,8 +54,8 @@ class StackControllerTest {
             .jsonPath("$").isArray()
             .jsonPath("$.length()").isEqualTo(4);
         validateStackItem(spec, 0, "Java");
-        validateStackItem(spec, 1, "Python");
-        validateStackItem(spec, 2, "Ruby");
-        validateStackItem(spec, 3, "JavaScript");
+        validateStackItem(spec, 1, "JavaScript");
+        validateStackItem(spec, 2, "Python");
+        validateStackItem(spec, 3, "Ruby");
     }
 }
