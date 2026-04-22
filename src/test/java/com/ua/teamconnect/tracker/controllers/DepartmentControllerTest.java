@@ -1,6 +1,6 @@
 package com.ua.teamconnect.tracker.controllers;
 
-import com.ua.teamconnect.tracker.entities.Department;
+import com.ua.teamconnect.tracker.model.Department;
 import com.ua.teamconnect.tracker.repositories.DepartmentRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

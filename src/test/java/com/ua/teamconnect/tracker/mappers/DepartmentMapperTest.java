@@ -1,6 +1,6 @@
 package com.ua.teamconnect.tracker.mappers;
 
-import com.ua.teamconnect.tracker.entities.Department;
+import com.ua.teamconnect.tracker.model.Department;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;

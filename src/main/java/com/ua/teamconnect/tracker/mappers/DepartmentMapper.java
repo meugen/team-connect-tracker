@@ -1,7 +1,7 @@
 package com.ua.teamconnect.tracker.mappers;
 
 import com.ua.teamconnect.tracker.dto.DepartmentDto;
-import com.ua.teamconnect.tracker.entities.Department;
+import com.ua.teamconnect.tracker.model.Department;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

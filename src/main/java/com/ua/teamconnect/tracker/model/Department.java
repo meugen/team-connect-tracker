@@ -1,4 +1,4 @@
-package com.ua.teamconnect.tracker.entities;
+package com.ua.teamconnect.tracker.model;
 
 import jakarta.persistence.*;
 
