@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/stacks")
+@RequestMapping(value = "/stacks", produces = MediaType.APPLICATION_JSON_VALUE)
 public class StackController {
 
     private final StackService stackService;
@@ -19,7 +19,7 @@ public class StackController {
         this.stackService = stackService;
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping
     public List<StackDto> findAll() {
         return stackService.findAll();
     }
