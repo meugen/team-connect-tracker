@@ -1,4 +1,11 @@
 package com.ua.teamconnect.tracker.dto;
 
-public record StackDto(Long id, String name) {
+import io.swagger.v3.oas.annotations.media.Schema;
+
+public record StackDto(
+    @Schema(description = "Id of the stack", example = "1")
+    Long id,
+    @Schema(description = "Name of the stack", example = "Java")
+    String name
+) {
 }

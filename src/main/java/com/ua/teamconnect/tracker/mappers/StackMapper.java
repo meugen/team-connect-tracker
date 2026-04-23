@@ -6,5 +6,6 @@ import org.mapstruct.Mapper;
 
 @Mapper
 public interface StackMapper {
+
     StackDto entityToDto(Stack entity);
 }
