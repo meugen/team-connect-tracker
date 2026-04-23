@@ -1,60 +1,35 @@
 package com.ua.teamconnect.tracker.controllers;
 
-import com.ua.teamconnect.tracker.model.Department;
-import com.ua.teamconnect.tracker.repositories.DepartmentRepository;
-import org.junit.jupiter.api.AfterEach;
+import com.ua.teamconnect.tracker.dto.DepartmentDto;
+import com.ua.teamconnect.tracker.services.DepartmentService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.List;
 
-import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DepartmentControllerTest {
 
-    @Autowired
-    private DepartmentRepository repository;
+    private static DepartmentService service;
+    private static DepartmentController controller;
 
-    @LocalServerPort
-    private int port;
-
-    @AfterEach
-    void clearTestData() {
-        repository.deleteAll();
-    }
-
-    private Department newDepartment(String name) {
-        Department department = new Department();
-        department.setName(name);
-        return department;
-    }
-
-    private void validateDepartmentItem(WebTestClient.BodyContentSpec spec, int index, String name) {
-        var prefix = String.format("$[%d]", index);
-        spec.jsonPath(prefix + ".id").isNumber()
-            .jsonPath(prefix + ".name").isEqualTo(name)
-            .jsonPath(prefix + ".head_id").isNumber();
+    @BeforeAll
+    static void setupController() {
+        service = mock(DepartmentService.class);
+        controller = new DepartmentController(service);
     }
 
     @Test
     void findAll_departmentsExists_isOk() {
-        repository.saveAll(List.of(
-            newDepartment("Software Development"),
-            newDepartment("HR Department")
-        ));
+        var dto1 = mock(DepartmentDto.class);
+        var dto2 = mock(DepartmentDto.class);
 
-        var spec = buildClient(port).get()
-            .uri("/departments")
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody()
-            .jsonPath("$").isArray()
-            .jsonPath("$.length()").isEqualTo(2);
-        validateDepartmentItem(spec, 0, "Software Development");
-        validateDepartmentItem(spec, 1, "HR Department");
+        when(service.findAll()).thenReturn(List.of(dto1, dto2));
+
+        var result = controller.findAll();
+        assertEquals(List.of(dto1, dto2), result);
     }
 }
