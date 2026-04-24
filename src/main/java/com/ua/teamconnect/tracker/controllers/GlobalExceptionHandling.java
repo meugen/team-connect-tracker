@@ -15,7 +15,11 @@ public class GlobalExceptionHandling {
         ResponseStatusException ex,
         HttpServletRequest request
     ) {
+        var url = request.getRequestURI();
+        if (request.getQueryString() != null) {
+            url += "?" + request.getQueryString();
+        }
         return ResponseEntity.status(ex.getStatusCode())
-            .body(new ErrorDto(ex, request.getRequestURI()));
+            .body(new ErrorDto(ex, url));
     }
 }

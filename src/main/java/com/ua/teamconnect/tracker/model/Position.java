@@ -40,6 +40,10 @@ public class Position {
         return departmentId;
     }
 
+    public void setDepartmentId(Long departmentId) {
+        this.departmentId = departmentId;
+    }
+
     public Department getDepartment() {
         return department;
     }
