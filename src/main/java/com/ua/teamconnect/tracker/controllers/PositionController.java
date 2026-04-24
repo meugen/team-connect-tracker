@@ -2,6 +2,7 @@ package com.ua.teamconnect.tracker.controllers;
 
 import com.ua.teamconnect.tracker.dto.PositionDto;
 import com.ua.teamconnect.tracker.services.PositionService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,6 +13,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/positions", produces = MediaType.APPLICATION_JSON_VALUE)
+@Tag(name = "Position Controller", description = "Endpoints related to positions")
 public class PositionController {
 
     private final PositionService positionService;
