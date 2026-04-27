@@ -9,8 +9,12 @@ public class Department {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+
     @Column(nullable = false)
     private String name;
+
+    @Column(name = "head_id")
+    private Long headId;
 
     public Long getId() {
         return id;
@@ -26,5 +30,13 @@ public class Department {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Long getHeadId() {
+        return headId;
+    }
+
+    public void setHeadId(Long headId) {
+        this.headId = headId;
     }
 }
