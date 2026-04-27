@@ -1,15 +1,14 @@
 package com.ua.teamconnect.tracker.service;
 
-import com.ua.teamconnect.tracker.model.dto.PositionDto;
-import com.ua.teamconnect.tracker.model.exception.DepartmentNotFoundException;
 import com.ua.teamconnect.tracker.mapper.PositionMapper;
+import com.ua.teamconnect.tracker.model.dto.PositionDto;
 import com.ua.teamconnect.tracker.model.entity.Position;
+import com.ua.teamconnect.tracker.model.exception.DepartmentNotFoundException;
 import com.ua.teamconnect.tracker.repository.DepartmentRepository;
 import com.ua.teamconnect.tracker.repository.PositionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PositionService {
@@ -28,11 +27,9 @@ public class PositionService {
         this.positionMapper = positionMapper;
     }
 
-    public List<PositionDto> findAll(Optional<Long> departmentId) {
-        return departmentId
-            .map(this::findAllByDepartmentId)
-            .orElseGet(this::findAll)
-            .stream()
+    public List<PositionDto> findAll(Long departmentId) {
+        var positions = departmentId == null ? findAll() : findAllByDepartmentId(departmentId);
+        return positions.stream()
             .map(positionMapper::entityToDto)
             .toList();
     }

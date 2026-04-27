@@ -1,16 +1,15 @@
 package com.ua.teamconnect.tracker.service;
 
-import com.ua.teamconnect.tracker.model.dto.PositionDto;
-import com.ua.teamconnect.tracker.model.exception.DepartmentNotFoundException;
 import com.ua.teamconnect.tracker.mapper.PositionMapper;
+import com.ua.teamconnect.tracker.model.dto.PositionDto;
 import com.ua.teamconnect.tracker.model.entity.Position;
+import com.ua.teamconnect.tracker.model.exception.DepartmentNotFoundException;
 import com.ua.teamconnect.tracker.repository.DepartmentRepository;
 import com.ua.teamconnect.tracker.repository.PositionRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -54,26 +53,26 @@ public class PositionServiceTest {
     }
 
     @Test
-    void findAll_departmentIdIsEmpty_allPositions() {
+    void findAll_departmentIdIsNull_allPositions() {
         var mocks = prepareMocks(false);
 
-        var result = positionService.findAll(Optional.empty());
+        var result = positionService.findAll(null);
         assertEquals(List.of(mocks.dtos[0], mocks.dtos[1], mocks.dtos[2]), result);
     }
 
     @Test
-    void findAll_departmentIdIsNotEmptyAndExists_filteredPositions() {
+    void findAll_departmentIdIsNotNullAndExists_filteredPositions() {
         var mocks = prepareMocks(true);
 
-        var result = positionService.findAll(Optional.of(1L));
+        var result = positionService.findAll(1L);
         assertEquals(List.of(mocks.dtos[0], mocks.dtos[1]), result);
     }
 
     @Test
-    void findAll_departmentIdIsNotEmptyAndNotExists_thrownException() {
+    void findAll_departmentIdIsNotNullAndNotExists_thrownException() {
         prepareMocks(false);
         assertThrows(DepartmentNotFoundException.class,
-            () -> positionService.findAll(Optional.of(1L)));
+            () -> positionService.findAll(1L));
     }
 
     private static class Mocks {

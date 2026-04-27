@@ -11,10 +11,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/positions", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -76,7 +76,7 @@ public class PositionController {
             )
         ),
     })
-    public List<PositionDto> findAll(Optional<Long> departmentId) {
+    public List<PositionDto> findAll(@RequestParam(required = false) Long departmentId) {
         return positionService.findAll(departmentId);
     }
 }
