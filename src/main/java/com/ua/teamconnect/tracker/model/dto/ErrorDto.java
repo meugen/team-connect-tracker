@@ -6,7 +6,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 
 public record ErrorDto(
-    @Schema(description = "HTTP status code", example = "500")
+    @Schema(description = "HTTP status code", example = "404")
     int status,
     @Schema(description = "Error message describing the reason for the error", example = "Resource with id 1 is not found")
     String message,
