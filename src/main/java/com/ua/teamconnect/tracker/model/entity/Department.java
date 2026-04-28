@@ -1,9 +1,12 @@
 package com.ua.teamconnect.tracker.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "departments")
+@Getter @Setter
 public class Department {
 
     @Id
@@ -16,27 +19,4 @@ public class Department {
     @Column(name = "head_id")
     private Long headId;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Long getHeadId() {
-        return headId;
-    }
-
-    public void setHeadId(Long headId) {
-        this.headId = headId;
-    }
 }
