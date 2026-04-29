@@ -30,6 +30,7 @@ class DepartmentControllerTest {
     private Department newDepartment(String name) {
         Department department = new Department();
         department.setName(name);
+        department.setHeadId(1L);
         return department;
     }
 
@@ -37,7 +38,7 @@ class DepartmentControllerTest {
         var prefix = String.format("$[%d]", index);
         spec.jsonPath(prefix + ".id").isNumber()
             .jsonPath(prefix + ".name").isEqualTo(name)
-            .jsonPath(prefix + ".head_id").isNumber();
+            .jsonPath(prefix + ".headId").isNumber();
     }
 
     @Test
