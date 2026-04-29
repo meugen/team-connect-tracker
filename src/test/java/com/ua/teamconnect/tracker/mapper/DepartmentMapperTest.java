@@ -27,11 +27,12 @@ public class DepartmentMapperTest {
         var entity = new Department();
         entity.setId(1L);
         entity.setName("Software Development");
+        entity.setHeadId(2L);
         var dto = mapper.entityToDto(entity);
 
         assertNotNull(dto);
         assertEquals(1L, dto.id());
         assertEquals("Software Development", dto.name());
-        assertEquals(0L, dto.headId());
+        assertEquals(2L, dto.headId());
     }
 }
