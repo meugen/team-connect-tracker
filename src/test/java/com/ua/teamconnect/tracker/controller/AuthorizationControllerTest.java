@@ -10,16 +10,18 @@ import static org.mockito.Mockito.when;
 
 abstract class AuthorizationControllerTest {
 
+    protected static final String VALID_TOKEN = "valid-token";
+
     @MockBean
     private JwtDecoder jwtDecoder;
 
-    protected void setupValidToken(String token) {
-        var jwt = Jwt.withTokenValue(token)
+    protected void setupValidToken() {
+        var jwt = Jwt.withTokenValue(VALID_TOKEN)
             .header("alg", "none")
             .subject("test-user")
             .issuedAt(Instant.now())
             .expiresAt(Instant.now().plusSeconds(3600))
             .build();
-        when(jwtDecoder.decode(token)).thenReturn(jwt);
+        when(jwtDecoder.decode(VALID_TOKEN)).thenReturn(jwt);
     }
 }

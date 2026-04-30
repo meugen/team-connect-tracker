@@ -47,11 +47,11 @@ class PositionControllerTest extends AuthorizationControllerTest {
         var departmentId = newPosition("Java Developer", "IT");
         newPosition("HR Manager", "HR");
 
-        setupValidToken("valid-token");
+        setupValidToken();
 
         buildClient(port).get()
             .uri("/positions?departmentId=" + departmentId)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer valid-token")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + VALID_TOKEN)
             .exchange()
             .expectStatus().isOk()
             .expectBody()
@@ -67,12 +67,12 @@ class PositionControllerTest extends AuthorizationControllerTest {
         newPosition("Java Developer", "IT");
         var departmentId = newPosition("HR Manager", "HR") + 1;
 
-        setupValidToken("valid-token");
+        setupValidToken();
 
         var message = String.format("Department with id %d is not found", departmentId);
         buildClient(port).get()
             .uri("/positions?departmentId=" + departmentId)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer valid-token")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + VALID_TOKEN)
             .exchange()
             .expectStatus().isNotFound()
             .expectBody()

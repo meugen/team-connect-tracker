@@ -49,11 +49,11 @@ class DepartmentControllerTest extends AuthorizationControllerTest {
             newDepartment("HR Department")
         ));
 
-        setupValidToken("valid-token");
+        setupValidToken();
 
         var spec = buildClient(port).get()
             .uri("/departments")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer valid-token")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + VALID_TOKEN)
             .exchange()
             .expectStatus().isOk()
             .expectBody()

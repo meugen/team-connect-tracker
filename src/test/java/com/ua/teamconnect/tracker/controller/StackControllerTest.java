@@ -47,11 +47,11 @@ class StackControllerTest extends AuthorizationControllerTest {
             newStack("Python"), newStack("Ruby")
         ));
 
-        setupValidToken("valid-token");
+        setupValidToken();
 
         var spec = buildClient(port).get()
             .uri("/stacks")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer valid-token")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + VALID_TOKEN)
             .exchange()
             .expectStatus().isOk()
             .expectBody()
