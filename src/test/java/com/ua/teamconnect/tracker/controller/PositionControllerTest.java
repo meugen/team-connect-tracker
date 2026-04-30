@@ -9,11 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class PositionControllerTest {
+class PositionControllerTest extends AuthorizationControllerTest {
 
     @Autowired
     private DepartmentRepository departmentRepository;
@@ -46,8 +47,11 @@ class PositionControllerTest {
         var departmentId = newPosition("Java Developer", "IT");
         newPosition("HR Manager", "HR");
 
+        setupValidToken("valid-token");
+
         buildClient(port).get()
             .uri("/positions?departmentId=" + departmentId)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer valid-token")
             .exchange()
             .expectStatus().isOk()
             .expectBody()
@@ -63,9 +67,12 @@ class PositionControllerTest {
         newPosition("Java Developer", "IT");
         var departmentId = newPosition("HR Manager", "HR") + 1;
 
+        setupValidToken("valid-token");
+
         var message = String.format("Department with id %d is not found", departmentId);
         buildClient(port).get()
             .uri("/positions?departmentId=" + departmentId)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer valid-token")
             .exchange()
             .expectStatus().isNotFound()
             .expectBody()

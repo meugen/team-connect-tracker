@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.List;
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class StackControllerTest {
+class StackControllerTest extends AuthorizationControllerTest {
 
     @Autowired
     private StackRepository stackRepository;
@@ -46,8 +47,11 @@ class StackControllerTest {
             newStack("Python"), newStack("Ruby")
         ));
 
+        setupValidToken("valid-token");
+
         var spec = buildClient(port).get()
             .uri("/stacks")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer valid-token")
             .exchange()
             .expectStatus().isOk()
             .expectBody()

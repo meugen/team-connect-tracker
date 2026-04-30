@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.List;
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class DepartmentControllerTest {
+class DepartmentControllerTest extends AuthorizationControllerTest {
 
     @Autowired
     private DepartmentRepository repository;
@@ -48,8 +49,11 @@ class DepartmentControllerTest {
             newDepartment("HR Department")
         ));
 
+        setupValidToken("valid-token");
+
         var spec = buildClient(port).get()
             .uri("/departments")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer valid-token")
             .exchange()
             .expectStatus().isOk()
             .expectBody()
