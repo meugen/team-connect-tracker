@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
+import static com.ua.teamconnect.tracker.util.ExceptionHandlingUtil.buildUrl;
+
 @RestControllerAdvice
 public class GlobalExceptionHandling {
 
@@ -15,11 +17,7 @@ public class GlobalExceptionHandling {
         ResponseStatusException ex,
         HttpServletRequest request
     ) {
-        var url = request.getRequestURI();
-        if (request.getQueryString() != null) {
-            url += "?" + request.getQueryString();
-        }
         return ResponseEntity.status(ex.getStatusCode())
-            .body(new ErrorDto(ex, url));
+            .body(new ErrorDto(ex, buildUrl(request)));
     }
 }

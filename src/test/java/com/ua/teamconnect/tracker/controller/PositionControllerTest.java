@@ -9,11 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class PositionControllerTest {
+class PositionControllerTest extends AuthorizationControllerTest {
 
     @Autowired
     private DepartmentRepository departmentRepository;
@@ -46,8 +47,11 @@ class PositionControllerTest {
         var departmentId = newPosition("Java Developer", "IT");
         newPosition("HR Manager", "HR");
 
+        setupValidToken();
+
         buildClient(port).get()
             .uri("/positions?departmentId=" + departmentId)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + VALID_TOKEN)
             .exchange()
             .expectStatus().isOk()
             .expectBody()
@@ -63,9 +67,12 @@ class PositionControllerTest {
         newPosition("Java Developer", "IT");
         var departmentId = newPosition("HR Manager", "HR") + 1;
 
+        setupValidToken();
+
         var message = String.format("Department with id %d is not found", departmentId);
         buildClient(port).get()
             .uri("/positions?departmentId=" + departmentId)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + VALID_TOKEN)
             .exchange()
             .expectStatus().isNotFound()
             .expectBody()
@@ -73,5 +80,19 @@ class PositionControllerTest {
             .jsonPath("$.status").isEqualTo(404)
             .jsonPath("$.url").isEqualTo("/positions?departmentId=" + departmentId)
             .jsonPath("$.timestamp").exists();
+    }
+
+    @Test
+    void findAll_invalidToken_isUnauthorized() {
+        newPosition("Java Developer", "IT");
+        newPosition("HR Manager", "HR");
+
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/positions")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + INVALID_TOKEN)
+            .exchange();
+        validateUnauthorized(spec);
     }
 }
