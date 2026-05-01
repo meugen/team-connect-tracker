@@ -62,4 +62,20 @@ class StackControllerTest extends AuthorizationControllerTest {
         validateStackItem(spec, 2, "Python");
         validateStackItem(spec, 3, "Ruby");
     }
+
+    @Test
+    void findAll_invalidToken_isUnauthorized() {
+        stackRepository.saveAll(List.of(
+            newStack("Java"), newStack("JavaScript"),
+            newStack("Python"), newStack("Ruby")
+        ));
+
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/stacks")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + INVALID_TOKEN)
+            .exchange();
+        validateUnauthorized(spec);
+    }
 }

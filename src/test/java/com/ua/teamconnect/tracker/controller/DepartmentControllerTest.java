@@ -62,4 +62,20 @@ class DepartmentControllerTest extends AuthorizationControllerTest {
         validateDepartmentItem(spec, 0, "Software Development");
         validateDepartmentItem(spec, 1, "HR Department");
     }
+
+    @Test
+    void findAll_invalidToken_isUnauthorized() {
+        repository.saveAll(List.of(
+            newDepartment("Software Development"),
+            newDepartment("HR Department")
+        ));
+
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/departments")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + INVALID_TOKEN)
+            .exchange();
+        validateUnauthorized(spec);
+    }
 }

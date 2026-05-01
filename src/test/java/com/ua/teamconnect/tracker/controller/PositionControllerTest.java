@@ -81,4 +81,18 @@ class PositionControllerTest extends AuthorizationControllerTest {
             .jsonPath("$.url").isEqualTo("/positions?departmentId=" + departmentId)
             .jsonPath("$.timestamp").exists();
     }
+
+    @Test
+    void findAll_invalidToken_isUnauthorized() {
+        newPosition("Java Developer", "IT");
+        newPosition("HR Manager", "HR");
+
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/positions")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + INVALID_TOKEN)
+            .exchange();
+        validateUnauthorized(spec);
+    }
 }
