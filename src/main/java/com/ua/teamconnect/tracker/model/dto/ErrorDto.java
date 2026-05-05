@@ -1,6 +1,8 @@
 package com.ua.teamconnect.tracker.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -18,5 +20,9 @@ public record ErrorDto(
 
     public ErrorDto(ResponseStatusException ex, String url) {
         this(ex.getStatusCode().value(), ex.getReason(), LocalDateTime.now(), url);
+    }
+
+    public ErrorDto(AuthenticationException ex, String url) {
+        this(HttpStatus.UNAUTHORIZED.value(), ex.getMessage(), LocalDateTime.now(), url);
     }
 }

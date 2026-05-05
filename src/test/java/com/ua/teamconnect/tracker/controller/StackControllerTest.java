@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.List;
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class StackControllerTest {
+class StackControllerTest extends AuthorizationControllerTest {
 
     @Autowired
     private StackRepository stackRepository;
@@ -46,8 +47,11 @@ class StackControllerTest {
             newStack("Python"), newStack("Ruby")
         ));
 
+        setupValidToken();
+
         var spec = buildClient(port).get()
             .uri("/stacks")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + VALID_TOKEN)
             .exchange()
             .expectStatus().isOk()
             .expectBody()
@@ -57,5 +61,21 @@ class StackControllerTest {
         validateStackItem(spec, 1, "JavaScript");
         validateStackItem(spec, 2, "Python");
         validateStackItem(spec, 3, "Ruby");
+    }
+
+    @Test
+    void findAll_invalidToken_isUnauthorized() {
+        stackRepository.saveAll(List.of(
+            newStack("Java"), newStack("JavaScript"),
+            newStack("Python"), newStack("Ruby")
+        ));
+
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/stacks")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + INVALID_TOKEN)
+            .exchange();
+        validateUnauthorized(spec);
     }
 }

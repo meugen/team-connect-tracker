@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.util;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 public class TestUtil {
@@ -13,6 +14,7 @@ public class TestUtil {
     public static WebTestClient buildClient(String host, int port) {
         return WebTestClient.bindToServer()
             .baseUrl(String.format("http://%s:%d", host, port))
+            .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer test-token")
             .build();
     }
 }
