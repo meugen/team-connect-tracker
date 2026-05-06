@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -18,5 +18,5 @@ public interface UserProjectRepository extends CrudRepository<UserProject, UserP
             and (p.endDate is null or :now < p.endDate))
         and up.startDate <= :now and (up.endDate is null or :now < up.endDate)
     """)
-    List<UserProject> findByUserIdAndNow(Long userId, LocalDateTime now);
+    List<UserProject> findByUserIdAndNow(Long userId, LocalDate now);
 }

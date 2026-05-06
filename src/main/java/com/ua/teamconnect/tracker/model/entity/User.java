@@ -1,14 +1,14 @@
 package com.ua.teamconnect.tracker.model.entity;
 
 import com.ua.teamconnect.tracker.model.pojo.Gender;
-import com.ua.teamconnect.tracker.model.pojo.Phone;
 import com.ua.teamconnect.tracker.model.pojo.converter.GenderConverter;
 import com.ua.teamconnect.tracker.model.pojo.converter.PhoneConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.Map;
 
 @Entity
 @Table(name = "users")
@@ -42,10 +42,10 @@ public class User {
 
     @Convert(converter = PhoneConverter.class)
     @Column(nullable = false)
-    private Phone phone;
+    private Map<String, String> phone;
 
     @Column(nullable = false)
-    private LocalDateTime birthDate;
+    private LocalDate birthDate;
 
     @Convert(converter = GenderConverter.class)
     @Column(nullable = false)

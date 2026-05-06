@@ -1,9 +1,8 @@
 package com.ua.teamconnect.tracker.model.dto;
 
-import com.ua.teamconnect.tracker.model.pojo.Phone;
-
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public record UserProfileDto(
     Long id,
@@ -11,12 +10,12 @@ public record UserProfileDto(
     String lastName,
     String avatar,
     String workEmail,
-    LocalDateTime hireDate,
+    LocalDate hireDate,
     String grade,
-    Phone phones,
+    Map<String, String> phones,
     List<StackDto> stacks,
     List<ProfilePositionDto> positions,
     List<ProfileProjectDto> projects,
-    LocalDateTime birthDate
+    LocalDate birthDate
 ) {
 }

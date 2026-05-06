@@ -11,7 +11,7 @@ import com.ua.teamconnect.tracker.repository.UserStackRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +30,7 @@ public class UserService {
         var stacks = userStackRepository.findByUserId(user.getId());
         var hireDate = userPositionRepository.findHireDateByUserId(user.getId())
             .orElse(null);
-        var now = LocalDateTime.now();
+        var now = LocalDate.now();
         var positions = userPositionRepository.findByUserIdAndNow(user.getId(), now);
         var projects = userProjectRepository.findByUserIdAndNow(user.getId(), now);
         var details = new ProfileDetails(stacks, projects, positions, hireDate);

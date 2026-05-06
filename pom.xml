@@ -113,6 +113,7 @@
                         <configuration>
                             <excludes>
                                 <exclude>com/ua/teamconnect/tracker/TrackerApp.class</exclude>
+                                <exclude>com/ua/teamconnect/tracker/model/entity/id/*Id.class</exclude>
                             </excludes>
                             <rules>
                                 <rule>

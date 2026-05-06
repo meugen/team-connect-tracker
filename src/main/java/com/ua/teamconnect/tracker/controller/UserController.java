@@ -18,7 +18,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/profile")
-    public UserProfileDto profile(@AuthenticationPrincipal(errorOnInvalidType = true) Jwt jwt) {
+    public UserProfileDto profile(@AuthenticationPrincipal Jwt jwt) {
         return userService.profile(jwt.getSubject());
     }
 }
