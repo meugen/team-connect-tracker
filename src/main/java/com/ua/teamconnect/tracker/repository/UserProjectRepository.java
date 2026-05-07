@@ -14,7 +14,7 @@ public interface UserProjectRepository extends CrudRepository<UserProject, UserP
 
     @Query("""
     select up from UserProject up join fetch up.project where up.id.userId=:userId
-        and up.id.projectId in (select distinct p.id from Project p where p.startDate <= :now
+        and up.id.projectId in (select p.id from Project p where p.startDate <= :now
             and (p.endDate is null or :now < p.endDate))
         and up.startDate <= :now and (up.endDate is null or :now < up.endDate)
     """)
