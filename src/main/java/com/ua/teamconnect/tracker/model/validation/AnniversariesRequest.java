@@ -1,6 +1,6 @@
 package com.ua.teamconnect.tracker.model.validation;
 
-import com.ua.teamconnect.tracker.model.validation.validator.DateWithoutYearValidator;
+import com.ua.teamconnect.tracker.model.validation.validator.AnniversariesRequestValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -9,12 +9,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Constraint(validatedBy = DateWithoutYearValidator.class)
-@Target({ ElementType.FIELD, ElementType.PARAMETER })
+@Constraint(validatedBy = AnniversariesRequestValidator.class)
+@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.TYPE, ElementType.RECORD_COMPONENT})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface DateWithoutYear {
+public @interface AnniversariesRequest {
 
-    String message() default "Invalid date without year. Expected format: dd-MM";
+    String message() default "Invalid date rage. Start date should be less or equal than end date";
 
     Class<?>[] groups() default {};
 

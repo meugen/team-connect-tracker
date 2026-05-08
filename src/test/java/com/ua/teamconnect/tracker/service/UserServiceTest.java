@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.service;
 
+import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
 import com.ua.teamconnect.tracker.mapper.UserProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.model.entity.*;
@@ -47,7 +48,8 @@ class UserServiceTest {
             userPositionRepository,
             userProjectRepository,
             userStackRepository,
-            Mappers.getMapper(UserProfileMapper.class)
+            Mappers.getMapper(UserProfileMapper.class),
+            Mappers.getMapper(UserAnniversaryMapper.class)
         );
     }
 

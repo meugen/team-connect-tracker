@@ -1,8 +1,10 @@
 package com.ua.teamconnect.tracker.service;
 
+import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
 import com.ua.teamconnect.tracker.mapper.UserProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
 import com.ua.teamconnect.tracker.model.dto.UserProfileDto;
+import com.ua.teamconnect.tracker.model.dto.in.AnniversariesDto;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.model.pojo.ProfileDetails;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
@@ -24,6 +26,7 @@ public class UserService {
     private final UserProjectRepository userProjectRepository;
     private final UserStackRepository userStackRepository;
     private final UserProfileMapper userProfileMapper;
+    private final UserAnniversaryMapper userAnniversaryMapper;
 
     public UserProfileDto profile(String email) {
         var user = userRepository.findByEmail(email).orElseThrow(
@@ -39,5 +42,10 @@ public class UserService {
         return userProfileMapper.entityToDto(user, details);
     }
 
-    public List<UserAnniversaryDto> anniversaries(String startDate, String endDate) {}
+    public List<UserAnniversaryDto> anniversaries(AnniversariesDto request) {
+        var anniversaries = userPositionRepository.findAnniversaries(
+            request.startMonth(), request.startDay(), request.endMonth(), request.endDay()
+        );
+        return userAnniversaryMapper.projectionListTDtoList(anniversaries);
+    }
 }

@@ -12,7 +12,7 @@ public class DateWithoutYearValidator implements ConstraintValidator<DateWithout
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        var pattern = Pattern.compile("^(\\d{2})-(\\d{2})\\$");
+        var pattern = Pattern.compile("^(\\d{2})-(\\d{2})$");
         var matcher = pattern.matcher(value);
         if (!matcher.find()) return false;
         var day = Integer.parseInt(matcher.group(1));

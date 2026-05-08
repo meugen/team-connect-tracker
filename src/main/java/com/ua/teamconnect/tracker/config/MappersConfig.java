@@ -27,4 +27,9 @@ public class MappersConfig {
     public UserProfileMapper userProfileMapper() {
         return Mappers.getMapper(UserProfileMapper.class);
     }
+
+    @Bean
+    public UserAnniversaryMapper userAnniversaryMapper() {
+        return Mappers.getMapper(UserAnniversaryMapper.class);
+    }
 }
