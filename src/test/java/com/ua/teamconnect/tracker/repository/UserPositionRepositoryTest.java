@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.domain.Limit;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 import java.time.LocalDate;
@@ -108,20 +107,6 @@ class UserPositionRepositoryTest extends UserRelatedRepositoryTest {
         var positions = userPositionRepository.findByUserIdAndNow(userId,
             LocalDate.of(2021, Month.DECEMBER, 31)
         );
-        assertTrue(positions.isEmpty());
-    }
-
-    @Test
-    void findByUserUserId_validUser_twoItems() {
-        var userId = setupData();
-        var positions = userPositionRepository.findByUserId(userId, Limit.unlimited());
-        assertEquals(2, positions.size());
-    }
-
-    @Test
-    void findByUserId_invalidUser_emptyList() {
-        var userId = setupData() + 1;
-        var positions = userPositionRepository.findByUserId(userId, Limit.unlimited());
         assertTrue(positions.isEmpty());
     }
 

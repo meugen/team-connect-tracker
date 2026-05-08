@@ -2,7 +2,6 @@ package com.ua.teamconnect.tracker.repository;
 
 import com.ua.teamconnect.tracker.model.entity.UserPosition;
 import com.ua.teamconnect.tracker.model.entity.id.UserPositionId;
-import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -20,12 +19,6 @@ public interface UserPositionRepository extends CrudRepository<UserPosition, Use
     """)
     List<UserPosition> findByUserIdAndNow(Long userId, LocalDate now);
 
-    @Query("select up from UserPosition up where up.id.userId=:userId")
-    List<UserPosition> findByUserId(Long userId, Limit limit);
-
-    default Optional<LocalDate> findHireDateByUserId(Long userId) {
-        return findByUserId(userId, Limit.of(1)).stream()
-            .map(UserPosition::getStartDate)
-            .findFirst();
-    }
+    @Query("select min(up.startDate) hire_date from UserPosition up where up.id.userId=:userId")
+    Optional<LocalDate> findHireDateByUserId(Long userId);
 }
