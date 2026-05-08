@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.controller;
 
+import com.ua.teamconnect.tracker.model.annotation.ApiResponseBadRequest;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseOk;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseUnauthorized;
 import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
@@ -14,7 +15,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,8 +36,9 @@ public class UserController {
     }
 
     @GetMapping("/anniversaries")
+    @ApiResponseBadRequest
     public List<UserAnniversaryDto> anniversaries(
-        @Valid @ModelAttribute AnniversariesDto anniversaries
+        @Valid AnniversariesDto anniversaries
     ) {
         return userService.anniversaries(anniversaries);
     }

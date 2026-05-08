@@ -20,8 +20,8 @@ public class UserStackId implements Serializable {
     }
 
     @Column(nullable = false, name = "user_id")
-    private Long userId;
+    private Integer userId;
 
     @Column(nullable = false, name = "stack_id")
-    private Long stackId;
+    private Integer stackId;
 }

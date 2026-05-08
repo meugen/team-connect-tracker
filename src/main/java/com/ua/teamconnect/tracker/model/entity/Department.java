@@ -10,13 +10,14 @@ import lombok.Setter;
 public class Department {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "departments_id_seq")
+    @SequenceGenerator(name = "departments_id_seq", allocationSize = 1)
+    private Integer id;
 
     @Column(nullable = false)
     private String name;
 
     @Column(name = "head_id")
-    private Long headId;
+    private Integer headId;
 
 }

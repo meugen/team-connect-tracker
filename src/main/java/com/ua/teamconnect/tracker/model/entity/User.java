@@ -16,8 +16,9 @@ import java.util.Map;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "employees_id_seq")
+    @SequenceGenerator(name = "employees_id_seq", allocationSize = 1)
+    private Integer id;
 
     @Column(nullable = false)
     private String password;

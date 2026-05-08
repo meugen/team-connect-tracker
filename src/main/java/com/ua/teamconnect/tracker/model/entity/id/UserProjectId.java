@@ -20,8 +20,8 @@ public class UserProjectId implements Serializable {
     }
 
     @Column(nullable = false, name = "user_id")
-    private Long userId;
+    private Integer userId;
 
     @Column(nullable = false, name = "project_id")
-    private Long projectId;
+    private Integer projectId;
 }
