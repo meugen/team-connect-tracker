@@ -1,8 +1,6 @@
 package com.ua.teamconnect.tracker.config;
 
-import com.ua.teamconnect.tracker.mapper.DepartmentMapper;
-import com.ua.teamconnect.tracker.mapper.PositionMapper;
-import com.ua.teamconnect.tracker.mapper.StackMapper;
+import com.ua.teamconnect.tracker.mapper.*;
 import org.mapstruct.factory.Mappers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,5 +21,10 @@ public class MappersConfig {
     @Bean
     public PositionMapper positionMapper() {
         return Mappers.getMapper(PositionMapper.class);
+    }
+    
+    @Bean
+    public UserProfileMapper userProfileMapper() {
+        return Mappers.getMapper(UserProfileMapper.class);
     }
 }
