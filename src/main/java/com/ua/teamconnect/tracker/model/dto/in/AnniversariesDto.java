@@ -11,13 +11,6 @@ import jakarta.validation.constraints.NotNull;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Request DTO for anniversaries endpoint.
- * Validation order:
- * 1. BasicValidation: @NotNull, @NotEmpty
- * 2. FormatValidation: @DateWithoutYear
- * 3. Default (cross-field): @AnniversariesRequest
- */
 @AnniversariesRequest
 @GroupSequence({BasicValidation.class, FormatValidation.class, AnniversariesDto.class})
 public record AnniversariesDto(

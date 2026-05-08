@@ -37,7 +37,7 @@ class UserProjectRepositoryTest extends UserRelatedRepositoryTest {
         projectRepository.deleteAll();
     }
 
-    private Long setupData() {
+    private Integer setupData() {
         var teamConnect = new Project();
         teamConnect.setName("Team Connect");
         teamConnect.setStatus("ACTIVE");

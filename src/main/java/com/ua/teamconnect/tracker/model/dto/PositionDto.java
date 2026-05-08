@@ -9,6 +9,6 @@ public record PositionDto(
     @Schema(description = "Name of the position", example = "Software Engineer")
     String name,
     @Schema(description = "Department ID of the position", example = "1")
-    Long departmentId
+    Integer departmentId
 ) {
 }

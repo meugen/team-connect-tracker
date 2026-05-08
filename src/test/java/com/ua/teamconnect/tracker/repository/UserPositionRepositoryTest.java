@@ -43,7 +43,7 @@ class UserPositionRepositoryTest extends UserRelatedRepositoryTest {
         userRepository.deleteAll();
     }
 
-    private Long setupData() {
+    private Integer setupData() {
         var department = new Department();
         department.setName("Software Development");
         department = departmentRepository.save(department);
