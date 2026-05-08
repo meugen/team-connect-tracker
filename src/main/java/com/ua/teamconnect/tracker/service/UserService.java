@@ -1,6 +1,7 @@
 package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.mapper.UserProfileMapper;
+import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
 import com.ua.teamconnect.tracker.model.dto.UserProfileDto;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.model.pojo.ProfileDetails;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -36,4 +38,6 @@ public class UserService {
         var details = new ProfileDetails(stacks, projects, positions, hireDate);
         return userProfileMapper.entityToDto(user, details);
     }
+
+    public List<UserAnniversaryDto> anniversaries(String startDate, String endDate) {}
 }
