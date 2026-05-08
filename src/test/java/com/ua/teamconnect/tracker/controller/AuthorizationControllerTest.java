@@ -17,14 +17,18 @@ abstract class AuthorizationControllerTest {
     @MockBean
     private JwtDecoder jwtDecoder;
 
-    void setupValidToken() {
+    void setupValidToken(String subject) {
         var jwt = Jwt.withTokenValue(VALID_TOKEN)
             .header("alg", "none")
-            .subject("test-user")
+            .subject(subject)
             .issuedAt(Instant.now())
             .expiresAt(Instant.now().plusSeconds(3600))
             .build();
         when(jwtDecoder.decode(VALID_TOKEN)).thenReturn(jwt);
+    }
+
+    void setupValidToken() {
+        setupValidToken("test-user");
     }
 
     void validateUnauthorized(WebTestClient.ResponseSpec spec) {
