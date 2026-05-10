@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -32,10 +33,18 @@ abstract class AuthorizationControllerTest {
     }
 
     void validateUnauthorized(WebTestClient.ResponseSpec spec) {
-        spec.expectStatus().isUnauthorized()
+        validateHttpStatus(spec, HttpStatus.UNAUTHORIZED);
+    }
+
+    void validateBadRequest(WebTestClient.ResponseSpec spec) {
+        validateHttpStatus(spec, HttpStatus.BAD_REQUEST);
+    }
+
+    private void validateHttpStatus(WebTestClient.ResponseSpec spec, HttpStatus status) {
+        spec.expectStatus().isEqualTo(status)
             .expectBody()
             .jsonPath("$.message").isNotEmpty()
-            .jsonPath("$.status").isEqualTo(401)
+            .jsonPath("$.status").isEqualTo(status.value())
             .jsonPath("$.timestamp").isNotEmpty()
             .jsonPath("$.url").isNotEmpty();
     }
