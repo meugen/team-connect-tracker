@@ -6,8 +6,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDate;
 
@@ -26,7 +26,7 @@ class UserProjectRepositoryTest extends UserRelatedRepositoryTest {
     @Autowired
     private UserProjectRepository userProjectRepository;
 
-    @MockBean
+    @MockitoBean
     @SuppressWarnings("unused") // Need for context not complaining of missing bean
     private JwtDecoder jwtDecoder;
 
