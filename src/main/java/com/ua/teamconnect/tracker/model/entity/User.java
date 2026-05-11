@@ -1,11 +1,11 @@
 package com.ua.teamconnect.tracker.model.entity;
 
 import com.ua.teamconnect.tracker.model.pojo.Gender;
-import com.ua.teamconnect.tracker.model.pojo.converter.GenderConverter;
-import com.ua.teamconnect.tracker.model.pojo.converter.PhoneConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -41,14 +41,14 @@ public class User {
     @Column
     private String avatar;
 
-    @Convert(converter = PhoneConverter.class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false)
     private Map<String, String> phone;
 
     @Column(nullable = false)
     private LocalDate birthDate;
 
-    @Convert(converter = GenderConverter.class)
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Gender gender;
 
