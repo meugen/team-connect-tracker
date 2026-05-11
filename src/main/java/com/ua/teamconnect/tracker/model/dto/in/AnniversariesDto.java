@@ -1,51 +1,37 @@
 package com.ua.teamconnect.tracker.model.dto.in;
 
-import com.ua.teamconnect.tracker.model.validation.AnniversariesRequest;
-import com.ua.teamconnect.tracker.model.validation.DateWithoutYear;
-import com.ua.teamconnect.tracker.model.validation.group.BasicValidation;
-import com.ua.teamconnect.tracker.model.validation.group.FormatValidation;
-import jakarta.validation.GroupSequence;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import com.ua.teamconnect.tracker.model.exception.AnniversariesRequestException;
+import com.ua.teamconnect.tracker.model.exception.DateWithoutYearException;
 
-import java.util.regex.Matcher;
+import java.time.DateTimeException;
+import java.time.LocalDate;
 import java.util.regex.Pattern;
 
-@AnniversariesRequest
-@GroupSequence({BasicValidation.class, FormatValidation.class, AnniversariesDto.class})
-public record AnniversariesDto(
-    @NotNull(groups = BasicValidation.class)
-    @NotEmpty(groups = BasicValidation.class)
-    @DateWithoutYear(groups = FormatValidation.class)
-    String startDate,
+import static org.springframework.util.ObjectUtils.isEmpty;
 
-    @NotNull(groups = BasicValidation.class)
-    @NotEmpty(groups = BasicValidation.class)
-    @DateWithoutYear(groups = FormatValidation.class)
-    String endDate
-) {
+public record AnniversariesDto(LocalDate startDate, LocalDate endDate) {
 
-    private static Matcher matcher(String date) {
+    public static AnniversariesDto of(String startDate, String endDate) {
+        var start = toLocalDate(startDate);
+        var end = toLocalDate(endDate);
+        if (start.isAfter(end)) {
+            throw new AnniversariesRequestException();
+        }
+        return new AnniversariesDto(start, end);
+    }
+
+    private static LocalDate toLocalDate(String date) {
+        if (isEmpty(date)) throw new DateWithoutYearException(date);
         var pattern = Pattern.compile("^(\\d{2})-(\\d{2})$");
         var matcher = pattern.matcher(date);
-        @SuppressWarnings("unused")
-        boolean found = matcher.find();
-        return matcher;
-    }
-
-    public int startMonth() {
-        return Integer.parseInt(matcher(startDate).group(2));
-    }
-
-    public int startDay() {
-        return Integer.parseInt(matcher(startDate).group(1));
-    }
-
-    public int endMonth() {
-        return Integer.parseInt(matcher(endDate).group(2));
-    }
-
-    public int endDay() {
-        return Integer.parseInt(matcher(endDate).group(1));
+        if (!matcher.find()) throw new DateWithoutYearException(date);
+        var day = Integer.parseInt(matcher.group(1));
+        var month = Integer.parseInt(matcher.group(2));
+        try {
+            // Important to use a leap year here, so 29th February counts as a valid date
+            return LocalDate.of(2024, month, day);
+        } catch (DateTimeException e) {
+            throw new DateWithoutYearException(date);
+        }
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,13 +15,21 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     Optional<User> findByEmail(String email);
 
-    @Query(nativeQuery = true, value = """
-    SELECT u.id userId, u.first_name firstName, u.last_name lastName, u.avatar avatarUrl, uh.hire_date hireDate
-    FROM users u JOIN user_hire_date uh on (u.id = uh.user_id)
-    WHERE (:startMonth < EXTRACT(MONTH FROM uh.hire_date) AND EXTRACT(MONTH FROM uh.hire_date) < :endMonth)
-       OR (:startMonth = EXTRACT(MONTH FROM uh.hire_date) AND EXTRACT(MONTH FROM uh.hire_date) < :endMonth AND :startDay <= EXTRACT(DAY FROM uh.hire_date))
-       OR (:startMonth < EXTRACT(MONTH FROM uh.hire_date) AND EXTRACT(MONTH FROM uh.hire_date) = :endMonth AND EXTRACT(DAY FROM uh.hire_date) <= :endDay)
-       OR (:startMonth = EXTRACT(MONTH FROM uh.hire_date) AND EXTRACT(MONTH FROM uh.hire_date) = :endMonth AND :startDay <= EXTRACT(DAY FROM uh.hire_date) AND EXTRACT(DAY FROM uh.hire_date) <= :endDay)
+    @Query("""
+    select up.id.userId userId, up.user.firstName firstName, up.user.lastName lastName,
+         up.user.avatar avatarUrl, min(up.startDate) hireDate from UserPosition up
+         group by up.id.userId, up.user.firstName, up.user.lastName, up.user.avatar
     """)
-    List<Anniversary> findAnniversaries(int startMonth, int startDay, int endMonth, int endDay);
+    List<Anniversary> findAllAnniversaries();
+
+    default List<Anniversary> findAnniversaries(LocalDate start, LocalDate end) {
+        return findAllAnniversaries().stream()
+            .filter(anniversary -> {
+                var startDate = start.withYear(anniversary.getHireDate().getYear());
+                var endDate = end.withYear(anniversary.getHireDate().getYear());
+                return anniversary.getHireDate().isAfter(startDate)
+                    && anniversary.getHireDate().isBefore(endDate);
+            })
+            .toList();
+    }
 }

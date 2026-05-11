@@ -9,7 +9,6 @@ import com.ua.teamconnect.tracker.model.dto.in.AnniversariesDto;
 import com.ua.teamconnect.tracker.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,21 +35,12 @@ public class UserController {
 
     @GetMapping("/anniversaries")
     @ApiResponseBadRequest
-    @Parameter(
-        name = "startDate",
-        description = "Start date in dd-MM format",
-        example = "20-01",
-        required = true
-    )
-    @Parameter(
-        name = "endDate",
-        description = "End date in dd-MM format",
-        example = "20-02",
-        required = true
-    )
     public List<UserAnniversaryDto> anniversaries(
-        @Valid @Parameter(hidden = true) AnniversariesDto anniversaries
+        @Parameter(description = "Start date in dd-MM format", example = "20-01", required = true)
+        String startDate,
+        @Parameter(description = "End date in dd-MM format", example = "10-02", required = true)
+        String endDate
     ) {
-        return userService.anniversaries(anniversaries);
+        return userService.anniversaries(AnniversariesDto.of(startDate, endDate));
     }
 }

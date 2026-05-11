@@ -1,12 +1,10 @@
 package com.ua.teamconnect.tracker.controller;
 
-import com.ua.teamconnect.tracker.extension.UserHireDateExtension;
 import com.ua.teamconnect.tracker.model.entity.*;
 import com.ua.teamconnect.tracker.model.pojo.Gender;
 import com.ua.teamconnect.tracker.repository.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -159,7 +157,6 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    @ExtendWith(UserHireDateExtension.class)
     void anniversaries_validTokenAndRequest_isOkAndNotEmpty() {
         setupUser();
         setupValidToken();
@@ -180,7 +177,6 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    @ExtendWith(UserHireDateExtension.class)
     void anniversaries_validTokenAndAfterHireDate_isOkAndEmpty() {
         setupUser();
         setupValidToken();
@@ -196,7 +192,6 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    @ExtendWith(UserHireDateExtension.class)
     void anniversaries_validTokenAndBeforeHireDate_isOkAndEmpty() {
         setupUser();
         setupValidToken();

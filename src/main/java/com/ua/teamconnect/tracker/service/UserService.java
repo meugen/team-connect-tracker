@@ -44,7 +44,7 @@ public class UserService {
 
     public List<UserAnniversaryDto> anniversaries(AnniversariesDto request) {
         var anniversaries = userRepository.findAnniversaries(
-            request.startMonth(), request.startDay(), request.endMonth(), request.endDay()
+            request.startDate(), request.endDate()
         );
         return userAnniversaryMapper.projectionListTDtoList(anniversaries);
     }

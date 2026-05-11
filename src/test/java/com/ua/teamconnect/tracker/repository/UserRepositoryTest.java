@@ -1,12 +1,10 @@
 package com.ua.teamconnect.tracker.repository;
 
-import com.ua.teamconnect.tracker.extension.UserHireDateExtension;
 import com.ua.teamconnect.tracker.model.entity.Department;
 import com.ua.teamconnect.tracker.model.entity.Position;
 import com.ua.teamconnect.tracker.model.entity.UserPosition;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -19,7 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ExtendWith(UserHireDateExtension.class)
 class UserRepositoryTest extends UserRelatedRepositoryTest {
 
     @Autowired
@@ -67,7 +64,10 @@ class UserRepositoryTest extends UserRelatedRepositoryTest {
     void findAnniversaries_existsInOneMonth_notEmptyList() {
         setupData();
 
-        var anniversaries = userRepository.findAnniversaries(2, 1, 2, 20);
+        var anniversaries = userRepository.findAnniversaries(
+            LocalDate.of(2024, Month.FEBRUARY, 1),
+            LocalDate.of(2024, Month.FEBRUARY, 20)
+        );
 
         assertEquals(1, anniversaries.size());
         assertEquals("John", anniversaries.get(0).getFirstName());
@@ -80,7 +80,10 @@ class UserRepositoryTest extends UserRelatedRepositoryTest {
     void findAnniversaries_inDifferentMonth_notEmptyList() {
         setupData();
 
-        var anniversaries = userRepository.findAnniversaries(1, 10, 3, 2);
+        var anniversaries = userRepository.findAnniversaries(
+            LocalDate.of(2024, Month.JANUARY, 10),
+            LocalDate.of(2024, Month.MARCH, 2)
+        );
 
         assertEquals(1, anniversaries.size());
         assertEquals("John", anniversaries.get(0).getFirstName());
@@ -93,7 +96,10 @@ class UserRepositoryTest extends UserRelatedRepositoryTest {
     void findAnniversaries_notExistsInOneMonth_emptyList() {
         setupData();
 
-        var anniversaries = userRepository.findAnniversaries(2, 10, 2, 20);
+        var anniversaries = userRepository.findAnniversaries(
+            LocalDate.of(2024, Month.FEBRUARY, 10),
+            LocalDate.of(2024, Month.MARCH, 20)
+        );
 
         assertTrue(anniversaries.isEmpty());
     }
@@ -102,7 +108,10 @@ class UserRepositoryTest extends UserRelatedRepositoryTest {
     void findAnniversaries_afterHireDate_emptyList() {
         setupData();
 
-        var anniversaries = userRepository.findAnniversaries(2, 10, 3, 2);
+        var anniversaries = userRepository.findAnniversaries(
+            LocalDate.of(2024, Month.FEBRUARY, 10),
+            LocalDate.of(2024, Month.MARCH, 2)
+        );
 
         assertTrue(anniversaries.isEmpty());
     }
@@ -111,7 +120,10 @@ class UserRepositoryTest extends UserRelatedRepositoryTest {
     void findAnniversaries_beforeHireDate_emptyList() {
         setupData();
 
-        var anniversaries = userRepository.findAnniversaries(1, 10, 2, 2);
+        var anniversaries = userRepository.findAnniversaries(
+            LocalDate.of(2024, Month.JANUARY, 10),
+            LocalDate.of(2024, Month.FEBRUARY, 2)
+        );
 
         assertTrue(anniversaries.isEmpty());
     }
