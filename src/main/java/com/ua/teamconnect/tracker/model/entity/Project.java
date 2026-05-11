@@ -12,8 +12,9 @@ import java.time.LocalDate;
 public class Project {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "projects_id_seq")
+    @SequenceGenerator(name = "projects_id_seq", allocationSize = 1)
+    private Integer id;
 
     @Column(nullable = false, unique = true)
     private String name;

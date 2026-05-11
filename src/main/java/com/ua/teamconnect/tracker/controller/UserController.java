@@ -1,9 +1,13 @@
 package com.ua.teamconnect.tracker.controller;
 
+import com.ua.teamconnect.tracker.model.annotation.ApiResponseBadRequest;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseOk;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseUnauthorized;
+import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
 import com.ua.teamconnect.tracker.model.dto.UserProfileDto;
+import com.ua.teamconnect.tracker.model.dto.in.AnniversariesDto;
 import com.ua.teamconnect.tracker.service.UserService;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -12,6 +16,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -25,5 +31,16 @@ public class UserController {
     @GetMapping("/profile")
     public UserProfileDto profile(@AuthenticationPrincipal Jwt jwt) {
         return userService.profile(jwt.getSubject());
+    }
+
+    @GetMapping("/anniversaries")
+    @ApiResponseBadRequest
+    public List<UserAnniversaryDto> anniversaries(
+        @Parameter(description = "Start date in dd-MM format", example = "20-01", required = true)
+        String startDate,
+        @Parameter(description = "End date in dd-MM format", example = "10-02", required = true)
+        String endDate
+    ) {
+        return userService.anniversaries(AnniversariesDto.of(startDate, endDate));
     }
 }

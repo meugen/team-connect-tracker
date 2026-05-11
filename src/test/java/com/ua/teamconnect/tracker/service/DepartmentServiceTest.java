@@ -1,8 +1,8 @@
 package com.ua.teamconnect.tracker.service;
 
+import com.ua.teamconnect.tracker.mapper.DepartmentMapper;
 import com.ua.teamconnect.tracker.model.dto.DepartmentDto;
 import com.ua.teamconnect.tracker.model.entity.Department;
-import com.ua.teamconnect.tracker.mapper.DepartmentMapper;
 import com.ua.teamconnect.tracker.repository.DepartmentRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

@@ -1,7 +1,10 @@
 package com.ua.teamconnect.tracker.service;
 
+import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
 import com.ua.teamconnect.tracker.mapper.UserProfileMapper;
+import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
 import com.ua.teamconnect.tracker.model.dto.UserProfileDto;
+import com.ua.teamconnect.tracker.model.dto.in.AnniversariesDto;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.model.pojo.ProfileDetails;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
@@ -12,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +26,7 @@ public class UserService {
     private final UserProjectRepository userProjectRepository;
     private final UserStackRepository userStackRepository;
     private final UserProfileMapper userProfileMapper;
+    private final UserAnniversaryMapper userAnniversaryMapper;
 
     public UserProfileDto profile(String email) {
         var user = userRepository.findByEmail(email).orElseThrow(
@@ -35,5 +40,12 @@ public class UserService {
         var projects = userProjectRepository.findByUserIdAndNow(user.getId(), now);
         var details = new ProfileDetails(stacks, projects, positions, hireDate);
         return userProfileMapper.entityToDto(user, details);
+    }
+
+    public List<UserAnniversaryDto> anniversaries(AnniversariesDto request) {
+        var anniversaries = userRepository.findAnniversaries(
+            request.startDate(), request.endDate()
+        );
+        return userAnniversaryMapper.projectionListTDtoList(anniversaries);
     }
 }

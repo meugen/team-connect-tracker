@@ -102,11 +102,11 @@ class UserControllerTest extends AuthorizationControllerTest {
 
         var userProject = UserProject.of(user, project);
         userProject.setRole("DEVELOPER");
-        userProject.setStartDate(LocalDate.of(2023, Month.FEBRUARY, 1));
+        userProject.setStartDate(LocalDate.of(2023, Month.MARCH, 1));
         userProjectRepository.save(userProject);
 
         var userPosition = UserPosition.of(user, position);
-        userPosition.setStartDate(LocalDate.of(2023, Month.JANUARY, 1));
+        userPosition.setStartDate(LocalDate.of(2023, Month.FEBRUARY, 1));
         userPositionRepository.save(userPosition);
     }
 
@@ -126,7 +126,7 @@ class UserControllerTest extends AuthorizationControllerTest {
             .jsonPath("$.lastName").isEqualTo("Doe")
             .jsonPath("$.avatar").isEqualTo("https://avatar.com")
             .jsonPath("$.workEmail").isEqualTo("user@example.com")
-            .jsonPath("$.hireDate").isEqualTo("2023-01-01")
+            .jsonPath("$.hireDate").isEqualTo("2023-02-01")
             .jsonPath("$.grade").isEqualTo("SENIOR")
             .jsonPath("$.phones.home").isEqualTo("+123456789")
             .jsonPath("$.phones.mobile").isEqualTo("+987654321")
@@ -155,4 +155,127 @@ class UserControllerTest extends AuthorizationControllerTest {
             .exchange();
         validateUnauthorized(spec);
     }
+
+    @Test
+    void anniversaries_validTokenAndRequest_isOkAndNotEmpty() {
+        setupUser();
+        setupValidToken();
+
+        buildClient(port).get()
+            .uri("/users/anniversaries?startDate=20-01&endDate=10-02")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$").isArray()
+            .jsonPath("$.length()").isEqualTo(1)
+            .jsonPath("$[0].id").isNumber()
+            .jsonPath("$[0].firstName").isEqualTo("John")
+            .jsonPath("$[0].lastName").isEqualTo("Doe")
+            .jsonPath("$[0].avatarUrl").isEqualTo("https://avatar.com")
+            .jsonPath("$[0].hireDate").isEqualTo("2023-02-01");
+    }
+
+    @Test
+    void anniversaries_validTokenAndAfterHireDate_isOkAndEmpty() {
+        setupUser();
+        setupValidToken();
+
+        buildClient(port).get()
+            .uri("/users/anniversaries?startDate=10-02&endDate=20-02")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$").isArray()
+            .jsonPath("$.length()").isEqualTo(0);
+    }
+
+    @Test
+    void anniversaries_validTokenAndBeforeHireDate_isOkAndEmpty() {
+        setupUser();
+        setupValidToken();
+
+        buildClient(port).get()
+            .uri("/users/anniversaries?startDate=10-01&endDate=20-01")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$").isArray()
+            .jsonPath("$.length()").isEqualTo(0);
+    }
+
+    @Test
+    void anniversaries_invalidToken_isUnauthorized() {
+        setupUser();
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/users/anniversaries?startDate=20-01&endDate=10-02")
+            .header("Authorization", "Bearer " + INVALID_TOKEN)
+            .exchange();
+        validateUnauthorized(spec);
+    }
+
+    @Test
+    void anniversaries_startAfterEnd_isBadRequest() {
+        setupUser();
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/users/anniversaries?startDate=10-02&endDate=20-01")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void anniversaries_invalidStart_isBadRequest() {
+        setupUser();
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/users/anniversaries?startDate=201-01&endDate=10-02")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void anniversaries_invalidEnd_isBadRequest() {
+        setupUser();
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/users/anniversaries?startDate=20-01&endDate=101-02")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void anniversaries_noStart_isBadRequest() {
+        setupUser();
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/users/anniversaries?endDate=10-02")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void anniversaries_noEnd_isBadRequest() {
+        setupUser();
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/users/anniversaries?startDate=20-01")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
 }

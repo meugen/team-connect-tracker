@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.service;
 
+import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
 import com.ua.teamconnect.tracker.mapper.UserProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.model.entity.*;
@@ -47,13 +48,14 @@ class UserServiceTest {
             userPositionRepository,
             userProjectRepository,
             userStackRepository,
-            Mappers.getMapper(UserProfileMapper.class)
+            Mappers.getMapper(UserProfileMapper.class),
+            Mappers.getMapper(UserAnniversaryMapper.class)
         );
     }
 
     @Test
     void profile_repositoryReturnsEntity_returnsDto() {
-        var userId = RANDOM.nextLong();
+        var userId = RANDOM.nextInt();
         var user = mock(User.class);
         when(user.getId()).thenReturn(userId);
         when(user.getFirstName()).thenReturn("John");
@@ -68,7 +70,7 @@ class UserServiceTest {
         when(user.getBirthDate()).thenReturn(LocalDate.of(1990, Month.APRIL, 21));
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
 
-        var projectId = RANDOM.nextLong();
+        var projectId = RANDOM.nextInt();
         var project = mock(Project.class);
         when(project.getId()).thenReturn(projectId);
         when(project.getName()).thenReturn("TeamConnect");
@@ -77,11 +79,11 @@ class UserServiceTest {
         when(userProject.getStartDate()).thenReturn(LocalDate.of(2020, Month.SEPTEMBER, 2));
         when(userProjectRepository.findByUserIdAndNow(eq(userId), any())).thenReturn(List.of(userProject));
 
-        var departmentId = RANDOM.nextLong();
+        var departmentId = RANDOM.nextInt();
         var department = mock(Department.class);
         when(department.getId()).thenReturn(departmentId);
         when(department.getName()).thenReturn("Software Development");
-        var positionId = RANDOM.nextLong();
+        var positionId = RANDOM.nextInt();
         var position = mock(Position.class);
         var userPosition = mock(UserPosition.class);
         when(position.getId()).thenReturn(positionId);
@@ -90,7 +92,7 @@ class UserServiceTest {
         when(userPosition.getPosition()).thenReturn(position);
         when(userPositionRepository.findByUserIdAndNow(eq(userId), any())).thenReturn(List.of(userPosition));
 
-        var stackId = RANDOM.nextLong();
+        var stackId = RANDOM.nextInt();
         var userStack = mock(UserStack.class);
         var stack = mock(Stack.class);
         when(stack.getId()).thenReturn(stackId);
