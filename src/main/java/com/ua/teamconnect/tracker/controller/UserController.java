@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import static io.swagger.v3.oas.annotations.enums.ParameterIn.QUERY;
-
 @RestController
 @RequestMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "User Controller", description = "Endpoints related to users")
@@ -42,15 +40,13 @@ public class UserController {
         name = "startDate",
         description = "Start date in dd-MM format",
         example = "20-01",
-        required = true,
-        in = QUERY
+        required = true
     )
     @Parameter(
         name = "endDate",
         description = "End date in dd-MM format",
         example = "20-02",
-        required = true,
-        in = QUERY
+        required = true
     )
     public List<UserAnniversaryDto> anniversaries(
         @Valid @Parameter(hidden = true) AnniversariesDto anniversaries
