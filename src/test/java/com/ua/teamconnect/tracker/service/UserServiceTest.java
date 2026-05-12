@@ -4,6 +4,7 @@ import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
 import com.ua.teamconnect.tracker.mapper.UserProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.model.entity.*;
+import com.ua.teamconnect.tracker.model.entity.projection.Anniversary;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserProjectRepository;
@@ -144,5 +145,107 @@ class UserServiceTest {
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> userService.profile("user@example.com"));
+    }
+
+    @Test
+    void anniversaries_repositoryReturnsEntity_returnsDto() {
+        var userId = RANDOM.nextInt();
+        var anniversary = mock(Anniversary.class);
+        when(anniversary.getUserId()).thenReturn(userId);
+        when(anniversary.getFirstName()).thenReturn("John");
+        when(anniversary.getLastName()).thenReturn("Doe");
+        when(anniversary.getAvatarUrl()).thenReturn("https://avatar.com/john_doe.png");
+        when(anniversary.getHireDate()).thenReturn(LocalDate.of(2020, Month.FEBRUARY, 15));
+        when(userRepository.findAnniversaries(2, 1, 2, 20))
+            .thenReturn(List.of(anniversary));
+
+        var actual = userService.anniversaries("01-02", "20-02");
+
+        var expected = List.of(new UserAnniversaryDto(
+            userId,
+            "John",
+            "Doe",
+            "https://avatar.com/john_doe.png",
+            LocalDate.of(2020, Month.FEBRUARY, 15)
+        ));
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void anniversaries_repositoryReturnsEmpty_returnsDto() {
+        when(userRepository.findAnniversaries(2, 1, 2, 20))
+            .thenReturn(List.of());
+
+        var actual = userService.anniversaries("01-02", "20-02");
+
+        assertEquals(List.of(), actual);
+    }
+
+    @Test
+    void anniversaries_singleDate_returnsDto() {
+        var userId = RANDOM.nextInt();
+        var anniversary = mock(Anniversary.class);
+        when(anniversary.getUserId()).thenReturn(userId);
+        when(anniversary.getFirstName()).thenReturn("John");
+        when(anniversary.getLastName()).thenReturn("Doe");
+        when(anniversary.getAvatarUrl()).thenReturn("https://avatar.com/john_doe.png");
+        when(anniversary.getHireDate()).thenReturn(LocalDate.of(2020, Month.FEBRUARY, 15));
+        when(userRepository.findAnniversaries(2, 15, 2, 15))
+            .thenReturn(List.of(anniversary));
+
+        var actual = userService.anniversaries("15-02", "15-02");
+
+        var expected = List.of(new UserAnniversaryDto(
+            userId,
+            "John",
+            "Doe",
+            "https://avatar.com/john_doe.png",
+            LocalDate.of(2020, Month.FEBRUARY, 15)
+        ));
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void anniversaries_startAfterEnd_returnsDto() {
+        var johnUserId = RANDOM.nextInt();
+        var johnAnniversary = mock(Anniversary.class);
+        when(johnAnniversary.getUserId()).thenReturn(johnUserId);
+        when(johnAnniversary.getFirstName()).thenReturn("John");
+        when(johnAnniversary.getLastName()).thenReturn("Doe");
+        when(johnAnniversary.getAvatarUrl()).thenReturn("https://avatar.com/john_doe.png");
+        when(johnAnniversary.getHireDate()).thenReturn(LocalDate.of(2020, Month.FEBRUARY, 15));
+
+        var ellisonUserId = RANDOM.nextInt();
+        var ellisonAnniversary = mock(Anniversary.class);
+        when(ellisonAnniversary.getUserId()).thenReturn(ellisonUserId);
+        when(ellisonAnniversary.getFirstName()).thenReturn("Ellison");
+        when(ellisonAnniversary.getLastName()).thenReturn("Smith");
+        when(ellisonAnniversary.getAvatarUrl()).thenReturn("https://avatar.com/ellison_smith.png");
+        when(ellisonAnniversary.getHireDate()).thenReturn(LocalDate.of(2020, Month.DECEMBER, 20));
+
+        when(userRepository.findAnniversaries(1, 1, 2, 20))
+            .thenReturn(List.of(johnAnniversary));
+        when(userRepository.findAnniversaries(12, 10, 12, 31))
+            .thenReturn(List.of(ellisonAnniversary));
+
+        var actual = userService.anniversaries("10-12", "20-02");
+
+        var expected = List.of(
+            new UserAnniversaryDto(
+                ellisonUserId,
+                "Ellison",
+                "Smith",
+                "https://avatar.com/ellison_smith.png",
+                LocalDate.of(2020, Month.DECEMBER, 20)
+            ),
+            new UserAnniversaryDto(
+                johnUserId,
+                "John",
+                "Doe",
+                "https://avatar.com/john_doe.png",
+                LocalDate.of(2020, Month.FEBRUARY, 15)
+            )
+        );
+        assertEquals(expected, actual);
     }
 }
