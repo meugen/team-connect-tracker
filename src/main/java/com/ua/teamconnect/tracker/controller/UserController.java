@@ -35,9 +35,9 @@ public class UserController {
     @GetMapping("/anniversaries")
     @ApiResponseBadRequest
     public List<UserAnniversaryDto> anniversaries(
-        @Parameter(description = "Start date in dd-MM format", example = "20-01")
+        @Parameter(description = "Start date in dd-MM format", example = "20-01", required = true)
         String startDate,
-        @Parameter(description = "End date in dd-MM format", example = "10-02")
+        @Parameter(description = "End date in dd-MM format", example = "10-02", required = true)
         String endDate
     ) {
         return userService.anniversaries(startDate, endDate);
