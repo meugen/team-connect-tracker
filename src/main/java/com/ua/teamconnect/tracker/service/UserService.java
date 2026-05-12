@@ -4,7 +4,8 @@ import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
 import com.ua.teamconnect.tracker.mapper.UserProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
 import com.ua.teamconnect.tracker.model.dto.UserProfileDto;
-import com.ua.teamconnect.tracker.model.dto.in.AnniversariesDto;
+import com.ua.teamconnect.tracker.model.entity.projection.Anniversary;
+import com.ua.teamconnect.tracker.model.exception.InvalidMonthDayException;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.model.pojo.ProfileDetails;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
@@ -15,7 +16,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.MonthDay;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -42,10 +47,40 @@ public class UserService {
         return userProfileMapper.entityToDto(user, details);
     }
 
-    public List<UserAnniversaryDto> anniversaries(AnniversariesDto request) {
-        var anniversaries = userRepository.findAnniversaries(
-            request.startMonth(), request.startDay(), request.endMonth(), request.endDay()
+    public List<UserAnniversaryDto> anniversaries(String startDate, String endDate) {
+        var stream = Stream.<Anniversary>empty();
+        for (var pair : toListOfDatesPair(startDate, endDate)) {
+            var newStream = userRepository.findAnniversaries(
+                pair.startDate().getMonth().getValue(),
+                pair.startDate().getDayOfMonth(),
+                pair.endDate().getMonth().getValue(),
+                pair.endDate().getDayOfMonth()
+             ).stream();
+            stream = Stream.concat(stream, newStream);
+        }
+        return userAnniversaryMapper.projectionListTDtoList(stream.toList());
+    }
+
+    private static List<DatesPair> toListOfDatesPair(String startDate, String endDate) {
+        var start = toMonthDay(startDate);
+        var end = toMonthDay(endDate);
+        if (start.isBefore(end)) {
+            return List.of(new DatesPair(start, end));
+        }
+        return List.of(
+            new DatesPair(start, MonthDay.of(Month.DECEMBER, 31)),
+            new DatesPair(MonthDay.of(Month.JANUARY, 1), end)
         );
-        return userAnniversaryMapper.projectionListTDtoList(anniversaries);
+    }
+
+    private static MonthDay toMonthDay(String date) {
+        try {
+            return MonthDay.parse(date, DateTimeFormatter.ofPattern("dd-MM"));
+        } catch (Exception e) {
+            throw new InvalidMonthDayException(date);
+        }
+    }
+
+    private record DatesPair(MonthDay startDate, MonthDay endDate) {
     }
 }

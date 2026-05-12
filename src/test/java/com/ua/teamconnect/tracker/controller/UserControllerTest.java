@@ -224,15 +224,23 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void anniversaries_startAfterEnd_isBadRequest() {
+    @ExtendWith(UserHireDateExtension.class)
+    void anniversaries_startAfterEnd_isOkAndNotEmpty() {
         setupUser();
         setupValidToken();
 
-        var spec = buildClient(port).get()
-            .uri("/users/anniversaries?startDate=10-02&endDate=20-01")
+        buildClient(port).get()
+            .uri("/users/anniversaries?startDate=20-12&endDate=10-02")
             .header("Authorization", "Bearer " + VALID_TOKEN)
-            .exchange();
-        validateBadRequest(spec);
+            .exchange()
+            .expectBody()
+            .jsonPath("$").isArray()
+            .jsonPath("$.length()").isEqualTo(1)
+            .jsonPath("$[0].id").isNumber()
+            .jsonPath("$[0].firstName").isEqualTo("John")
+            .jsonPath("$[0].lastName").isEqualTo("Doe")
+            .jsonPath("$[0].avatarUrl").isEqualTo("https://avatar.com")
+            .jsonPath("$[0].hireDate").isEqualTo("2023-02-01");
     }
 
     @Test
