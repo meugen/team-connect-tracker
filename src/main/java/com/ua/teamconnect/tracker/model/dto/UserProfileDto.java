@@ -9,7 +9,7 @@ import java.util.Map;
 @Schema(name = "User Profile", description = "Data for user profile")
 public record UserProfileDto(
     @Schema(description = "User id", example = "1")
-    Long id,
+    Integer id,
     @Schema(description = "User first name", example = "John")
     String firstName,
     @Schema(description = "User last name", example = "Doe")

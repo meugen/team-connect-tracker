@@ -1,7 +1,7 @@
 package com.ua.teamconnect.tracker.service;
 
-import com.ua.teamconnect.tracker.model.dto.DepartmentDto;
 import com.ua.teamconnect.tracker.mapper.DepartmentMapper;
+import com.ua.teamconnect.tracker.model.dto.DepartmentDto;
 import com.ua.teamconnect.tracker.repository.DepartmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

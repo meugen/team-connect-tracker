@@ -26,12 +26,12 @@ public class StackMapperTest {
     @Test
     void entityToDto_entityIsNotNull_valiDto() {
         Stack entity = new Stack();
-        entity.setId(1L);
+        entity.setId(1);
         entity.setName("test");
         StackDto dto = mapper.entityToDto(entity);
 
         assertNotNull(dto);
-        assertEquals(1L, dto.id());
+        assertEquals(1, dto.id());
         assertEquals("test", dto.name());
     }
 }
