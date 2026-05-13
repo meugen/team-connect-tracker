@@ -160,7 +160,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     @ExtendWith(UserHireDateExtension.class)
-    void anniversaries_validTokenAndRequest_isOkAndNotEmpty() {
+    void getAnniversariesBetween_validTokenAndRequest_isOkAndNotEmpty() {
         setupUser();
         setupValidToken();
 
@@ -181,7 +181,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     @ExtendWith(UserHireDateExtension.class)
-    void anniversaries_validTokenAndAfterHireDate_isOkAndEmpty() {
+    void getAnniversariesBetween_validTokenAndAfterHireDate_isOkAndEmpty() {
         setupUser();
         setupValidToken();
 
@@ -197,7 +197,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     @ExtendWith(UserHireDateExtension.class)
-    void anniversaries_validTokenAndBeforeHireDate_isOkAndEmpty() {
+    void getAnniversariesBetween_validTokenAndBeforeHireDate_isOkAndEmpty() {
         setupUser();
         setupValidToken();
 
@@ -212,7 +212,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void anniversaries_invalidToken_isUnauthorized() {
+    void getAnniversariesBetween_invalidToken_isUnauthorized() {
         setupUser();
         setupValidToken();
 
@@ -225,7 +225,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     @ExtendWith(UserHireDateExtension.class)
-    void anniversaries_startAfterEnd_isOkAndNotEmpty() {
+    void getAnniversariesBetween_startAfterEnd_isOkAndNotEmpty() {
         setupUser();
         setupValidToken();
 
@@ -244,7 +244,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void anniversaries_invalidStart_isBadRequest() {
+    void getAnniversariesBetween_invalidStart_isBadRequest() {
         setupUser();
         setupValidToken();
 
@@ -256,7 +256,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void anniversaries_invalidEnd_isBadRequest() {
+    void getAnniversariesBetween_invalidEnd_isBadRequest() {
         setupUser();
         setupValidToken();
 
@@ -268,7 +268,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void anniversaries_noStart_isBadRequest() {
+    void getAnniversariesBetween_noStart_isBadRequest() {
         setupUser();
         setupValidToken();
 
@@ -280,7 +280,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void anniversaries_noEnd_isBadRequest() {
+    void getAnniversariesBetween_noEnd_isBadRequest() {
         setupUser();
         setupValidToken();
 

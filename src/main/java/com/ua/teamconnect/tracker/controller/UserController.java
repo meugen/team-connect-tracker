@@ -34,7 +34,7 @@ public class UserController {
 
     @GetMapping("/anniversaries")
     @ApiResponseBadRequest
-    public List<UserAnniversaryDto> anniversaries(
+    public List<UserAnniversaryDto> getAnniversariesBetween(
         @Parameter(description = "Start date in dd-MM format", example = "20-01", required = true)
         String startDate,
         @Parameter(description = "End date in dd-MM format", example = "10-02", required = true)
