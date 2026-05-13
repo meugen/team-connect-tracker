@@ -10,14 +10,15 @@ import lombok.Setter;
 public class Position {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "positions_id_seq")
+    @SequenceGenerator(name = "positions_id_seq", allocationSize = 1)
+    private Integer id;
 
     @Column(nullable = false)
     private String name;
 
     @Column(nullable = false, name = "department_id", insertable = false, updatable = false)
-    private Long departmentId;
+    private Integer departmentId;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id", nullable = false)

@@ -40,11 +40,11 @@ public class PositionServiceTest {
         var dto3 = mock(PositionDto.class);
 
         when(positionRepository.findAll()).thenReturn(List.of(entity1, entity2, entity3));
-        when(positionRepository.findByDepartmentId(1L)).thenReturn(List.of(entity1, entity2));
+        when(positionRepository.findByDepartmentId(1)).thenReturn(List.of(entity1, entity2));
         when(positionMapper.entityToDto(entity1)).thenReturn(dto1);
         when(positionMapper.entityToDto(entity2)).thenReturn(dto2);
         when(positionMapper.entityToDto(entity3)).thenReturn(dto3);
-        when(departmentRepository.existsById(1L)).thenReturn(departmentExists);
+        when(departmentRepository.existsById(1)).thenReturn(departmentExists);
 
         return new Mocks(
             new Position[] {entity1, entity2, entity3},
@@ -64,7 +64,7 @@ public class PositionServiceTest {
     void findAll_departmentIdIsNotNullAndExists_filteredPositions() {
         var mocks = prepareMocks(true);
 
-        var result = positionService.findAll(1L);
+        var result = positionService.findAll(1);
         assertEquals(List.of(mocks.dtos[0], mocks.dtos[1]), result);
     }
 
@@ -72,7 +72,7 @@ public class PositionServiceTest {
     void findAll_departmentIdIsNotNullAndNotExists_thrownException() {
         prepareMocks(false);
         assertThrows(DepartmentNotFoundException.class,
-            () -> positionService.findAll(1L));
+            () -> positionService.findAll(1));
     }
 
     private static class Mocks {
