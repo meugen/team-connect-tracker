@@ -6,10 +6,14 @@ import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.model.entity.*;
 import com.ua.teamconnect.tracker.model.entity.projection.Anniversary;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
+import com.ua.teamconnect.tracker.model.pojo.Gender;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserProjectRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
 import com.ua.teamconnect.tracker.repository.UserStackRepository;
+import com.ua.teamconnect.tracker.service.strategy.user_profile.MapFullUserProfileStrategy;
+import com.ua.teamconnect.tracker.service.strategy.user_profile.MapShortUserProfileStrategy;
+import com.ua.teamconnect.tracker.service.strategy.user_profile.MapUserProfileFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -44,12 +48,25 @@ class UserServiceTest {
         userPositionRepository = mock(UserPositionRepository.class);
         userStackRepository = mock(UserStackRepository.class);
         userProjectRepository = mock(UserProjectRepository.class);
-        userService = new UserService(
-            userRepository,
+        var userProfileMapper = Mappers.getMapper(UserProfileMapper.class);
+        var shortUserProfileStrategy = new MapShortUserProfileStrategy(
             userPositionRepository,
             userProjectRepository,
             userStackRepository,
-            Mappers.getMapper(UserProfileMapper.class),
+            userProfileMapper
+        );
+        var fullUserProfileStrategy = new MapFullUserProfileStrategy(
+            userPositionRepository,
+            userProjectRepository,
+            userStackRepository,
+            userProfileMapper
+        );
+        userService = new UserService(
+            userRepository,
+            new MapUserProfileFactory(
+                shortUserProfileStrategy,
+                fullUserProfileStrategy
+            ),
             Mappers.getMapper(UserAnniversaryMapper.class)
         );
     }
@@ -64,6 +81,7 @@ class UserServiceTest {
         when(user.getEmail()).thenReturn("user@example.com");
         when(user.getAvatar()).thenReturn("https://avatar.com/");
         when(user.getGrade()).thenReturn("Senior");
+        when(user.getGender()).thenReturn(Gender.MALE);
         when(user.getPhone()).thenReturn(Map.of(
             "home", "+123456789",
             "mobile", "+987654321"
@@ -106,7 +124,7 @@ class UserServiceTest {
 
         var result = userService.profile("user@example.com");
 
-        var expected = new UserProfileDto(
+        var expected = new UserFullProfileDto(
             userId,
             "John",
             "Doe",
@@ -114,6 +132,7 @@ class UserServiceTest {
             "user@example.com",
             hireDate,
             "Senior",
+            Gender.MALE,
             Map.of(
                 "home", "+123456789",
                 "mobile", "+987654321"
@@ -148,7 +167,7 @@ class UserServiceTest {
     }
 
     @Test
-    void anniversaries_repositoryReturnsEntity_returnsDto() {
+    void getAnniversariesBetween_repositoryReturnsEntity_returnsDto() {
         var userId = RANDOM.nextInt();
         var anniversary = mock(Anniversary.class);
         when(anniversary.getUserId()).thenReturn(userId);
@@ -159,7 +178,7 @@ class UserServiceTest {
         when(userRepository.findAnniversaries(2, 1, 2, 20))
             .thenReturn(List.of(anniversary));
 
-        var actual = userService.anniversaries("01-02", "20-02");
+        var actual = userService.getAnniversariesBetween("01-02", "20-02");
 
         var expected = List.of(new UserAnniversaryDto(
             userId,
@@ -172,17 +191,17 @@ class UserServiceTest {
     }
 
     @Test
-    void anniversaries_repositoryReturnsEmpty_returnsDto() {
+    void getAnniversariesBetween_repositoryReturnsEmpty_returnsDto() {
         when(userRepository.findAnniversaries(2, 1, 2, 20))
             .thenReturn(List.of());
 
-        var actual = userService.anniversaries("01-02", "20-02");
+        var actual = userService.getAnniversariesBetween("01-02", "20-02");
 
         assertEquals(List.of(), actual);
     }
 
     @Test
-    void anniversaries_singleDate_returnsDto() {
+    void getAnniversariesBetween_singleDate_returnsDto() {
         var userId = RANDOM.nextInt();
         var anniversary = mock(Anniversary.class);
         when(anniversary.getUserId()).thenReturn(userId);
@@ -193,7 +212,7 @@ class UserServiceTest {
         when(userRepository.findAnniversaries(2, 15, 2, 15))
             .thenReturn(List.of(anniversary));
 
-        var actual = userService.anniversaries("15-02", "15-02");
+        var actual = userService.getAnniversariesBetween("15-02", "15-02");
 
         var expected = List.of(new UserAnniversaryDto(
             userId,
@@ -206,7 +225,7 @@ class UserServiceTest {
     }
 
     @Test
-    void anniversaries_startAfterEnd_returnsDto() {
+    void getAnniversariesBetween_startAfterEnd_returnsDto() {
         var johnUserId = RANDOM.nextInt();
         var johnAnniversary = mock(Anniversary.class);
         when(johnAnniversary.getUserId()).thenReturn(johnUserId);
@@ -228,7 +247,7 @@ class UserServiceTest {
         when(userRepository.findAnniversaries(12, 10, 12, 31))
             .thenReturn(List.of(ellisonAnniversary));
 
-        var actual = userService.anniversaries("10-12", "20-02");
+        var actual = userService.getAnniversariesBetween("10-12", "20-02");
 
         var expected = List.of(
             new UserAnniversaryDto(

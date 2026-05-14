@@ -1,20 +1,15 @@
 package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
-import com.ua.teamconnect.tracker.mapper.UserProfileMapper;
+import com.ua.teamconnect.tracker.model.dto.BasicUserInfo;
 import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
-import com.ua.teamconnect.tracker.model.dto.UserProfileDto;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
-import com.ua.teamconnect.tracker.model.pojo.ProfileDetails;
-import com.ua.teamconnect.tracker.repository.UserPositionRepository;
-import com.ua.teamconnect.tracker.repository.UserProjectRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
-import com.ua.teamconnect.tracker.repository.UserStackRepository;
+import com.ua.teamconnect.tracker.service.strategy.user_profile.MapUserProfileFactory;
 import com.ua.teamconnect.tracker.util.Pair;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.Month;
 import java.time.MonthDay;
 import java.util.List;
@@ -26,27 +21,17 @@ import static com.ua.teamconnect.tracker.util.DateUtil.toMonthDay;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final UserPositionRepository userPositionRepository;
-    private final UserProjectRepository userProjectRepository;
-    private final UserStackRepository userStackRepository;
-    private final UserProfileMapper userProfileMapper;
+    private final MapUserProfileFactory mapUserProfileFactory;
     private final UserAnniversaryMapper userAnniversaryMapper;
 
-    public UserProfileDto profile(String email) {
+    public BasicUserInfo profile(String email) {
         var user = userRepository.findByEmail(email).orElseThrow(
             () -> new UserNotFoundException(email)
         );
-        var stacks = userStackRepository.findByUserId(user.getId());
-        var hireDate = userPositionRepository.findHireDateByUserId(user.getId())
-            .orElse(null);
-        var now = LocalDate.now();
-        var positions = userPositionRepository.findByUserIdAndNow(user.getId(), now);
-        var projects = userProjectRepository.findByUserIdAndNow(user.getId(), now);
-        var details = new ProfileDetails(stacks, projects, positions, hireDate);
-        return userProfileMapper.entityToDto(user, details);
+        return mapUserProfileFactory.full().entityToDto(user);
     }
 
-    public List<UserAnniversaryDto> anniversaries(String startDate, String endDate) {
+    public List<UserAnniversaryDto> getAnniversariesBetween(String startDate, String endDate) {
         var stream = toListOfDatesPair(startDate, endDate).stream()
             .flatMap(pair -> userRepository.findAnniversaries(
                     pair.first().getMonthValue(),
@@ -68,6 +53,14 @@ public class UserService {
             new Pair<>(start, MonthDay.of(Month.DECEMBER, 31)),
             new Pair<>(MonthDay.of(Month.JANUARY, 1), end)
         );
+    }
+
+    public BasicUserInfo getUserById(String email, Integer userId) {
+        var role = userRepository.findRoleByEmail(email);
+        var user = userRepository.findById(userId).orElseThrow(
+            () -> new UserNotFoundException(userId)
+        );
+        return mapUserProfileFactory.byRole(role).entityToDto(user);
     }
 
 }
