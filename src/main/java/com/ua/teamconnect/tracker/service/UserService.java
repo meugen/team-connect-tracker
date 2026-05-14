@@ -1,8 +1,8 @@
 package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
-import com.ua.teamconnect.tracker.model.dto.BasicUserInfo;
 import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
+import com.ua.teamconnect.tracker.model.dto.UserProfile;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.repository.UserRepository;
 import com.ua.teamconnect.tracker.service.strategy.user_profile.MapUserProfileFactory;
@@ -24,7 +24,7 @@ public class UserService {
     private final MapUserProfileFactory mapUserProfileFactory;
     private final UserAnniversaryMapper userAnniversaryMapper;
 
-    public BasicUserInfo profile(String email) {
+    public UserProfile profile(String email) {
         var user = userRepository.findByEmail(email).orElseThrow(
             () -> new UserNotFoundException(email)
         );
@@ -55,7 +55,7 @@ public class UserService {
         );
     }
 
-    public BasicUserInfo getUserById(String email, Integer userId) {
+    public UserProfile getUserById(String email, Integer userId) {
         var role = userRepository.findRoleByEmail(email);
         var user = userRepository.findById(userId).orElseThrow(
             () -> new UserNotFoundException(userId)

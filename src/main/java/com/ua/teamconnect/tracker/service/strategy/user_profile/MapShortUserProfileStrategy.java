@@ -1,7 +1,7 @@
 package com.ua.teamconnect.tracker.service.strategy.user_profile;
 
 import com.ua.teamconnect.tracker.mapper.UserProfileMapper;
-import com.ua.teamconnect.tracker.model.dto.BasicUserInfo;
+import com.ua.teamconnect.tracker.model.dto.UserProfile;
 import com.ua.teamconnect.tracker.model.entity.User;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserProjectRepository;
@@ -24,7 +24,7 @@ public class MapShortUserProfileStrategy extends AbstractMapUserProfileStrategy 
     }
 
     @Override
-    public BasicUserInfo entityToDto(User user) {
+    public UserProfile entityToDto(User user) {
         return mapper.entityToShortDto(user, buildProfileDetails(user.getId()));
     }
 }

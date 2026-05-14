@@ -3,10 +3,14 @@ package com.ua.teamconnect.tracker.controller;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseBadRequest;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseOk;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseUnauthorized;
-import com.ua.teamconnect.tracker.model.dto.BasicUserInfo;
 import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
+import com.ua.teamconnect.tracker.model.dto.UserFullProfileDto;
+import com.ua.teamconnect.tracker.model.dto.UserProfile;
+import com.ua.teamconnect.tracker.model.dto.UserShortProfileDto;
 import com.ua.teamconnect.tracker.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -23,18 +27,21 @@ import java.util.List;
 @RequestMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "User Controller", description = "Endpoints related to users")
 @RequiredArgsConstructor
-@ApiResponseOk @ApiResponseUnauthorized
+@ApiResponseUnauthorized
 public class UserController {
 
     private final UserService userService;
 
     @GetMapping("/profile")
-    public BasicUserInfo profile(@AuthenticationPrincipal Jwt jwt) {
+    @ApiResponseOk(content = @Content(
+        schema = @Schema(implementation = UserFullProfileDto.class)
+    ))
+    public UserProfile profile(@AuthenticationPrincipal Jwt jwt) {
         return userService.profile(jwt.getSubject());
     }
 
     @GetMapping("/anniversaries")
-    @ApiResponseBadRequest
+    @ApiResponseBadRequest @ApiResponseOk
     public List<UserAnniversaryDto> getAnniversariesBetween(
         @Parameter(description = "Start date in dd-MM format", example = "20-01", required = true)
         String startDate,
@@ -45,8 +52,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public BasicUserInfo getUserById(
+    @ApiResponseOk(content = @Content(
+        schema = @Schema(oneOf = {UserFullProfileDto.class, UserShortProfileDto.class})
+    ))
+    public UserProfile getUserById(
         @AuthenticationPrincipal Jwt jwt,
+        @Parameter(description = "User id to get", example = "1", required = true)
         @PathVariable Integer id
     ) {
         return userService.getUserById(jwt.getSubject(), id);

@@ -71,8 +71,7 @@ class UserServiceTest {
         );
     }
 
-    @Test
-    void profile_repositoryReturnsEntity_returnsDto() {
+    private User newUser() {
         var userId = RANDOM.nextInt();
         var user = mock(User.class);
         when(user.getId()).thenReturn(userId);
@@ -87,8 +86,10 @@ class UserServiceTest {
             "mobile", "+987654321"
         ));
         when(user.getBirthDate()).thenReturn(LocalDate.of(1990, Month.APRIL, 21));
-        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+        return user;
+    }
 
+    private UserProject newUserProject() {
         var projectId = RANDOM.nextInt();
         var project = mock(Project.class);
         when(project.getId()).thenReturn(projectId);
@@ -96,8 +97,10 @@ class UserServiceTest {
         var userProject = mock(UserProject.class);
         when(userProject.getProject()).thenReturn(project);
         when(userProject.getStartDate()).thenReturn(LocalDate.of(2020, Month.SEPTEMBER, 2));
-        when(userProjectRepository.findByUserIdAndNow(eq(userId), any())).thenReturn(List.of(userProject));
+        return userProject;
+    }
 
+    private UserPosition newUserPosition() {
         var departmentId = RANDOM.nextInt();
         var department = mock(Department.class);
         when(department.getId()).thenReturn(departmentId);
@@ -109,23 +112,28 @@ class UserServiceTest {
         when(position.getName()).thenReturn("Java Developer");
         when(position.getDepartment()).thenReturn(department);
         when(userPosition.getPosition()).thenReturn(position);
-        when(userPositionRepository.findByUserIdAndNow(eq(userId), any())).thenReturn(List.of(userPosition));
+        return userPosition;
+    }
 
+    private UserStack newUserStack() {
         var stackId = RANDOM.nextInt();
         var userStack = mock(UserStack.class);
         var stack = mock(Stack.class);
         when(stack.getId()).thenReturn(stackId);
         when(stack.getName()).thenReturn("Java");
         when(userStack.getStack()).thenReturn(stack);
-        when(userStackRepository.findByUserId(userId)).thenReturn(List.of(userStack));
+        return userStack;
+    }
 
-        var hireDate = mock(LocalDate.class);
-        when(userPositionRepository.findHireDateByUserId(userId)).thenReturn(Optional.of(hireDate));
-
-        var result = userService.profile("user@example.com");
-
-        var expected = new UserFullProfileDto(
-            userId,
+    private UserFullProfileDto newFullProfileDto(
+        User user,
+        UserPosition userPosition,
+        UserProject userProject,
+        UserStack userStack,
+        LocalDate hireDate
+    ) {
+        return new UserFullProfileDto(
+            user.getId(),
             "John",
             "Doe",
             "https://avatar.com/",
@@ -138,23 +146,93 @@ class UserServiceTest {
                 "mobile", "+987654321"
             ),
             List.of(
-                new StackDto(stackId, "Java")
+                new StackDto(userStack.getStack().getId(), "Java")
             ),
             List.of(
                 new ProfilePositionDto(
-                    positionId,
+                    userPosition.getPosition().getId(),
                     "Java Developer",
-                    new ProfileDepartmentDto(departmentId, "Software Development")
+                    new ProfileDepartmentDto(
+                        userPosition.getPosition().getDepartment().getId(),
+                        "Software Development"
+                    )
                 )
             ),
             List.of(
                 new ProfileProjectDto(
-                    projectId,
+                    userProject.getProject().getId(),
                     "TeamConnect",
                     LocalDate.of(2020, Month.SEPTEMBER, 2)
                 )
             ),
             LocalDate.of(1990, Month.APRIL, 21)
+        );
+    }
+
+    private UserShortProfileDto newShortProfileDto(
+        User user,
+        UserStack userStack,
+        UserPosition userPosition,
+        UserProject userProject,
+        LocalDate hireDate
+    ) {
+        return new UserShortProfileDto(
+            user.getId(),
+            "John",
+            "Doe",
+            "https://avatar.com/",
+            "user@example.com",
+            hireDate,
+            "Senior",
+            Gender.MALE,
+            List.of(
+                new StackDto(userStack.getStack().getId(), "Java")
+            ),
+            List.of(
+                new ProfilePositionDto(
+                    userPosition.getPosition().getId(),
+                    "Java Developer",
+                    new ProfileDepartmentDto(
+                        userPosition.getPosition().getDepartment().getId(),
+                        "Software Development"
+                    )
+                )
+            ),
+            List.of(
+                new ProfileProjectDto(
+                    userProject.getProject().getId(),
+                    "TeamConnect",
+                    LocalDate.of(2020, Month.SEPTEMBER, 2)
+                )
+            )
+        );
+    }
+
+    @Test
+    void profile_repositoryReturnsEntity_returnsDto() {
+        var user = newUser();
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+
+        var userProject = newUserProject();
+        when(userProjectRepository.findByUserIdAndNow(eq(user.getId()), any())).thenReturn(List.of(userProject));
+
+        var userPosition = newUserPosition();
+        when(userPositionRepository.findByUserIdAndNow(eq(user.getId()), any())).thenReturn(List.of(userPosition));
+
+        var userStack = newUserStack();
+        when(userStackRepository.findByUserId(user.getId())).thenReturn(List.of(userStack));
+
+        var hireDate = mock(LocalDate.class);
+        when(userPositionRepository.findHireDateByUserId(user.getId())).thenReturn(Optional.of(hireDate));
+
+        var result = userService.profile("user@example.com");
+
+        var expected = newFullProfileDto(
+            user,
+            userPosition,
+            userProject,
+            userStack,
+            hireDate
         );
         assertEquals(expected, result);
     }
@@ -266,5 +344,74 @@ class UserServiceTest {
             )
         );
         assertEquals(expected, actual);
+    }
+
+    @Test
+    void getUserById_roleEmployee_returnsShortDto() {
+        var user = newUser();
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.findRoleByEmail("user@example.com")).thenReturn("EMPLOYEE");
+
+        var userProject = newUserProject();
+        when(userProjectRepository.findByUserIdAndNow(eq(user.getId()), any())).thenReturn(List.of(userProject));
+
+        var userPosition = newUserPosition();
+        when(userPositionRepository.findByUserIdAndNow(eq(user.getId()), any())).thenReturn(List.of(userPosition));
+
+        var userStack = newUserStack();
+        when(userStackRepository.findByUserId(user.getId())).thenReturn(List.of(userStack));
+
+        var hireDate = mock(LocalDate.class);
+        when(userPositionRepository.findHireDateByUserId(user.getId())).thenReturn(Optional.of(hireDate));
+
+        var result = userService.getUserById("user@example.com", user.getId());
+
+        var expected = newShortProfileDto(
+            user,
+            userStack,
+            userPosition,
+            userProject,
+            hireDate
+        );
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void getUserById_roleAdmin_returnsFullDto() {
+        var user = newUser();
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.findRoleByEmail("user@example.com")).thenReturn("ADMIN");
+
+        var userProject = newUserProject();
+        when(userProjectRepository.findByUserIdAndNow(eq(user.getId()), any())).thenReturn(List.of(userProject));
+
+        var userPosition = newUserPosition();
+        when(userPositionRepository.findByUserIdAndNow(eq(user.getId()), any())).thenReturn(List.of(userPosition));
+
+        var userStack = newUserStack();
+        when(userStackRepository.findByUserId(user.getId())).thenReturn(List.of(userStack));
+
+        var hireDate = mock(LocalDate.class);
+        when(userPositionRepository.findHireDateByUserId(user.getId())).thenReturn(Optional.of(hireDate));
+
+        var result = userService.getUserById("user@example.com", user.getId());
+
+        var expected = newFullProfileDto(
+            user,
+            userPosition,
+            userProject,
+            userStack,
+            hireDate
+        );
+        assertEquals(expected, result);
+    }
+
+    @Test
+    void getUserById_repositoryReturnsEmpty_throwsException() {
+        var userId = RANDOM.nextInt();
+        when(userRepository.findRoleByEmail("user@example.com")).thenReturn("EMPLOYEE");
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> userService.getUserById("user@example.com", userId));
     }
 }

@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.util.List;
 
-@Schema(name = "User Profile", description = "Data for user profile")
+@Schema(name = "Basic User Profile", description = "User profile data for users with role EMPLOYEE")
 public record UserShortProfileDto(
     @Schema(description = "User id", example = "1")
     Integer id,
@@ -30,5 +30,5 @@ public record UserShortProfileDto(
     List<ProfilePositionDto> positions,
     @Schema(description = "User projects")
     List<ProfileProjectDto> projects
-) implements BasicUserInfo {
+) implements UserProfile {
 }

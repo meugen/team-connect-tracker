@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-@Schema(name = "User Profile", description = "Data for user profile")
+@Schema(name = "Full User Profile", description = "User profile data for users with role ADMIN, HR, etc.")
 public record UserFullProfileDto(
     @Schema(description = "User id", example = "1")
     Integer id,
@@ -37,5 +37,5 @@ public record UserFullProfileDto(
     List<ProfileProjectDto> projects,
     @Schema(description = "User birth date", example = "1990-10-05")
     LocalDate birthDate
-) implements ExtendedUserInfo {
+) implements UserProfile {
 }
