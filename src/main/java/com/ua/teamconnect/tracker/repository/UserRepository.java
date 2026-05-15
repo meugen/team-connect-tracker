@@ -14,6 +14,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     Optional<User> findByEmail(String email);
 
+    @Query("select u.role from User u where u.email = :email")
+    String findRoleByEmail(String email);
+
     @Query(nativeQuery = true, value = """
     SELECT u.id userId, u.first_name firstName, u.last_name lastName, u.avatar avatarUrl, uh.hire_date hireDate
     FROM users u JOIN user_hire_date uh on (u.id = uh.user_id)
