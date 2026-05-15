@@ -40,6 +40,10 @@ abstract class AuthorizationControllerTest {
         validateHttpStatus(spec, HttpStatus.BAD_REQUEST);
     }
 
+    void validateNotFound(WebTestClient.ResponseSpec spec) {
+        validateHttpStatus(spec, HttpStatus.NOT_FOUND);
+    }
+
     private void validateHttpStatus(WebTestClient.ResponseSpec spec, HttpStatus status) {
         spec.expectStatus().isEqualTo(status)
             .expectBody()
