@@ -1,10 +1,15 @@
 package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
+import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
+import com.ua.teamconnect.tracker.model.dto.PageDto;
 import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
+import com.ua.teamconnect.tracker.model.dto.UserDto;
 import com.ua.teamconnect.tracker.model.dto.UserProfile;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
+import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
+import com.ua.teamconnect.tracker.service.specification.user_position.UserPositionSpecificationBuilder;
 import com.ua.teamconnect.tracker.service.strategy.user_profile.MapUserProfileFactory;
 import com.ua.teamconnect.tracker.util.Pair;
 import lombok.RequiredArgsConstructor;
@@ -13,16 +18,20 @@ import org.springframework.stereotype.Service;
 import java.time.Month;
 import java.time.MonthDay;
 import java.util.List;
+import java.util.Map;
 
 import static com.ua.teamconnect.tracker.util.DateUtil.toMonthDay;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements PageRequestService {
 
     private final UserRepository userRepository;
     private final MapUserProfileFactory mapUserProfileFactory;
     private final UserAnniversaryMapper userAnniversaryMapper;
+    private final UserPositionSpecificationBuilder userPositionSpecificationBuilder;
+    private final UserPositionRepository userPositionRepository;
+    private final UserPositionMapper userPositionMapper;
 
     public UserProfile profile(String email) {
         var user = userRepository.findByEmail(email).orElseThrow(
@@ -63,4 +72,25 @@ public class UserService {
         return mapUserProfileFactory.byRole(role).entityToDto(user);
     }
 
+    public PageDto<UserDto> findFiltered(Map<String, String> params) {
+        var specification = userPositionSpecificationBuilder.build(params);
+        var pageRequest = pageRequestOf(params);
+        var page = userPositionRepository.findFiltered(specification, pageRequest);
+        return userPositionMapper.pageToPageUserDto(page);
+    }
+
+    @Override
+    public Map<String, String> allowedSortProperties() {
+        return Map.of(
+            "firstName", "user.firstName",
+            "lastName", "user.lastName",
+            "position", "position.name",
+            "department", "position.department.name"
+        );
+    }
+
+    @Override
+    public String defaultSort() {
+        return "lastName";
+    }
 }

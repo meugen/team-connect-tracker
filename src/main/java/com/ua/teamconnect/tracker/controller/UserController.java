@@ -3,10 +3,7 @@ package com.ua.teamconnect.tracker.controller;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseBadRequest;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseOk;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseUnauthorized;
-import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
-import com.ua.teamconnect.tracker.model.dto.UserFullProfileDto;
-import com.ua.teamconnect.tracker.model.dto.UserProfile;
-import com.ua.teamconnect.tracker.model.dto.UserShortProfileDto;
+import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.service.UserService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,12 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -61,5 +56,10 @@ public class UserController {
         @PathVariable Integer id
     ) {
         return userService.getUserById(jwt.getSubject(), id);
+    }
+
+    @GetMapping
+    public PageDto<UserDto> findFiltered(@RequestParam Map<String, String> params) {
+        return userService.findFiltered(params);
     }
 }

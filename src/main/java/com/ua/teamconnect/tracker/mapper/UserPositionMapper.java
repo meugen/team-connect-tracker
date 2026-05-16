@@ -1,9 +1,12 @@
 package com.ua.teamconnect.tracker.mapper;
 
+import com.ua.teamconnect.tracker.model.dto.PageDto;
 import com.ua.teamconnect.tracker.model.dto.ProfilePositionDto;
+import com.ua.teamconnect.tracker.model.dto.UserDto;
 import com.ua.teamconnect.tracker.model.entity.UserPosition;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -16,4 +19,17 @@ public interface UserPositionMapper {
     ProfilePositionDto entityToDto(UserPosition userPosition);
     @SuppressWarnings("unused") // Used in generated mapper for UserProfileMapper
     List<ProfilePositionDto> entityListToDtoList(List<UserPosition> userPositions);
+
+    @Mapping(target = "id", source = "userPosition.id.userId")
+    @Mapping(target = "firstName", source = "userPosition.user.firstName")
+    @Mapping(target = "lastName", source = "userPosition.user.lastName")
+    @Mapping(target = "avatarUrl", source = "userPosition.user.avatar")
+    @Mapping(target = "position", source = "userPosition")
+    UserDto entityToUserDto(UserPosition userPosition);
+
+    @Mapping(target = "items", source = "page.content")
+    @Mapping(target = "totalPages", source = "page.totalPages")
+    @Mapping(target = "totalItems", source = "page.totalElements")
+    @Mapping(target = "currentPage", source = "page.number")
+    PageDto<UserDto> pageToPageUserDto(Page<UserPosition> page);
 }

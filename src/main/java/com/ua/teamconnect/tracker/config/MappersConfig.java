@@ -32,4 +32,9 @@ public class MappersConfig {
     public UserAnniversaryMapper userAnniversaryMapper() {
         return Mappers.getMapper(UserAnniversaryMapper.class);
     }
+
+    @Bean
+    public UserPositionMapper userPositionMapper() {
+        return Mappers.getMapper(UserPositionMapper.class);
+    }
 }
