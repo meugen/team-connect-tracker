@@ -39,7 +39,7 @@ public class StackIdUserPositionSpecification implements Specification<UserPosit
     ) {
         var cq = query == null ? criteriaBuilder.createQuery() : query;
         var userStack = cq.from(UserStack.class);
-        var userIdSubquery = cq.subquery(UserStack.class)
+        var userIdSubquery = cq.subquery(Integer.class)
             .select(userStack.get("id").get("userId"))
             .where(userStack.get("id").get("stackId").in(stackIds));
         return criteriaBuilder.in(root.get("id").get("userId")).value(userIdSubquery);

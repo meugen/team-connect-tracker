@@ -73,9 +73,9 @@ public class UserService implements PageRequestService {
     }
 
     public PageDto<UserDto> findFiltered(Map<String, String> params) {
-        var specification = userPositionSpecificationBuilder.build(params);
+        var pair = userPositionSpecificationBuilder.build(params);
         var pageRequest = pageRequestOf(params);
-        var page = userPositionRepository.findFiltered(specification, pageRequest);
+        var page = userPositionRepository.findAll(pair.first(), pair.second(), pageRequest);
         return userPositionMapper.pageToPageUserDto(page);
     }
 
