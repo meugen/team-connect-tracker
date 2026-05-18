@@ -121,7 +121,11 @@ class UserControllerTest extends AuthorizationControllerTest {
             "department", department.getId().toString(),
             "position", position.getId().toString(),
             "stack", stack.getId().toString(),
-            "search", "john"
+            "search", "john",
+            "size", "10",
+            "page", "1",
+            "sort", "firstName",
+            "order", "desc"
         );
         return new UserData(user.getId(), position.getId(), department.getId(), stack.getId(), params);
     }
@@ -491,6 +495,74 @@ class UserControllerTest extends AuthorizationControllerTest {
 
         var params = new HashMap<>(user.params());
         params.put("stack", "zxc");
+        var query = params.entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining("&"));
+        var spec = buildClient(port).get()
+            .uri("/users?" + query)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void findFiltered_invalidSize_isBadRequest() {
+        var user = setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var params = new HashMap<>(user.params());
+        params.put("size", "zxc");
+        var query = params.entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining("&"));
+        var spec = buildClient(port).get()
+            .uri("/users?" + query)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void findFiltered_invalidPage_isBadRequest() {
+        var user = setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var params = new HashMap<>(user.params());
+        params.put("page", "zxc");
+        var query = params.entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining("&"));
+        var spec = buildClient(port).get()
+            .uri("/users?" + query)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void findFiltered_invalidSort_isBadRequest() {
+        var user = setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var params = new HashMap<>(user.params());
+        params.put("sort", "zxc");
+        var query = params.entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining("&"));
+        var spec = buildClient(port).get()
+            .uri("/users?" + query)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void findFiltered_invalidOrder_isBadRequest() {
+        var user = setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var params = new HashMap<>(user.params());
+        params.put("order", "zxc");
         var query = params.entrySet().stream()
             .map(e -> e.getKey() + "=" + e.getValue())
             .collect(Collectors.joining("&"));
