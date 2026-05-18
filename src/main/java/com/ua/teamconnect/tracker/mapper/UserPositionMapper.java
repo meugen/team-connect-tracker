@@ -6,6 +6,7 @@ import com.ua.teamconnect.tracker.model.dto.UserDto;
 import com.ua.teamconnect.tracker.model.entity.UserPosition;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -25,9 +26,14 @@ public interface UserPositionMapper {
     @Mapping(target = "lastName", source = "userPosition.user.lastName")
     @Mapping(target = "avatarUrl", source = "userPosition.user.avatar")
     @Mapping(target = "position", source = "userPosition")
+    @Named("userPosition-to-userDto")
     UserDto entityToUserDto(UserPosition userPosition);
 
-    @Mapping(target = "items", source = "page.content", conditionExpression = "java(true)", qualifiedByName = "entityToUserDto")
+    @Mapping(
+        target = "items", source = "page.content",
+        conditionExpression = "java(true)",
+        qualifiedByName = "userPosition-to-userDto"
+    )
     @Mapping(target = "totalPages", source = "page.totalPages")
     @Mapping(target = "totalItems", source = "page.totalElements")
     @Mapping(target = "currentPage", expression = "java(page.getNumber() + 1)")
