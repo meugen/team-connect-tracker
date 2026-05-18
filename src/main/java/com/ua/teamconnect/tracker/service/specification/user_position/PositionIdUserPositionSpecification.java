@@ -40,6 +40,7 @@ public class PositionIdUserPositionSpecification implements Specification<UserPo
         var userIdSubquery = cq.subquery(Integer.class)
             .select(userPosition.get("id").get("userId"))
             .where(userPosition.get("id").get("positionId").in(positionIds));
+        userIdSubquery.from(UserPosition.class);
         return criteriaBuilder.in(root.get("id").get("userId")).value(userIdSubquery);
     }
 }

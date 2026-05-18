@@ -14,7 +14,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
 
@@ -63,7 +65,7 @@ class UserControllerTest extends AuthorizationControllerTest {
         userRepository.deleteAll();
     }
 
-    private Integer setupUser(String role) {
+    private UserData setupUser(String role) {
         var user = new User();
         user.setEmail("user@example.com");
         user.setPassword("password");
@@ -115,7 +117,13 @@ class UserControllerTest extends AuthorizationControllerTest {
         userPosition.setStartDate(LocalDate.of(2023, Month.FEBRUARY, 1));
         userPositionRepository.save(userPosition);
 
-        return user.getId();
+        var params = Map.of(
+            "department", department.getId().toString(),
+            "position", position.getId().toString(),
+            "stack", stack.getId().toString(),
+            "search", "john"
+        );
+        return new UserData(user.getId(), position.getId(), department.getId(), stack.getId(), params);
     }
 
     private void profileIsValid(WebTestClient.BodyContentSpec spec, boolean full) {
@@ -305,7 +313,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void getUserById_roleEmployee_isOkShort() {
-        var userId = setupUser(ROLE_EMPLOYEE);
+        var userId = setupUser(ROLE_EMPLOYEE).userId();
         setupValidToken("user@example.com");
 
         var spec = buildClient(port).get()
@@ -319,7 +327,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void getUserById_roleAdmin_isOkFull() {
-        var userId = setupUser(ROLE_ADMIN);
+        var userId = setupUser(ROLE_ADMIN).userId();
         setupValidToken("user@example.com");
 
         var spec = buildClient(port).get()
@@ -333,7 +341,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void getUserById_invalidToken_isUnauthorized() {
-        var userId = setupUser(ROLE_EMPLOYEE);
+        var userId = setupUser(ROLE_EMPLOYEE).userId();
         setupValidToken("user@example.com");
 
         var spec = buildClient(port).get()
@@ -345,7 +353,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void getUserById_invalidUser_isNotFound() {
-        var userId = setupUser(ROLE_EMPLOYEE) + 1;
+        var userId = setupUser(ROLE_EMPLOYEE).userId() + 1;
         setupValidToken("user@example.com");
 
         var spec = buildClient(port).get()
@@ -353,6 +361,187 @@ class UserControllerTest extends AuthorizationControllerTest {
             .header("Authorization", "Bearer " + VALID_TOKEN)
             .exchange();
         validateNotFound(spec);
+    }
+
+    private void validateFilteredUsers(WebTestClient.BodyContentSpec spec, UserData user, boolean empty) {
+        spec.jsonPath("$.items").isArray()
+            .jsonPath("$.items.length()").isEqualTo(empty ? 0 : 1)
+            .jsonPath("$.totalPages").isEqualTo(empty ? 0 : 1)
+            .jsonPath("$.currentPage").isEqualTo(1)
+            .jsonPath("$.totalItems").isEqualTo(empty ?  0 : 1);
+        if (!empty) {
+            spec.jsonPath("$.items[0].id").isEqualTo(user.userId())
+                .jsonPath("$.items[0].firstName").isEqualTo("John")
+                .jsonPath("$.items[0].lastName").isEqualTo("Doe")
+                .jsonPath("$.items[0].avatarUrl").isEqualTo("https://avatar.com")
+                .jsonPath("$.items[0].position.id").isEqualTo(user.positionId())
+                .jsonPath("$.items[0].position.name").isEqualTo("Java Developer")
+                .jsonPath("$.items[0].position.department.id").isEqualTo(user.departmentId())
+                .jsonPath("$.items[0].position.department.name").isEqualTo("Software Development");
+        }
+    }
+
+    @Test
+    void findFiltered_noParams_isOkAndNonEmpty() {
+        var user = setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/users")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody();
+        validateFilteredUsers(spec, user, false);
+    }
+
+    @Test
+    void findFiltered_validParams_isOkAndNonEmpty() {
+        var user = setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var query = user.params().entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining("&"));
+        var spec = buildClient(port).get()
+            .uri("/users?" + query)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody();
+        validateFilteredUsers(spec, user, false);
+    }
+
+    @Test
+    void findFiltered_invalidDepartment_isBadRequest() {
+        var user = setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var params = new HashMap<>(user.params());
+        params.put("department", "zxc");
+        var query = params.entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining("&"));
+        var spec = buildClient(port).get()
+            .uri("/users?" + query)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void findFiltered_departmentValidButNotExists_isOkAndEmpty() {
+        var user = setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var params = new HashMap<>(user.params());
+        params.put("department", Integer.toString(user.departmentId() + 1));
+        var query = params.entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining("&"));
+        var spec = buildClient(port).get()
+            .uri("/users?" + query)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody();
+        validateFilteredUsers(spec, user, true);
+    }
+
+    @Test
+    void findFiltered_invalidPosition_isBadRequest() {
+        var user = setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var params = new HashMap<>(user.params());
+        params.put("position", "sdss");
+        var query = params.entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining("&"));
+        var spec = buildClient(port).get()
+            .uri("/users?" + query)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void findFiltered_positionValidButNotExists_isOkAndEmpty() {
+        var user = setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var params = new HashMap<>(user.params());
+        params.put("position", Integer.toString(user.positionId() + 1));
+        var query = params.entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining("&"));
+        var spec = buildClient(port).get()
+            .uri("/users?" + query)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody();
+        validateFilteredUsers(spec, user, true);
+    }
+
+    @Test
+    void findFiltered_invalidStack_isBadRequest() {
+        var user = setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var params = new HashMap<>(user.params());
+        params.put("stack", "zxc");
+        var query = params.entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining("&"));
+        var spec = buildClient(port).get()
+            .uri("/users?" + query)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void findFiltered_stackValidButNotExists_isOkAndEmpty() {
+        var user = setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var params = new HashMap<>(user.params());
+        params.put("stack", Integer.toString(user.stackId() + 1));
+        var query = params.entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining("&"));
+        var spec = buildClient(port).get()
+            .uri("/users?" + query)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody();
+        validateFilteredUsers(spec, user, true);
+    }
+
+    @Test
+    void findFiltered_invalidToken_isUnauthorized() {
+        var user = setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var query = user.params().entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining("&"));
+        var spec = buildClient(port).get()
+            .uri("/users?" + query)
+            .header("Authorization", "Bearer " + INVALID_TOKEN)
+            .exchange();
+        validateUnauthorized(spec);
+    }
+
+    private record UserData(
+        Integer userId,
+        Integer positionId,
+        Integer departmentId,
+        Integer stackId,
+        Map<String, String> params
+    ) {
     }
 
 }

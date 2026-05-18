@@ -27,9 +27,9 @@ public interface UserPositionMapper {
     @Mapping(target = "position", source = "userPosition")
     UserDto entityToUserDto(UserPosition userPosition);
 
-    @Mapping(target = "items", source = "page.content")
+    @Mapping(target = "items", source = "page.content", conditionExpression = "java(true)")
     @Mapping(target = "totalPages", source = "page.totalPages")
     @Mapping(target = "totalItems", source = "page.totalElements")
-    @Mapping(target = "currentPage", source = "page.number")
+    @Mapping(target = "currentPage", expression = "java(page.getNumber() + 1)")
     PageDto<UserDto> pageToPageUserDto(Page<UserPosition> page);
 }
