@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.service.adapter.storage;
 
+import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.oauth.DbxCredential;
 import com.dropbox.core.v2.DbxClientV2;
@@ -50,9 +51,16 @@ class DropboxStorageAdapter implements StorageAdapter {
     @Override
     public UploadedFileDto upload(String email, MultipartFile file) {
         try {
+            return upload(email, file, true);
+        } catch (DbxException e) {
+            throw buildRuntimeException(e);
+        }
+    }
+
+    private UploadedFileDto upload(String email, MultipartFile file, boolean refreshAndRetry) throws DbxException {
+        try {
             var folder = email.replace("@", "_at_");
             var filename = String.format("/%s/%s", folder, file.getOriginalFilename());
-            client.refreshAccessToken();
             var metadata = client.files().uploadBuilder(filename)
                 .uploadAndFinish(file.getInputStream());
             var settings = SharedLinkSettings.newBuilder()
@@ -63,9 +71,18 @@ class DropboxStorageAdapter implements StorageAdapter {
             var link = client.sharing().createSharedLinkWithSettings(metadata.getPathLower(), settings);
             return new UploadedFileDto(link.getUrl());
         } catch (Exception e) {
-            var message = e.getMessage();
-            message = isEmpty(message) ? "File upload is failed" : message;
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message, e);
+            if (refreshAndRetry) {
+                client.refreshAccessToken();
+                return upload(email, file, false);
+            }
+            throw buildRuntimeException(e);
         }
+    }
+
+    private RuntimeException buildRuntimeException(Exception e) {
+        if (e instanceof RuntimeException runtimeException) return runtimeException;
+        var message = e.getMessage();
+        message = isEmpty(message) ? "File upload is failed" : message;
+        return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message, e);
     }
 }
