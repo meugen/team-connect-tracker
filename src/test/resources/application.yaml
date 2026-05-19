@@ -9,3 +9,8 @@ spring:
 
   flyway:
     enabled: false
+
+team:
+  connect:
+    files:
+      max-size: ${MAXSIZE:5MB}
