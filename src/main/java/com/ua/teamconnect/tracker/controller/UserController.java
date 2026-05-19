@@ -59,7 +59,16 @@ public class UserController {
     }
 
     @GetMapping
-    public PageDto<UserDto> findFiltered(@RequestParam Map<String, String> params) {
+    @ApiResponseOk
+    @Parameter(name = "search", description = "Search query for filtering users by name", example = "John")
+    @Parameter(name = "department", description = "Comma separated department id(s) for filtering users", example = "1,2,3")
+    @Parameter(name = "position", description = "Comma separated position id(s) for filtering users", example = "1,2,3")
+    @Parameter(name = "stack", description = "Comma separated stack id(s) for filtering users", example = "1,2,3")
+    @Parameter(name = "page", description = "Page number for pagination (starting from 1)", example = "1")
+    @Parameter(name = "size", description = "Page size for pagination", example = "10")
+    @Parameter(name = "sort", description = "Sorting field", example = "firstName")
+    @Parameter(name = "order", description = "Sorting order (asc or desc)", example = "asc")
+    public PageDto<UserDto> findFiltered(@RequestParam @Parameter(hidden = true) Map<String, String> params) {
         return userService.findFiltered(params);
     }
 }
