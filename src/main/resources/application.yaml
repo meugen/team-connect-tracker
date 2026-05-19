@@ -23,3 +23,7 @@ spring:
     baseline-on-migrate: true
     baseline-version: 2
 
+team:
+  connect:
+    files:
+      max-size: ${MAXSIZE:5MB}
