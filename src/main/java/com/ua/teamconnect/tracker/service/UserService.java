@@ -1,14 +1,19 @@
 package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
+import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
 import com.ua.teamconnect.tracker.model.dto.UserProfile;
+import com.ua.teamconnect.tracker.model.dto.UserUpdateProfileDto;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.repository.UserRepository;
 import com.ua.teamconnect.tracker.service.strategy.user_profile.MapUserProfileFactory;
 import com.ua.teamconnect.tracker.util.Pair;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.Month;
 import java.time.MonthDay;
@@ -21,8 +26,10 @@ import static com.ua.teamconnect.tracker.util.DateUtil.toMonthDay;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     private final MapUserProfileFactory mapUserProfileFactory;
     private final UserAnniversaryMapper userAnniversaryMapper;
+    private final UserRequestProfileMapper userRequestProfileMapper;
 
     public UserProfile profile(String email) {
         var user = userRepository.findByEmail(email).orElseThrow(
@@ -62,5 +69,14 @@ public class UserService {
         );
         return mapUserProfileFactory.byRole(role).entityToDto(user);
     }
+    
+    public void updateProfile(String email, UserUpdateProfileDto dto) {
+		var user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+		userRequestProfileMapper.updateEntityFromDto(dto, user);
+		if (StringUtils.hasText(dto.password())) {
+			user.setPassword(passwordEncoder.encode(dto.password()));
+		}
+		userRepository.save(user);
+	}
 
 }
