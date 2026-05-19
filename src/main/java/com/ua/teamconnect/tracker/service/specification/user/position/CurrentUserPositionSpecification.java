@@ -1,4 +1,4 @@
-package com.ua.teamconnect.tracker.service.specification.user_position;
+package com.ua.teamconnect.tracker.service.specification.user.position;
 
 import com.ua.teamconnect.tracker.model.entity.UserPosition;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -15,10 +15,10 @@ import java.time.LocalDate;
 import static lombok.AccessLevel.PRIVATE;
 
 @RequiredArgsConstructor(access = PRIVATE)
-public class NowUserPositionSpecification implements Specification<UserPosition> {
+public class CurrentUserPositionSpecification implements Specification<UserPosition> {
 
     public static Specification<UserPosition> wrap(Specification<UserPosition> spec, LocalDate date) {
-        return spec.and(new NowUserPositionSpecification(date));
+        return spec.and(new CurrentUserPositionSpecification(date));
     }
 
     private final LocalDate now;

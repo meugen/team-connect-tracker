@@ -1,4 +1,4 @@
-package com.ua.teamconnect.tracker.service.specification.user_position;
+package com.ua.teamconnect.tracker.service.specification.user.position;
 
 import com.ua.teamconnect.tracker.model.entity.UserPosition;
 import com.ua.teamconnect.tracker.service.specification.common.FetchSpecification;
@@ -31,7 +31,7 @@ public class UserPositionSpecificationBuilder {
         specification = PositionIdUserPositionSpecification.wrap(specification, params.get(PARAM_POSITION));
         specification = StackIdUserPositionSpecification.wrap(specification, params.get(PARAM_STACK));
         var now = LocalDate.now();
-        specification = NowUserPositionSpecification.wrap(specification, now);
+        specification = CurrentUserPositionSpecification.wrap(specification, now);
         specification = SingleUserPositionSpecification.wrap(specification);
         var dataSpecification = FetchSpecification.wrap(specification, fetchFields);
         return new Pair<>(dataSpecification, specification);

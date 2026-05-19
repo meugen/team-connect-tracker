@@ -7,6 +7,9 @@ import com.ua.teamconnect.tracker.repository.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -15,6 +18,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -416,13 +420,26 @@ class UserControllerTest extends AuthorizationControllerTest {
         validateFilteredUsers(spec, user, false);
     }
 
-    @Test
-    void findFiltered_invalidDepartment_isBadRequest() {
+    static List<Arguments> invalidParams() {
+        return List.of(
+            Arguments.of("department", "abc"),
+            Arguments.of("position", "abc"),
+            Arguments.of("stack", "abc"),
+            Arguments.of("size", "abc"),
+            Arguments.of("page", "abc"),
+            Arguments.of("sort", "abc"),
+            Arguments.of("order", "abc")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidParams")
+    void findFiltered_invalidParam_isBadRequest(String name, String value) {
         var user = setupUser(ROLE_EMPLOYEE);
         setupValidToken();
 
         var params = new HashMap<>(user.params());
-        params.put("department", "zxc");
+        params.put(name, value);
         var query = params.entrySet().stream()
             .map(e -> e.getKey() + "=" + e.getValue())
             .collect(Collectors.joining("&"));
@@ -453,23 +470,6 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void findFiltered_invalidPosition_isBadRequest() {
-        var user = setupUser(ROLE_EMPLOYEE);
-        setupValidToken();
-
-        var params = new HashMap<>(user.params());
-        params.put("position", "sdss");
-        var query = params.entrySet().stream()
-            .map(e -> e.getKey() + "=" + e.getValue())
-            .collect(Collectors.joining("&"));
-        var spec = buildClient(port).get()
-            .uri("/users?" + query)
-            .header("Authorization", "Bearer " + VALID_TOKEN)
-            .exchange();
-        validateBadRequest(spec);
-    }
-
-    @Test
     void findFiltered_positionValidButNotExists_isOkAndEmpty() {
         var user = setupUser(ROLE_EMPLOYEE);
         setupValidToken();
@@ -486,91 +486,6 @@ class UserControllerTest extends AuthorizationControllerTest {
             .expectStatus().isOk()
             .expectBody();
         validateFilteredUsers(spec, user, true);
-    }
-
-    @Test
-    void findFiltered_invalidStack_isBadRequest() {
-        var user = setupUser(ROLE_EMPLOYEE);
-        setupValidToken();
-
-        var params = new HashMap<>(user.params());
-        params.put("stack", "zxc");
-        var query = params.entrySet().stream()
-            .map(e -> e.getKey() + "=" + e.getValue())
-            .collect(Collectors.joining("&"));
-        var spec = buildClient(port).get()
-            .uri("/users?" + query)
-            .header("Authorization", "Bearer " + VALID_TOKEN)
-            .exchange();
-        validateBadRequest(spec);
-    }
-
-    @Test
-    void findFiltered_invalidSize_isBadRequest() {
-        var user = setupUser(ROLE_EMPLOYEE);
-        setupValidToken();
-
-        var params = new HashMap<>(user.params());
-        params.put("size", "zxc");
-        var query = params.entrySet().stream()
-            .map(e -> e.getKey() + "=" + e.getValue())
-            .collect(Collectors.joining("&"));
-        var spec = buildClient(port).get()
-            .uri("/users?" + query)
-            .header("Authorization", "Bearer " + VALID_TOKEN)
-            .exchange();
-        validateBadRequest(spec);
-    }
-
-    @Test
-    void findFiltered_invalidPage_isBadRequest() {
-        var user = setupUser(ROLE_EMPLOYEE);
-        setupValidToken();
-
-        var params = new HashMap<>(user.params());
-        params.put("page", "zxc");
-        var query = params.entrySet().stream()
-            .map(e -> e.getKey() + "=" + e.getValue())
-            .collect(Collectors.joining("&"));
-        var spec = buildClient(port).get()
-            .uri("/users?" + query)
-            .header("Authorization", "Bearer " + VALID_TOKEN)
-            .exchange();
-        validateBadRequest(spec);
-    }
-
-    @Test
-    void findFiltered_invalidSort_isBadRequest() {
-        var user = setupUser(ROLE_EMPLOYEE);
-        setupValidToken();
-
-        var params = new HashMap<>(user.params());
-        params.put("sort", "zxc");
-        var query = params.entrySet().stream()
-            .map(e -> e.getKey() + "=" + e.getValue())
-            .collect(Collectors.joining("&"));
-        var spec = buildClient(port).get()
-            .uri("/users?" + query)
-            .header("Authorization", "Bearer " + VALID_TOKEN)
-            .exchange();
-        validateBadRequest(spec);
-    }
-
-    @Test
-    void findFiltered_invalidOrder_isBadRequest() {
-        var user = setupUser(ROLE_EMPLOYEE);
-        setupValidToken();
-
-        var params = new HashMap<>(user.params());
-        params.put("order", "zxc");
-        var query = params.entrySet().stream()
-            .map(e -> e.getKey() + "=" + e.getValue())
-            .collect(Collectors.joining("&"));
-        var spec = buildClient(port).get()
-            .uri("/users?" + query)
-            .header("Authorization", "Bearer " + VALID_TOKEN)
-            .exchange();
-        validateBadRequest(spec);
     }
 
     @Test

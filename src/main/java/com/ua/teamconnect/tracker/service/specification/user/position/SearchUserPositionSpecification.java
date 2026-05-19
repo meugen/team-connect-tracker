@@ -1,4 +1,4 @@
-package com.ua.teamconnect.tracker.service.specification.user_position;
+package com.ua.teamconnect.tracker.service.specification.user.position;
 
 import com.ua.teamconnect.tracker.model.entity.UserPosition;
 import jakarta.persistence.criteria.CriteriaBuilder;

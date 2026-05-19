@@ -9,7 +9,7 @@ import com.ua.teamconnect.tracker.model.entity.projection.Anniversary;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
-import com.ua.teamconnect.tracker.service.specification.user_position.UserPositionSpecificationBuilder;
+import com.ua.teamconnect.tracker.service.specification.user.position.UserPositionSpecificationBuilder;
 import com.ua.teamconnect.tracker.service.strategy.user_profile.MapUserProfileFactory;
 import com.ua.teamconnect.tracker.service.strategy.user_profile.MapUserProfileStrategy;
 import org.junit.jupiter.api.BeforeEach;
