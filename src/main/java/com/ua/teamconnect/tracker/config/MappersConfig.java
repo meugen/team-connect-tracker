@@ -8,28 +8,34 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MappersConfig {
 
-    @Bean
-    public DepartmentMapper departmentMapper() {
-        return Mappers.getMapper(DepartmentMapper.class);
-    }
+	@Bean
+	public DepartmentMapper departmentMapper() {
+		return Mappers.getMapper(DepartmentMapper.class);
+	}
 
-    @Bean
-    public StackMapper stackMapper() {
-        return Mappers.getMapper(StackMapper.class);
-    }
+	@Bean
+	public StackMapper stackMapper() {
+		return Mappers.getMapper(StackMapper.class);
+	}
 
-    @Bean
-    public PositionMapper positionMapper() {
-        return Mappers.getMapper(PositionMapper.class);
-    }
-    
-    @Bean
-    public UserProfileMapper userProfileMapper() {
-        return Mappers.getMapper(UserProfileMapper.class);
-    }
+	@Bean
+	public PositionMapper positionMapper() {
+		return Mappers.getMapper(PositionMapper.class);
+	}
 
+	@Bean
+	public UserProfileMapper userProfileMapper() {
+		return Mappers.getMapper(UserProfileMapper.class);
+	}
+
+	@Bean
+	public UserAnniversaryMapper userAnniversaryMapper() {
+		return Mappers.getMapper(UserAnniversaryMapper.class);
+	}
+
+	
     @Bean
-    public UserAnniversaryMapper userAnniversaryMapper() {
-        return Mappers.getMapper(UserAnniversaryMapper.class);
-    }
+	public UserRequestProfileMapper userRequestProfileMapper() {
+		return Mappers.getMapper(UserRequestProfileMapper.class);
+	}
 }
