@@ -1,0 +1,21 @@
+package com.ua.teamconnect.tracker.model.annotation;
+
+import com.ua.teamconnect.tracker.model.dto.ErrorDto;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@ApiResponse(
+    responseCode = "400",
+    description = "Bad Request - The request could not be understood or was missing required parameters.",
+    content = @Content(schema = @Schema(implementation = ErrorDto.class))
+)
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ApiResponseBadRequest {
+}

@@ -25,14 +25,14 @@ public class DepartmentMapperTest {
     @Test
     void entityToDto_entityIsNotNull_validDto() {
         var entity = new Department();
-        entity.setId(1L);
+        entity.setId(1);
         entity.setName("Software Development");
-        entity.setHeadId(2L);
+        entity.setHeadId(2);
         var dto = mapper.entityToDto(entity);
 
         assertNotNull(dto);
-        assertEquals(1L, dto.id());
+        assertEquals(1, dto.id());
         assertEquals("Software Development", dto.name());
-        assertEquals(2L, dto.headId());
+        assertEquals(2, dto.headId());
     }
 }

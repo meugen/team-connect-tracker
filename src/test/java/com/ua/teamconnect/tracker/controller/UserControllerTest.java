@@ -1,13 +1,16 @@
 package com.ua.teamconnect.tracker.controller;
 
+import com.ua.teamconnect.tracker.extension.UserHireDateExtension;
 import com.ua.teamconnect.tracker.model.entity.*;
 import com.ua.teamconnect.tracker.model.pojo.Gender;
 import com.ua.teamconnect.tracker.repository.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -17,6 +20,9 @@ import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UserControllerTest extends AuthorizationControllerTest {
+
+    private static final String ROLE_EMPLOYEE = "EMPLOYEE";
+    private static final String ROLE_ADMIN = "ADMIN";
 
     @Autowired
     private UserRepository userRepository;
@@ -57,14 +63,14 @@ class UserControllerTest extends AuthorizationControllerTest {
         userRepository.deleteAll();
     }
 
-    private void setupUser() {
+    private Integer setupUser(String role) {
         var user = new User();
         user.setEmail("user@example.com");
         user.setPassword("password");
         user.setAvatar("https://avatar.com");
         user.setFirstName("John");
         user.setLastName("Doe");
-        user.setRole("ENGINEER");
+        user.setRole(role);
         user.setStatus("ACTIVE");
         user.setPhone(Map.of(
             "home", "+123456789",
@@ -102,35 +108,25 @@ class UserControllerTest extends AuthorizationControllerTest {
 
         var userProject = UserProject.of(user, project);
         userProject.setRole("DEVELOPER");
-        userProject.setStartDate(LocalDate.of(2023, Month.FEBRUARY, 1));
+        userProject.setStartDate(LocalDate.of(2023, Month.MARCH, 1));
         userProjectRepository.save(userProject);
 
         var userPosition = UserPosition.of(user, position);
-        userPosition.setStartDate(LocalDate.of(2023, Month.JANUARY, 1));
+        userPosition.setStartDate(LocalDate.of(2023, Month.FEBRUARY, 1));
         userPositionRepository.save(userPosition);
+
+        return user.getId();
     }
 
-    @Test
-    void profile_validToken_isOk() {
-        setupUser();
-        setupValidToken("user@example.com");
-
-        buildClient(port).get()
-            .uri("/users/profile")
-            .header("Authorization", "Bearer " + VALID_TOKEN)
-            .exchange()
-            .expectStatus().isOk()
-            .expectBody()
-            .jsonPath("$.id").isNumber()
+    private void profileIsValid(WebTestClient.BodyContentSpec spec, boolean full) {
+        spec.jsonPath("$.id").isNumber()
             .jsonPath("$.firstName").isEqualTo("John")
             .jsonPath("$.lastName").isEqualTo("Doe")
             .jsonPath("$.avatar").isEqualTo("https://avatar.com")
             .jsonPath("$.workEmail").isEqualTo("user@example.com")
-            .jsonPath("$.hireDate").isEqualTo("2023-01-01")
+            .jsonPath("$.hireDate").isEqualTo("2023-02-01")
             .jsonPath("$.grade").isEqualTo("SENIOR")
-            .jsonPath("$.phones.home").isEqualTo("+123456789")
-            .jsonPath("$.phones.mobile").isEqualTo("+987654321")
-            .jsonPath("$.stacks").isArray()
+            .jsonPath("$.gender").isEqualTo("MALE").jsonPath("$.stacks").isArray()
             .jsonPath("$.stacks[0].id").isNumber()
             .jsonPath("$.stacks[0].name").isEqualTo("Java")
             .jsonPath("$.positions").isArray()
@@ -140,13 +136,31 @@ class UserControllerTest extends AuthorizationControllerTest {
             .jsonPath("$.positions[0].department.name").isEqualTo("Software Development")
             .jsonPath("$.projects").isArray()
             .jsonPath("$.projects[0].id").isNumber()
-            .jsonPath("$.projects[0].name").isEqualTo("Team Connect")
-            .jsonPath("$.birthDate").isEqualTo("1990-05-10");
+            .jsonPath("$.projects[0].name").isEqualTo("Team Connect");
+        if (full) {
+            spec.jsonPath("$.phones.home").isEqualTo("+123456789")
+                .jsonPath("$.phones.mobile").isEqualTo("+987654321")
+                .jsonPath("$.birthDate").isEqualTo("1990-05-10");
+        }
+    }
+
+    @Test
+    void profile_validToken_isOk() {
+        setupUser(ROLE_EMPLOYEE);
+        setupValidToken("user@example.com");
+
+        var spec = buildClient(port).get()
+            .uri("/users/profile")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody();
+        profileIsValid(spec, true);
     }
 
     @Test
     void profile_invalidToken_isUnauthorized() {
-        setupUser();
+        setupUser(ROLE_EMPLOYEE);
         setupValidToken();
 
         var spec = buildClient(port).get()
@@ -155,4 +169,190 @@ class UserControllerTest extends AuthorizationControllerTest {
             .exchange();
         validateUnauthorized(spec);
     }
+
+    @Test
+    @ExtendWith(UserHireDateExtension.class)
+    void getAnniversariesBetween_validTokenAndRequest_isOkAndNotEmpty() {
+        setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        buildClient(port).get()
+            .uri("/users/anniversaries?startDate=20-01&endDate=10-02")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$").isArray()
+            .jsonPath("$.length()").isEqualTo(1)
+            .jsonPath("$[0].id").isNumber()
+            .jsonPath("$[0].firstName").isEqualTo("John")
+            .jsonPath("$[0].lastName").isEqualTo("Doe")
+            .jsonPath("$[0].avatarUrl").isEqualTo("https://avatar.com")
+            .jsonPath("$[0].hireDate").isEqualTo("2023-02-01");
+    }
+
+    @Test
+    @ExtendWith(UserHireDateExtension.class)
+    void getAnniversariesBetween_validTokenAndAfterHireDate_isOkAndEmpty() {
+        setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        buildClient(port).get()
+            .uri("/users/anniversaries?startDate=10-02&endDate=20-02")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$").isArray()
+            .jsonPath("$.length()").isEqualTo(0);
+    }
+
+    @Test
+    @ExtendWith(UserHireDateExtension.class)
+    void getAnniversariesBetween_validTokenAndBeforeHireDate_isOkAndEmpty() {
+        setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        buildClient(port).get()
+            .uri("/users/anniversaries?startDate=10-01&endDate=20-01")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$").isArray()
+            .jsonPath("$.length()").isEqualTo(0);
+    }
+
+    @Test
+    void getAnniversariesBetween_invalidToken_isUnauthorized() {
+        setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/users/anniversaries?startDate=20-01&endDate=10-02")
+            .header("Authorization", "Bearer " + INVALID_TOKEN)
+            .exchange();
+        validateUnauthorized(spec);
+    }
+
+    @Test
+    @ExtendWith(UserHireDateExtension.class)
+    void getAnniversariesBetween_startAfterEnd_isOkAndNotEmpty() {
+        setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        buildClient(port).get()
+            .uri("/users/anniversaries?startDate=20-12&endDate=10-02")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectBody()
+            .jsonPath("$").isArray()
+            .jsonPath("$.length()").isEqualTo(1)
+            .jsonPath("$[0].id").isNumber()
+            .jsonPath("$[0].firstName").isEqualTo("John")
+            .jsonPath("$[0].lastName").isEqualTo("Doe")
+            .jsonPath("$[0].avatarUrl").isEqualTo("https://avatar.com")
+            .jsonPath("$[0].hireDate").isEqualTo("2023-02-01");
+    }
+
+    @Test
+    void getAnniversariesBetween_invalidStart_isBadRequest() {
+        setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/users/anniversaries?startDate=201-01&endDate=10-02")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void getAnniversariesBetween_invalidEnd_isBadRequest() {
+        setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/users/anniversaries?startDate=20-01&endDate=101-02")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void getAnniversariesBetween_noStart_isBadRequest() {
+        setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/users/anniversaries?endDate=10-02")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void getAnniversariesBetween_noEnd_isBadRequest() {
+        setupUser(ROLE_EMPLOYEE);
+        setupValidToken();
+
+        var spec = buildClient(port).get()
+            .uri("/users/anniversaries?startDate=20-01")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void getUserById_roleEmployee_isOkShort() {
+        var userId = setupUser(ROLE_EMPLOYEE);
+        setupValidToken("user@example.com");
+
+        var spec = buildClient(port).get()
+            .uri("/users/" + userId)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody();
+        profileIsValid(spec, false);
+    }
+
+    @Test
+    void getUserById_roleAdmin_isOkFull() {
+        var userId = setupUser(ROLE_ADMIN);
+        setupValidToken("user@example.com");
+
+        var spec = buildClient(port).get()
+            .uri("/users/" + userId)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody();
+        profileIsValid(spec, true);
+    }
+
+    @Test
+    void getUserById_invalidToken_isUnauthorized() {
+        var userId = setupUser(ROLE_EMPLOYEE);
+        setupValidToken("user@example.com");
+
+        var spec = buildClient(port).get()
+            .uri("/users/" + userId)
+            .header("Authorization", "Bearer " + INVALID_TOKEN)
+            .exchange();
+        validateUnauthorized(spec);
+    }
+
+    @Test
+    void getUserById_invalidUser_isNotFound() {
+        var userId = setupUser(ROLE_EMPLOYEE) + 1;
+        setupValidToken("user@example.com");
+
+        var spec = buildClient(port).get()
+            .uri("/users/" + userId)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+        validateNotFound(spec);
+    }
+
 }

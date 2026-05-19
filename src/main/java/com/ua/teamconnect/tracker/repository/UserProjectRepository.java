@@ -18,5 +18,5 @@ public interface UserProjectRepository extends CrudRepository<UserProject, UserP
             and (p.endDate is null or :now < p.endDate))
         and up.startDate <= :now and (up.endDate is null or :now < up.endDate)
     """)
-    List<UserProject> findByUserIdAndNow(Long userId, LocalDate now);
+    List<UserProject> findByUserIdAndNow(Integer userId, LocalDate now);
 }
