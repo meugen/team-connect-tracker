@@ -1,12 +1,15 @@
 package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
+import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
 import com.ua.teamconnect.tracker.model.dto.UserProfile;
 import com.ua.teamconnect.tracker.model.entity.User;
 import com.ua.teamconnect.tracker.model.entity.projection.Anniversary;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
+import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
+import com.ua.teamconnect.tracker.service.specification.user.position.UserPositionSpecificationBuilder;
 import com.ua.teamconnect.tracker.service.strategy.user_profile.MapUserProfileFactory;
 import com.ua.teamconnect.tracker.service.strategy.user_profile.MapUserProfileStrategy;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,19 +35,26 @@ class UserServiceTest {
     private MapUserProfileStrategy shortUserProfileStrategy;
     private MapUserProfileStrategy fullUserProfileStrategy;
     private UserService userService;
+    private UserPositionSpecificationBuilder userPositionSpecificationBuilder;
+    private UserPositionRepository userPositionRepository;
 
     @BeforeEach
     void setupService() {
         userRepository = mock(UserRepository.class);
         shortUserProfileStrategy = mock(MapUserProfileStrategy.class);
         fullUserProfileStrategy = mock(MapUserProfileStrategy.class);
+        userPositionSpecificationBuilder = mock(UserPositionSpecificationBuilder.class);
+        userPositionRepository = mock(UserPositionRepository.class);
         userService = new UserService(
             userRepository,
             new MapUserProfileFactory(
                 shortUserProfileStrategy,
                 fullUserProfileStrategy
             ),
-            Mappers.getMapper(UserAnniversaryMapper.class)
+            Mappers.getMapper(UserAnniversaryMapper.class),
+            userPositionSpecificationBuilder,
+            userPositionRepository,
+            Mappers.getMapper(UserPositionMapper.class)
         );
     }
 
