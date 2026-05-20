@@ -25,4 +25,8 @@ public record ErrorDto(
     public ErrorDto(AuthenticationException ex, String url) {
         this(HttpStatus.UNAUTHORIZED.value(), ex.getMessage(), LocalDateTime.now(), url);
     }
+
+    public ErrorDto(IllegalArgumentException ex, String url) {
+        this(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), LocalDateTime.now(), url);
+    }
 }
