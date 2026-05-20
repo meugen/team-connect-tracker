@@ -9,3 +9,4 @@ public class TrackerApp {
         SpringApplication.run(TrackerApp.class, args);
     }
 }
+ 
