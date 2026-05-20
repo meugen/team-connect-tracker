@@ -19,6 +19,8 @@ public class StorageAdapterFactory implements FactoryBean<StorageAdapter> {
     public @Nullable StorageAdapter getObject() throws Exception {
         var storageAdapter = DropboxStorageAdapter.build(environment);
         if (storageAdapter.isPresent()) return storageAdapter.get();
+        storageAdapter = AwsS3StorageAdapter.build(environment);
+        if (storageAdapter.isPresent()) return storageAdapter.get();
         if (throwIfNotConfigured) throw new IllegalStateException("Storage adapter is not configured");
         return new NotConfiguredStorageAdapter();
     }

@@ -25,6 +25,20 @@ class StorageAdapterFactoryTest {
     }
 
     @Test
+    void build_awss3Configured_dropboxInstance() throws Exception {
+        var env = mock(Environment.class);
+        when(env.getProperty("AWS_S3_BUCKET")).thenReturn("team-connect-2");
+        when(env.getProperty("AWS_REGION")).thenReturn("eu-central-1");
+        when(env.getProperty("AWS_ACCESS_KEY_ID")).thenReturn("accessKeyId");
+        when(env.getProperty("AWS_SECRET_ACCESS_KEY")).thenReturn("secretAccessKey");
+        var factory = new StorageAdapterFactory(false, env);
+
+        var storageAdapter = factory.getObject();
+
+        assertInstanceOf(AwsS3StorageAdapter.class, storageAdapter);
+    }
+
+    @Test
     void build_noneConfigured_notConfiguredInstance() throws Exception {
         var env = mock(Environment.class);
         var factory = new StorageAdapterFactory(false, env);
