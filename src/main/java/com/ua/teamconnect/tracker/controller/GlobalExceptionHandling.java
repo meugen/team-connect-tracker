@@ -4,6 +4,7 @@ import com.ua.teamconnect.tracker.model.dto.ErrorDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -23,6 +24,16 @@ public class GlobalExceptionHandling {
     ) {
         LOGGER.error(ex.getReason(), ex);
         return ResponseEntity.status(ex.getStatusCode())
+            .body(new ErrorDto(ex, buildUrl(request)));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorDto> handleIllegalArgumentException(
+        IllegalArgumentException ex,
+        HttpServletRequest request
+    ) {
+        LOGGER.error(ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(new ErrorDto(ex, buildUrl(request)));
     }
 }
