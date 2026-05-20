@@ -1,8 +1,6 @@
 package com.ua.teamconnect.tracker.service.component;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Locale;
@@ -23,14 +21,8 @@ public class MultipartFileValidator {
         "docx", Set.of("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
     );
 
-    @Value("${team.connect.files.max-size}")
-    private DataSize maxFileSize;
-
     public void validate(MultipartFile multipartFile) {
         if (multipartFile.isEmpty()) throw new IllegalArgumentException("File is empty");
-        if (multipartFile.getSize() > maxFileSize.toBytes())
-            throw new IllegalArgumentException("File size exceeds maximum allowed size");
-
         String extension = extractExtension(multipartFile.getOriginalFilename());
         String mimeType = normalizeMimeType(multipartFile.getContentType());
         if (!isAllowedExtensionAndMimeType(extension, mimeType)) {

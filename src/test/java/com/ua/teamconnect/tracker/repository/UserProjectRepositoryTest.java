@@ -2,7 +2,6 @@ package com.ua.teamconnect.tracker.repository;
 
 import com.ua.teamconnect.tracker.model.entity.Project;
 import com.ua.teamconnect.tracker.model.entity.UserProject;
-import com.ua.teamconnect.tracker.service.adapter.storage.StorageAdapter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +29,6 @@ class UserProjectRepositoryTest extends UserRelatedRepositoryTest {
     @MockitoBean
     @SuppressWarnings("unused") // Need for context not complaining of missing bean
     private JwtDecoder jwtDecoder;
-
-    @MockitoBean
-    @SuppressWarnings("unused") // Need for context not complaining of missing bean
-    private StorageAdapter storageAdapter;
 
     @AfterEach
     void cleanUp() {

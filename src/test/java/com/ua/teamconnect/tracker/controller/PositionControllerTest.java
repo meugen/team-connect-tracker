@@ -4,14 +4,12 @@ import com.ua.teamconnect.tracker.model.entity.Department;
 import com.ua.teamconnect.tracker.model.entity.Position;
 import com.ua.teamconnect.tracker.repository.DepartmentRepository;
 import com.ua.teamconnect.tracker.repository.PositionRepository;
-import com.ua.teamconnect.tracker.service.adapter.storage.StorageAdapter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpHeaders;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
 
@@ -26,10 +24,6 @@ class PositionControllerTest extends AuthorizationControllerTest {
 
     @LocalServerPort
     private int port;
-
-    @MockitoBean
-    @SuppressWarnings("unused") // Need for context not complaining of missing bean
-    private StorageAdapter storageAdapter;
 
     @AfterEach
     void clearTestData() {

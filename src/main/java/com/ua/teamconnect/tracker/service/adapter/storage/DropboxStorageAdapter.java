@@ -1,20 +1,17 @@
 package com.ua.teamconnect.tracker.service.adapter.storage;
 
-import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.oauth.DbxCredential;
 import com.dropbox.core.v2.DbxClientV2;
 import com.dropbox.core.v2.sharing.RequestedLinkAccessLevel;
 import com.dropbox.core.v2.sharing.RequestedVisibility;
 import com.dropbox.core.v2.sharing.SharedLinkSettings;
-import com.ua.teamconnect.tracker.model.dto.UploadedFileDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 import static org.springframework.util.ObjectUtils.isEmpty;
 
@@ -49,40 +46,41 @@ class DropboxStorageAdapter implements StorageAdapter {
     private final DbxClientV2 client;
 
     @Override
-    public UploadedFileDto upload(String email, MultipartFile file) {
-        try {
-            return upload(email, file, true);
-        } catch (DbxException e) {
-            throw buildRuntimeException(e);
-        }
-    }
-
-    private UploadedFileDto upload(String email, MultipartFile file, boolean refreshAndRetry) throws DbxException {
-        try {
+    public String upload(String email, MultipartFile file) {
+        return retry(() -> {
             var folder = email.replace("@", "_at_");
             var filename = String.format("/%s/%s", folder, file.getOriginalFilename());
             var metadata = client.files().uploadBuilder(filename)
                 .uploadAndFinish(file.getInputStream());
+            return metadata.getPathLower();
+        });
+    }
+
+    @Override
+    public String shareLink(String filename) {
+        return retry(() -> {
             var settings = SharedLinkSettings.newBuilder()
                 .withAccess(RequestedLinkAccessLevel.VIEWER)
                 .withAllowDownload(true)
                 .withRequestedVisibility(RequestedVisibility.PUBLIC)
                 .build();
-            var link = client.sharing().createSharedLinkWithSettings(metadata.getPathLower(), settings);
-            return new UploadedFileDto(link.getUrl());
-        } catch (Exception e) {
-            if (refreshAndRetry) {
-                client.refreshAccessToken();
-                return upload(email, file, false);
-            }
-            throw buildRuntimeException(e);
-        }
+            var link = client.sharing().createSharedLinkWithSettings(filename, settings);
+            return link.getUrl();
+        });
     }
 
-    private RuntimeException buildRuntimeException(Exception e) {
-        if (e instanceof RuntimeException runtimeException) return runtimeException;
-        var message = e.getMessage();
-        message = isEmpty(message) ? "File upload is failed" : message;
-        return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message, e);
+    private <T> T retry(Callable<T> callable) {
+        try {
+            try {
+                return callable.call();
+            } catch (Exception e) {
+                client.refreshAccessToken();
+                return callable.call();
+            }
+        } catch (Exception e) {
+            var message = e.getMessage();
+            message = isEmpty(message) ? "Storage operation is failed" : message;
+            throw new IllegalStateException(message, e);
+        }
     }
 }

@@ -4,7 +4,6 @@ import com.ua.teamconnect.tracker.extension.UserHireDateExtension;
 import com.ua.teamconnect.tracker.model.entity.*;
 import com.ua.teamconnect.tracker.model.pojo.Gender;
 import com.ua.teamconnect.tracker.repository.*;
-import com.ua.teamconnect.tracker.service.adapter.storage.StorageAdapter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +13,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.LocalDate;
@@ -58,10 +56,6 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @LocalServerPort
     private int port;
-
-    @MockitoBean
-    @SuppressWarnings("unused") // Need for context not complaining of missing bean
-    private StorageAdapter storageAdapter;
 
     @AfterEach
     void cleanUp() {

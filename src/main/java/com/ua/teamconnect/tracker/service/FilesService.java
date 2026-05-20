@@ -16,6 +16,8 @@ public class FilesService {
 
     public UploadedFileDto uploadFile(String email, MultipartFile file) {
         validator.validate(file);
-        return storageAdapter.upload(email, file);
+        var filename = storageAdapter.upload(email, file);
+        var url = storageAdapter.shareLink(filename);
+        return new UploadedFileDto(url);
     }
 }
