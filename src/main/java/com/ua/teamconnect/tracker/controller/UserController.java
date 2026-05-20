@@ -1,6 +1,7 @@
 package com.ua.teamconnect.tracker.controller;
 
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseBadRequest;
+import com.ua.teamconnect.tracker.model.annotation.ApiResponseNoContent;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseOk;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseUnauthorized;
 import com.ua.teamconnect.tracker.model.dto.*;
@@ -9,11 +10,13 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Map;
@@ -70,5 +73,13 @@ public class UserController {
     @Parameter(name = "order", description = "Sorting order (asc or desc)", example = "asc")
     public PageDto<UserDto> findFiltered(@RequestParam @Parameter(hidden = true) Map<String, String> params) {
         return userService.findFiltered(params);
+    }
+    
+    @ApiResponseNoContent
+    @ApiResponseBadRequest
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PutMapping("/profile")
+    public void updateProfile(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UserUpdateProfileDto dto) {
+        userService.updateProfile(jwt.getSubject(), dto);
     }
 }

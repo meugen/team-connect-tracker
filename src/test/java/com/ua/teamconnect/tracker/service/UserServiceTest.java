@@ -2,6 +2,7 @@ package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
+import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
 import com.ua.teamconnect.tracker.model.dto.UserProfile;
 import com.ua.teamconnect.tracker.model.entity.User;
@@ -15,7 +16,7 @@ import com.ua.teamconnect.tracker.service.strategy.user_profile.MapUserProfileSt
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-
+import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
@@ -32,6 +33,7 @@ class UserServiceTest {
     private static final Random RANDOM = new Random();
 
     private UserRepository userRepository;
+    private PasswordEncoder passwordEncoder;
     private MapUserProfileStrategy shortUserProfileStrategy;
     private MapUserProfileStrategy fullUserProfileStrategy;
     private UserService userService;
@@ -43,15 +45,18 @@ class UserServiceTest {
         userRepository = mock(UserRepository.class);
         shortUserProfileStrategy = mock(MapUserProfileStrategy.class);
         fullUserProfileStrategy = mock(MapUserProfileStrategy.class);
+        passwordEncoder = mock(PasswordEncoder.class);
         userPositionSpecificationBuilder = mock(UserPositionSpecificationBuilder.class);
         userPositionRepository = mock(UserPositionRepository.class);
         userService = new UserService(
             userRepository,
+            passwordEncoder,
             new MapUserProfileFactory(
                 shortUserProfileStrategy,
                 fullUserProfileStrategy
             ),
             Mappers.getMapper(UserAnniversaryMapper.class),
+            Mappers.getMapper(UserRequestProfileMapper.class),
             userPositionSpecificationBuilder,
             userPositionRepository,
             Mappers.getMapper(UserPositionMapper.class)
