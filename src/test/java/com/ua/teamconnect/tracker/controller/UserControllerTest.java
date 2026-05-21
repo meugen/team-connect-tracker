@@ -537,18 +537,23 @@ class UserControllerTest extends AuthorizationControllerTest {
     void updateProfile_updatedProfile_isNoContent() {
         setupUser(ROLE_ADMIN);
         setupValidToken("user@example.com");
-
-        var spec = buildClient(port).put().uri("/users/profile").header("Authorization", "Bearer " + VALID_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON).bodyValue("""
+        var bodyValue = """
                         {
-                          "avatar": "https://new-avatar.com",
-                          "phone": {
-                            "work": "+380697554332",
-                            "home": "+380441234567"
-                          },
-                          "password": "new_password"
-                        }
-                        """).exchange().expectStatus().isNoContent();
+                        "avatar": "https://new-avatar.com",
+                        "phone": {
+                          "work": "+380697554332",
+                          "home": "+380441234567"
+                        },
+                        "password": "new_password"
+                      }
+                      """;
+        
+        var spec = buildClient(port).put()
+            .uri("/users/profile")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(bodyValue)
+            .exchange();
 
         var updatedUser = userRepository.findByEmail("user@example.com").orElseThrow();
         validateNoContent(spec);
@@ -561,16 +566,17 @@ class UserControllerTest extends AuthorizationControllerTest {
     void updateProfile_invalidToken_isUnauthorized() {
         setupUser(ROLE_ADMIN);
         setupValidToken("user@example.com");
+        var bodyValue = """
+                        {
+                        "avatar": "https://new-avatar.com"
+                      }
+                      """;
 
         var spec = buildClient(port).put()
             .uri("/users/profile")
             .header("Authorization", "Bearer " + INVALID_TOKEN)
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue("""
-                {
-                  "avatar": "https://new-avatar.com"
-                }
-                """)
+            .bodyValue(bodyValue)
             .exchange();
 
         validateUnauthorized(spec);
@@ -580,18 +586,18 @@ class UserControllerTest extends AuthorizationControllerTest {
     void updateProfile_invalidPassword_isBadRequest() {
         setupUser(ROLE_EMPLOYEE);
         setupValidToken("user@example.com");
-
+        var bodyValue = """
+                        {
+                        "password": "12"
+                      }
+                      """;
+        
         var spec = buildClient(port).put()
             .uri("/users/profile")
             .header("Authorization", "Bearer " + VALID_TOKEN)
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue("""
-                {
-                  "password": "12"
-                }
-                """)
+            .bodyValue(bodyValue)
             .exchange();
-
         spec.expectStatus().isBadRequest();
     }
 

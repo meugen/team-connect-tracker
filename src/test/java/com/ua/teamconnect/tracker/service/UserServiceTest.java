@@ -5,6 +5,7 @@ import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
 import com.ua.teamconnect.tracker.model.dto.UserProfile;
+import com.ua.teamconnect.tracker.model.dto.UserUpdateProfileDto;
 import com.ua.teamconnect.tracker.model.entity.User;
 import com.ua.teamconnect.tracker.model.entity.projection.Anniversary;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
@@ -20,12 +21,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class UserServiceTest {
@@ -217,5 +223,52 @@ class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> userService.getUserById("user@example.com", userId));
+    }
+    
+    @Test
+    void updateProfile_userExists_updatesUserAndSaves() {
+        var email = "user@example.com";
+
+        var dto = new UserUpdateProfileDto("https://new-avatar.com",
+                        Map.of("work", "+380697554332", "home", "+380441234567"), "new_password");
+
+        var user = new User();
+        user.setEmail(email);
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("new_password")).thenReturn("encoded_password");
+
+        userService.updateProfile(email, dto);
+
+        verify(passwordEncoder).encode("new_password");
+        verify(userRepository).save(user);
+
+        assertEquals("encoded_password", user.getPassword());
+    }
+
+    @Test
+    void updateProfile_withoutPassword_doesNotEncodePassword() {
+        var email = "user@example.com";
+        var dto = new UserUpdateProfileDto("https://new-avatar.com", Map.of("work", "+380697554332"), null);
+        var user = new User();
+        user.setEmail(email);
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+
+        userService.updateProfile(email, dto);
+
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(userRepository).save(user);
+    }
+    
+    @Test
+    void updateProfile_userNotFound_throwsException() {
+        var email = "user@example.com";
+        var dto = mock(UserUpdateProfileDto.class);
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        assertThrows(UserNotFoundException.class, () -> userService.updateProfile(email, dto));
+
+        verify(userRepository, never()).save(any());
     }
 }
