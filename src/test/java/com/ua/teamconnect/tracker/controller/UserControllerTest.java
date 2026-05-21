@@ -133,6 +133,71 @@ class UserControllerTest extends AuthorizationControllerTest {
         );
         return new UserData(user.getId(), position.getId(), department.getId(), stack.getId(), params);
     }
+    
+    private UserData setupUser(String role, String firstName, String lastName, String email) {
+        var user = new User();
+        user.setEmail(email);
+        user.setPassword("password");
+        user.setAvatar("https://avatar.com");
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setRole(role);
+        user.setStatus("ACTIVE");
+        user.setPhone(Map.of(
+            "home", "+123456789",
+            "mobile", "+987654321"
+        ));
+        user.setBirthDate(LocalDate.of(1990, Month.MAY, 10));
+        user.setGender(Gender.MALE);
+        user.setGrade("SENIOR");
+
+        user = userRepository.save(user);
+        var stack = new Stack();
+        stack.setName("Java" + email);
+        stack = stackRepository.save(stack);
+
+        var department = new Department();
+        department.setName("Software Development" + email);
+        department = departmentRepository.save(department);
+
+        var position = new Position();
+        position.setName("Java Developer" + email);
+        position.setDepartment(department);
+        position = positionRepository.save(position);
+
+        var project = new Project();
+        project.setName("Team Connect" + email);
+        project.setStatus("ACTIVE");
+        project.setDescription("Project description");
+        project.setStartDate(LocalDate.of(2022, Month.DECEMBER, 1));
+        project.setIsBillable(false);
+        project = projectRepository.save(project);
+
+        var userStack = UserStack.of(user, stack);
+        userStack.setIsPrimary(true);
+        userStackRepository.save(userStack);
+
+        var userProject = UserProject.of(user, project);
+        userProject.setRole("DEVELOPER" + email);
+        userProject.setStartDate(LocalDate.of(2023, Month.MARCH, 1));
+        userProjectRepository.save(userProject);
+
+        var userPosition = UserPosition.of(user, position);
+        userPosition.setStartDate(LocalDate.of(2023, Month.FEBRUARY, 1));
+        userPositionRepository.save(userPosition);
+
+        var params = Map.of(
+            "department", department.getId().toString(),
+            "position", position.getId().toString(),
+            "stack", stack.getId().toString(),
+            "search", "john",
+            "size", "10",
+            "page", "1",
+            "sort", "firstName",
+            "order", "desc"
+        );
+        return new UserData(user.getId(), position.getId(), department.getId(), stack.getId(), params);
+    }
 
     private void profileIsValid(WebTestClient.BodyContentSpec spec, boolean full) {
         spec.jsonPath("$.id").isNumber()
@@ -529,6 +594,78 @@ class UserControllerTest extends AuthorizationControllerTest {
         Integer stackId,
         Map<String, String> params
     ) {
+    }
+    
+    @Test
+    void findFiltered_unsupportedParam_isBadRequest() {
+        setupUser(ROLE_ADMIN);
+        setupValidToken("user@example.com");
+
+        var spec = buildClient(port)
+            .get()
+            .uri("/users?blabla=344")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+
+        validateBadRequest(spec);
+    }
+    
+    @Test
+    void findFiltered_searchByFirstName_returnsUsers() {
+        setupValidToken("user@example.com");
+
+        setupUser(ROLE_EMPLOYEE, "Ivan", "Petrenko", "ivan.petrenko@example.com");
+        setupUser(ROLE_EMPLOYEE, "Ivan", "Pavliuk", "ivan.pavliuk@example.com");
+
+        var spec = buildClient(port)
+            .get()
+            .uri("/users?search=Ivan")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus()
+            .isOk();
+
+        spec.expectBody()
+            .jsonPath("$.items").isArray()
+            .jsonPath("$.items.length()").isEqualTo(2);
+    }
+    
+    @Test
+    void findFiltered_searchByFirstNameAndLastNamePrefix_returnsUsers() {
+        setupValidToken("user@example.com");
+
+        setupUser(ROLE_EMPLOYEE, "Ivan", "Petrenko", "ivan.petrenko@example.com");
+        setupUser(ROLE_EMPLOYEE, "Ivan", "Pavliuk", "ivan.pavliuk@example.com");
+
+        var spec = buildClient(port)
+            .get()
+            .uri("/users?search=Ivan P")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus()
+            .isOk();
+
+        spec.expectBody()
+            .jsonPath("$.items.length()").isEqualTo(2);
+    }
+    
+    @Test
+    void findFiltered_searchByFlexibleFirstName_returnsUsers() {
+        setupValidToken("user@example.com");
+
+        setupUser(ROLE_EMPLOYEE, "Anna", "Ivankova", "anna.ivankova@example.com");
+        setupUser(ROLE_EMPLOYEE, "Hanna", "Ivankova", "hanna.ivankova@example.com");
+
+        var spec = buildClient(port)
+            .get()
+            .uri("/users?search=anna Ivankova")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus()
+            .isOk();
+
+        spec.expectBody()
+            .jsonPath("$.items.length()").isEqualTo(2);
     }
 
 }
