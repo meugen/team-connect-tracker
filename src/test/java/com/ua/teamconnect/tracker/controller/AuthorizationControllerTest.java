@@ -44,6 +44,10 @@ abstract class AuthorizationControllerTest {
         validateHttpStatus(spec, HttpStatus.NOT_FOUND);
     }
 
+    void validatePayloadTooLarge(WebTestClient.ResponseSpec spec) {
+        validateHttpStatus(spec, HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+
     private void validateHttpStatus(WebTestClient.ResponseSpec spec, HttpStatus status) {
         spec.expectStatus().isEqualTo(status)
             .expectBody()
