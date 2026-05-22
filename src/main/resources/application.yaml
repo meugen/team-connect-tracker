@@ -8,6 +8,11 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
+  servlet:
+    multipart:
+      max-file-size: ${MAXFILESIZE:5MB}
+      max-request-size: ${MAXREQUESTSIZE:10MB}
+
   security:
     oauth2:
       resourceserver:
@@ -23,3 +28,8 @@ spring:
     baseline-on-migrate: true
     baseline-version: 2
 
+team:
+  connect:
+    storage:
+      adapter:
+        throw-if-not-configured: true
