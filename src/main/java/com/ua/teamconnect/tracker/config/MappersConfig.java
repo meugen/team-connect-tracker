@@ -29,8 +29,8 @@ public class MappersConfig {
     }
 
     @Bean
-    public UserAnniversaryMapper userAnniversaryMapper() {
-        return Mappers.getMapper(UserAnniversaryMapper.class);
+    public UserHireDateMapper userHireDateMapper() {
+        return Mappers.getMapper(UserHireDateMapper.class);
     }
 
     @Bean

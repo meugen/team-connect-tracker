@@ -1,11 +1,8 @@
 package com.ua.teamconnect.tracker.service;
 
-import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
+import com.ua.teamconnect.tracker.mapper.UserHireDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
-import com.ua.teamconnect.tracker.model.dto.PageDto;
-import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
-import com.ua.teamconnect.tracker.model.dto.UserDto;
-import com.ua.teamconnect.tracker.model.dto.UserProfile;
+import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
@@ -15,6 +12,7 @@ import com.ua.teamconnect.tracker.util.Pair;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.Month;
 import java.time.MonthDay;
 import java.util.List;
@@ -28,7 +26,7 @@ public class UserService implements PageRequestService {
 
     private final UserRepository userRepository;
     private final MapUserProfileFactory mapUserProfileFactory;
-    private final UserAnniversaryMapper userAnniversaryMapper;
+    private final UserHireDateMapper userHireDateMapper;
     private final UserPositionSpecificationBuilder userPositionSpecificationBuilder;
     private final UserPositionRepository userPositionRepository;
     private final UserPositionMapper userPositionMapper;
@@ -40,7 +38,7 @@ public class UserService implements PageRequestService {
         return mapUserProfileFactory.full().entityToDto(user);
     }
 
-    public List<UserAnniversaryDto> getAnniversariesBetween(String startDate, String endDate) {
+    public List<UserHireDateDto> getAnniversariesBetween(String startDate, String endDate) {
         var stream = toListOfDatesPair(startDate, endDate).stream()
             .flatMap(pair -> userRepository.findAnniversaries(
                     pair.first().getMonthValue(),
@@ -49,7 +47,7 @@ public class UserService implements PageRequestService {
                     pair.second().getDayOfMonth()
                 ).stream()
             );
-        return userAnniversaryMapper.projectionListTDtoList(stream.toList());
+        return userHireDateMapper.projectionListTDtoList(stream.toList());
     }
 
     private static List<Pair<MonthDay, MonthDay>> toListOfDatesPair(String startDate, String endDate) {
@@ -92,5 +90,11 @@ public class UserService implements PageRequestService {
     @Override
     public String defaultSort() {
         return "lastName";
+    }
+
+    public List<UserHireDateDto> findByHireDate(LocalDate startDate, LocalDate endDate) {
+        return userRepository.findByHireDate(startDate, endDate).stream()
+            .map(userHireDateMapper::projectionToDto)
+            .toList();
     }
 }

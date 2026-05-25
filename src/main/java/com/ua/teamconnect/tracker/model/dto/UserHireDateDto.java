@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
 
-@Schema(name = "User Anniversary", description = "User anniversary information")
-public record UserAnniversaryDto(
+@Schema(name = "User Hire Date", description = "User information with hire date")
+public record UserHireDateDto(
     @Schema(description = "User ID", example = "1")
     Integer id,
     @Schema(description = "User's first name", example = "John")
@@ -14,6 +14,8 @@ public record UserAnniversaryDto(
     String lastName,
     @Schema(description = "User's avatar URL", example = "https://example.com/avatar.jpg")
     String avatarUrl,
+    @Schema(description = "User's position in the company")
+    ProfilePositionDto position,
     @Schema(description = "User's hire date", example = "2020-01-15")
     LocalDate hireDate
 ) {
