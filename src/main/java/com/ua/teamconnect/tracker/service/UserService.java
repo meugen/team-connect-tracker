@@ -2,10 +2,12 @@ package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
+import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.PageDto;
 import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
 import com.ua.teamconnect.tracker.model.dto.UserDto;
 import com.ua.teamconnect.tracker.model.dto.UserProfile;
+import com.ua.teamconnect.tracker.model.dto.UserUpdateProfileDto;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
@@ -13,8 +15,9 @@ import com.ua.teamconnect.tracker.service.specification.user.position.UserPositi
 import com.ua.teamconnect.tracker.service.strategy.user_profile.MapUserProfileFactory;
 import com.ua.teamconnect.tracker.util.Pair;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
+import org.springframework.util.StringUtils;
 import java.time.Month;
 import java.time.MonthDay;
 import java.util.List;
@@ -27,8 +30,10 @@ import static com.ua.teamconnect.tracker.util.DateUtil.toMonthDay;
 public class UserService implements PageRequestService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     private final MapUserProfileFactory mapUserProfileFactory;
     private final UserAnniversaryMapper userAnniversaryMapper;
+    private final UserRequestProfileMapper userRequestProfileMapper;
     private final UserPositionSpecificationBuilder userPositionSpecificationBuilder;
     private final UserPositionRepository userPositionRepository;
     private final UserPositionMapper userPositionMapper;
@@ -70,6 +75,15 @@ public class UserService implements PageRequestService {
             () -> new UserNotFoundException(userId)
         );
         return mapUserProfileFactory.byRole(role).entityToDto(user);
+    }
+    
+    public void updateProfile(String email, UserUpdateProfileDto dto) {
+        var user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+        userRequestProfileMapper.updateEntityFromDto(dto, user);
+        if (StringUtils.hasText(dto.password())) {
+            user.setPassword(passwordEncoder.encode(dto.password()));
+        }
+        userRepository.save(user);
     }
 
     public PageDto<UserDto> findFiltered(Map<String, String> params) {
