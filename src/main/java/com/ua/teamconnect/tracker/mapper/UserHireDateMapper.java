@@ -7,7 +7,7 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(uses = {UserPositionMapper.class})
+@Mapper
 public interface UserHireDateMapper {
 
     @Mapping(target = "id", source = "userId")
