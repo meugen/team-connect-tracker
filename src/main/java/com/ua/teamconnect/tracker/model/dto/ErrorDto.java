@@ -3,6 +3,8 @@ package com.ua.teamconnect.tracker.model.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
@@ -28,5 +30,27 @@ public record ErrorDto(
 
     public ErrorDto(IllegalArgumentException ex, String url) {
         this(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), LocalDateTime.now(), url);
+    }
+
+    public ErrorDto(IllegalStateException ex, String url) {
+        this(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage(), LocalDateTime.now(), url);
+    }
+
+    public ErrorDto(MaxUploadSizeExceededException ex, String url) {
+        this(HttpStatus.PAYLOAD_TOO_LARGE.value(), ex.getMessage(), LocalDateTime.now(), url);
+    }
+    
+    public ErrorDto(MethodArgumentNotValidException ex, String url) {
+        this(
+            HttpStatus.BAD_REQUEST.value(),
+            ex.getBindingResult()
+                .getAllErrors()
+                .stream()
+                .map(error -> error.getDefaultMessage())
+                .findFirst()
+                .orElse("Bad request"),
+            LocalDateTime.now(),
+            url
+        );
     }
 }
