@@ -34,11 +34,13 @@ public class SearchUserPositionSpecification implements Specification<UserPositi
 
         var firstName = criteriaBuilder.lower(root.get("user").get("firstName"));
         var lastName = criteriaBuilder.lower(root.get("user").get("lastName"));
-
         var firstNamePattern = "%" + escapeForLike(parts[0]) + "%";
 
         if (parts.length == 1) {
-            return criteriaBuilder.like(firstName, firstNamePattern, '\\');
+            return criteriaBuilder.or(
+                criteriaBuilder.like(firstName, firstNamePattern, '\\'),
+                criteriaBuilder.like(lastName, firstNamePattern, '\\')
+            );
         }
 
         var lastNamePattern = escapeForLike(parts[1]) + "%";

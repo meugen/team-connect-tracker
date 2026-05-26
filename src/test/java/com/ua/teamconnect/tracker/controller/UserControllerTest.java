@@ -70,71 +70,14 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     private UserData setupUser(String role) {
-        var user = new User();
-        user.setEmail("user@example.com");
-        user.setPassword("password");
-        user.setAvatar("https://avatar.com");
-        user.setFirstName("John");
-        user.setLastName("Doe");
-        user.setRole(role);
-        user.setStatus("ACTIVE");
-        user.setPhone(Map.of(
-            "home", "+123456789",
-            "mobile", "+987654321"
-        ));
-        user.setBirthDate(LocalDate.of(1990, Month.MAY, 10));
-        user.setGender(Gender.MALE);
-        user.setGrade("SENIOR");
-        user = userRepository.save(user);
+        return setupUser(role, "John", "Doe", "user@example.com", "");
+    }
 
-        var stack = new Stack();
-        stack.setName("Java");
-        stack = stackRepository.save(stack);
-
-        var department = new Department();
-        department.setName("Software Development");
-        department = departmentRepository.save(department);
-
-        var position = new Position();
-        position.setName("Java Developer");
-        position.setDepartment(department);
-        position = positionRepository.save(position);
-
-        var project = new Project();
-        project.setName("Team Connect");
-        project.setStatus("ACTIVE");
-        project.setDescription("Project description");
-        project.setStartDate(LocalDate.of(2022, Month.DECEMBER, 1));
-        project.setIsBillable(false);
-        project = projectRepository.save(project);
-
-        var userStack = UserStack.of(user, stack);
-        userStack.setIsPrimary(true);
-        userStackRepository.save(userStack);
-
-        var userProject = UserProject.of(user, project);
-        userProject.setRole("DEVELOPER");
-        userProject.setStartDate(LocalDate.of(2023, Month.MARCH, 1));
-        userProjectRepository.save(userProject);
-
-        var userPosition = UserPosition.of(user, position);
-        userPosition.setStartDate(LocalDate.of(2023, Month.FEBRUARY, 1));
-        userPositionRepository.save(userPosition);
-
-        var params = Map.of(
-            "department", department.getId().toString(),
-            "position", position.getId().toString(),
-            "stack", stack.getId().toString(),
-            "search", "john",
-            "size", "10",
-            "page", "1",
-            "sort", "firstName",
-            "order", "desc"
-        );
-        return new UserData(user.getId(), position.getId(), department.getId(), stack.getId(), params);
+    private UserData setupUser(String role, String firstName, String lastName, String email) {
+        return setupUser(role, firstName, lastName, email, email);
     }
     
-    private UserData setupUser(String role, String firstName, String lastName, String email) {
+    private UserData setupUser(String role, String firstName, String lastName, String email, String suffix) {
         var user = new User();
         user.setEmail(email);
         user.setPassword("password");
@@ -153,20 +96,20 @@ class UserControllerTest extends AuthorizationControllerTest {
 
         user = userRepository.save(user);
         var stack = new Stack();
-        stack.setName("Java" + email);
+        stack.setName("Java" + suffix);
         stack = stackRepository.save(stack);
 
         var department = new Department();
-        department.setName("Software Development" + email);
+        department.setName("Software Development" + suffix);
         department = departmentRepository.save(department);
 
         var position = new Position();
-        position.setName("Java Developer" + email);
+        position.setName("Java Developer" + suffix);
         position.setDepartment(department);
         position = positionRepository.save(position);
 
         var project = new Project();
-        project.setName("Team Connect" + email);
+        project.setName("Team Connect" + suffix);
         project.setStatus("ACTIVE");
         project.setDescription("Project description");
         project.setStartDate(LocalDate.of(2022, Month.DECEMBER, 1));
@@ -178,7 +121,7 @@ class UserControllerTest extends AuthorizationControllerTest {
         userStackRepository.save(userStack);
 
         var userProject = UserProject.of(user, project);
-        userProject.setRole("DEVELOPER" + email);
+        userProject.setRole("DEVELOPER" + suffix);
         userProject.setStartDate(LocalDate.of(2023, Month.MARCH, 1));
         userProjectRepository.save(userProject);
 

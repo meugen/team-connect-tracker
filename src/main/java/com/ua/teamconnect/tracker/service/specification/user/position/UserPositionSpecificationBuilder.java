@@ -18,11 +18,14 @@ public class UserPositionSpecificationBuilder {
     static final String PARAM_DEPARTMENT = "department";
     static final String PARAM_POSITION = "position";
     static final String PARAM_STACK = "stack";
-    private static final Set<String> SUPPORTED_PARAMS = Set.of(
+    private static final Set<String> FILTER_PARAMS = Set.of(
                     PARAM_SEARCH,
                     PARAM_DEPARTMENT,
                     PARAM_POSITION,
-                    PARAM_STACK,
+                    PARAM_STACK
+                );
+
+   private static final Set<String> TECHNICAL_PARAMS = Set.of(
                     "page",
                     "size",
                     "sort",
@@ -55,7 +58,7 @@ public class UserPositionSpecificationBuilder {
     
     private void validateSupportedParams(Map<String, String> params) {
         params.keySet().forEach(param -> {
-            if (!SUPPORTED_PARAMS.contains(param)) {
+            if (!FILTER_PARAMS.contains(param) && !TECHNICAL_PARAMS.contains(param)) {
                 throw new UnsupportedFilterException(param);
             }
         });
