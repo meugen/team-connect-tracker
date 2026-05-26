@@ -48,6 +48,10 @@ abstract class AuthorizationControllerTest {
         spec.expectStatus().isNoContent().expectBody().isEmpty();
     }
 
+    void validatePayloadTooLarge(WebTestClient.ResponseSpec spec) {
+        validateHttpStatus(spec, HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+
     private void validateHttpStatus(WebTestClient.ResponseSpec spec, HttpStatus status) {
         spec.expectStatus().isEqualTo(status)
             .expectBody()
