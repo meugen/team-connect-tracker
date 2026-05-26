@@ -74,7 +74,14 @@ public class UserController {
     }
 
     @GetMapping("/new-hires")
-    public List<UserHireDateDto> findByHireDate(LocalDate startDate, LocalDate endDate) {
+    @ApiResponseOk
+    @ApiResponseBadRequest
+    public List<UserHireDateDto> findByHireDate(
+        @Parameter(description = "Start date in yyyy-MM-dd format", example = "2024-01-01", required = true)
+        @RequestParam LocalDate startDate,
+        @Parameter(description = "End date in yyyy-MM-dd format", example = "2024-12-31", required = true)
+        @RequestParam LocalDate endDate
+    ) {
         return userService.findByHireDate(startDate, endDate);
     }
 }
