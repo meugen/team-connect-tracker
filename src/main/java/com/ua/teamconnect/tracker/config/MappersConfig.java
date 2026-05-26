@@ -22,7 +22,7 @@ public class MappersConfig {
     public PositionMapper positionMapper() {
         return Mappers.getMapper(PositionMapper.class);
     }
-    
+
     @Bean
     public UserProfileMapper userProfileMapper() {
         return Mappers.getMapper(UserProfileMapper.class);
@@ -36,5 +36,10 @@ public class MappersConfig {
     @Bean
     public UserPositionMapper userPositionMapper() {
         return Mappers.getMapper(UserPositionMapper.class);
+    }
+
+    @Bean
+    public UserRequestProfileMapper userRequestProfileMapper() {
+        return Mappers.getMapper(UserRequestProfileMapper.class);
     }
 }
