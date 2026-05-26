@@ -17,8 +17,7 @@ public record UserUpdateProfileDto (
 		
 		@Schema(description = "User phone numbers", example = "{\"work\": \"+380697554332\", \"home\": \"+380441234567\"}")
 		@Valid
-		Map<@Pattern(regexp = "^(work|home|mobile)$", message = "Valid keys: work, home, mobile") String,
-			@Pattern(regexp = "^\\+[0-9]\\d{7,14}$", message = "Invalid phone number") String> phone, 
+		Map<String, @Pattern(regexp = "^\\+[0-9]\\d{7,14}$", message = "Invalid phone number") String> phone, 
 			
 		@Schema(description = "New user password", example = "new_password")
 		@Pattern(

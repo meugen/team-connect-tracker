@@ -78,7 +78,7 @@ public class UserController {
     @ApiResponseNoContent
     @ApiResponseBadRequest
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PutMapping("/profile")
+    @PatchMapping("/profile")
     public void updateProfile(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UserUpdateProfileDto dto) {
         userService.updateProfile(jwt.getSubject(), dto);
     }

@@ -548,7 +548,7 @@ class UserControllerTest extends AuthorizationControllerTest {
                       }
                       """;
         
-        var spec = buildClient(port).put()
+        var spec = buildClient(port).patch()
             .uri("/users/profile")
             .header("Authorization", "Bearer " + VALID_TOKEN)
             .contentType(MediaType.APPLICATION_JSON)
@@ -572,7 +572,7 @@ class UserControllerTest extends AuthorizationControllerTest {
                       }
                       """;
 
-        var spec = buildClient(port).put()
+        var spec = buildClient(port).patch()
             .uri("/users/profile")
             .header("Authorization", "Bearer " + INVALID_TOKEN)
             .contentType(MediaType.APPLICATION_JSON)
@@ -592,7 +592,7 @@ class UserControllerTest extends AuthorizationControllerTest {
                       }
                       """;
         
-        var spec = buildClient(port).put()
+        var spec = buildClient(port).patch()
             .uri("/users/profile")
             .header("Authorization", "Bearer " + VALID_TOKEN)
             .contentType(MediaType.APPLICATION_JSON)
