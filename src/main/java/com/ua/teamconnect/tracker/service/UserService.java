@@ -22,7 +22,8 @@ import java.time.Month;
 import java.time.MonthDay;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Set;
+import java.util.stream.Collectors;
 import static com.ua.teamconnect.tracker.util.DateUtil.toMonthDay;
 
 @Service
@@ -87,10 +88,17 @@ public class UserService implements PageRequestService {
     }
 
     public PageDto<UserDto> findFiltered(Map<String, String> params) {
-        var pair = userPositionSpecificationBuilder.build(params);
+        var filterParams = extractFilterParams(params);
+        var pair = userPositionSpecificationBuilder.build(filterParams);
         var pageRequest = pageRequestOf(params);
         var page = userPositionRepository.findAll(pair.first(), pair.second(), pageRequest);
         return userPositionMapper.pageToPageUserDto(page);
+    }
+    
+    private Map<String, String> extractFilterParams(Map<String, String> params) {
+        return params.entrySet().stream()
+            .filter(entry -> !Set.of(PARAM_PAGE, PARAM_SIZE, PARAM_SORT, PARAM_ORDER).contains(entry.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Override
