@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.LocalDate;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UserControllerTest extends AuthorizationControllerTest {
@@ -589,6 +591,74 @@ class UserControllerTest extends AuthorizationControllerTest {
         Integer stackId,
         Map<String, String> params
     ) {
+    }
+    
+    @Test
+    void updateProfile_updatedProfile_isNoContent() {
+        setupUser(ROLE_ADMIN);
+        setupValidToken("user@example.com");
+        var bodyValue = """
+                        {
+                        "avatar": "https://new-avatar.com",
+                        "phone": {
+                          "work": "+380697554332",
+                          "home": "+380441234567"
+                        },
+                        "password": "new_password"
+                      }
+                      """;
+        
+        var spec = buildClient(port).patch()
+            .uri("/users/profile")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(bodyValue)
+            .exchange();
+
+        var updatedUser = userRepository.findByEmail("user@example.com").orElseThrow();
+        validateNoContent(spec);
+        assertEquals("https://new-avatar.com", updatedUser.getAvatar());
+        assertEquals("+380697554332", updatedUser.getPhone().get("work"));
+        assertEquals("+380441234567", updatedUser.getPhone().get("home"));
+    }
+    
+    @Test
+    void updateProfile_invalidToken_isUnauthorized() {
+        setupUser(ROLE_ADMIN);
+        setupValidToken("user@example.com");
+        var bodyValue = """
+                        {
+                        "avatar": "https://new-avatar.com"
+                      }
+                      """;
+
+        var spec = buildClient(port).patch()
+            .uri("/users/profile")
+            .header("Authorization", "Bearer " + INVALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(bodyValue)
+            .exchange();
+
+        validateUnauthorized(spec);
+    }
+    
+    @Test
+    void updateProfile_invalidPassword_isBadRequest() {
+        setupUser(ROLE_EMPLOYEE);
+        setupValidToken("user@example.com");
+        var bodyValue = """
+                        {
+                        "password": "12"
+                      }
+                      """;
+        
+        var spec = buildClient(port).patch()
+            .uri("/users/profile")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(bodyValue)
+            .exchange();
+        spec.expectStatus().isBadRequest();
     }
 
 }

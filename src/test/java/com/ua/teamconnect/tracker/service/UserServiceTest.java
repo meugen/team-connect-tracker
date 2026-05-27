@@ -2,10 +2,8 @@ package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.mapper.UserHireDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
-import com.ua.teamconnect.tracker.model.dto.ProfileDepartmentDto;
-import com.ua.teamconnect.tracker.model.dto.ProfilePositionDto;
-import com.ua.teamconnect.tracker.model.dto.UserHireDateDto;
-import com.ua.teamconnect.tracker.model.dto.UserProfile;
+import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
+import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.model.entity.Department;
 import com.ua.teamconnect.tracker.model.entity.Position;
 import com.ua.teamconnect.tracker.model.entity.User;
@@ -19,22 +17,26 @@ import com.ua.teamconnect.tracker.service.strategy.user_profile.MapUserProfileSt
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 class UserServiceTest {
 
     private static final Random RANDOM = new Random();
 
     private UserRepository userRepository;
+    private PasswordEncoder passwordEncoder;
     private MapUserProfileStrategy shortUserProfileStrategy;
     private MapUserProfileStrategy fullUserProfileStrategy;
     private UserService userService;
@@ -46,15 +48,18 @@ class UserServiceTest {
         userRepository = mock(UserRepository.class);
         shortUserProfileStrategy = mock(MapUserProfileStrategy.class);
         fullUserProfileStrategy = mock(MapUserProfileStrategy.class);
+        passwordEncoder = mock(PasswordEncoder.class);
         userPositionSpecificationBuilder = mock(UserPositionSpecificationBuilder.class);
         userPositionRepository = mock(UserPositionRepository.class);
         userService = new UserService(
             userRepository,
+            passwordEncoder,
             new MapUserProfileFactory(
                 shortUserProfileStrategy,
                 fullUserProfileStrategy
             ),
             Mappers.getMapper(UserHireDateMapper.class),
+            Mappers.getMapper(UserRequestProfileMapper.class),
             userPositionSpecificationBuilder,
             userPositionRepository,
             Mappers.getMapper(UserPositionMapper.class)
@@ -284,6 +289,53 @@ class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> userService.getUserById("user@example.com", userId));
+    }
+
+    @Test
+    void updateProfile_userExists_updatesUserAndSaves() {
+        var email = "user@example.com";
+
+        var dto = new UserUpdateProfileDto("https://new-avatar.com",
+                        Map.of("work", "+380697554332", "home", "+380441234567"), "new_password");
+
+        var user = new User();
+        user.setEmail(email);
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("new_password")).thenReturn("encoded_password");
+
+        userService.updateProfile(email, dto);
+
+        verify(passwordEncoder).encode("new_password");
+        verify(userRepository).save(user);
+
+        assertEquals("encoded_password", user.getPassword());
+    }
+
+    @Test
+    void updateProfile_withoutPassword_doesNotEncodePassword() {
+        var email = "user@example.com";
+        var dto = new UserUpdateProfileDto("https://new-avatar.com", Map.of("work", "+380697554332"), null);
+        var user = new User();
+        user.setEmail(email);
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+
+        userService.updateProfile(email, dto);
+
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void updateProfile_userNotFound_throwsException() {
+        var email = "user@example.com";
+        var dto = mock(UserUpdateProfileDto.class);
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        assertThrows(UserNotFoundException.class, () -> userService.updateProfile(email, dto));
+
+        verify(userRepository, never()).save(any());
     }
 
     @Test
