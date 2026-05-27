@@ -74,7 +74,6 @@ public class UserController {
 
     @GetMapping("/new-hires")
     @ApiResponseOk
-    @ApiResponseBadRequest
     public List<UserHireDateDto> findNewHires() {
         return userService.findNewHires();
     }
