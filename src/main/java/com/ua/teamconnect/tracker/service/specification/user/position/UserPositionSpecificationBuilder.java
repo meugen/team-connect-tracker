@@ -25,13 +25,6 @@ public class UserPositionSpecificationBuilder {
                     PARAM_STACK
                 );
 
-   private static final Set<String> TECHNICAL_PARAMS = Set.of(
-                    "page",
-                    "size",
-                    "sort",
-                    "order"
-                );
-
     /**
      * first - specification for data
      * second - specification for count (without fetch)
@@ -58,7 +51,7 @@ public class UserPositionSpecificationBuilder {
     
     private void validateSupportedParams(Map<String, String> params) {
         params.keySet().forEach(param -> {
-            if (!FILTER_PARAMS.contains(param) && !TECHNICAL_PARAMS.contains(param)) {
+            if (!FILTER_PARAMS.contains(param)) {
                 throw new UnsupportedFilterException(param);
             }
         });
