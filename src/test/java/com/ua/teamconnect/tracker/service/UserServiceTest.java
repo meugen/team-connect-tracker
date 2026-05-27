@@ -26,8 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -82,7 +81,7 @@ class UserServiceTest {
     }
 
     @Test
-    void getAnniversariesBetween_repositoryReturnsEntity_returnsDto() {
+    void findAnniversariesBetween_repositoryReturnsEntity_returnsDto() {
         var departmentId = RANDOM.nextInt();
         var department = new Department();
         department.setId(departmentId);
@@ -105,7 +104,7 @@ class UserServiceTest {
         when(userRepository.findAnniversaries(2, 1, 2, 20))
             .thenReturn(List.of(userHireDate));
 
-        var actual = userService.getAnniversariesBetween("01-02", "20-02");
+        var actual = userService.findAnniversariesBetween("01-02", "20-02");
 
         var expected = List.of(new UserHireDateDto(
             userId,
@@ -126,17 +125,17 @@ class UserServiceTest {
     }
 
     @Test
-    void getAnniversariesBetween_repositoryReturnsEmpty_returnsDto() {
+    void findAnniversariesBetween_repositoryReturnsEmpty_returnsDto() {
         when(userRepository.findAnniversaries(2, 1, 2, 20))
             .thenReturn(List.of());
 
-        var actual = userService.getAnniversariesBetween("01-02", "20-02");
+        var actual = userService.findAnniversariesBetween("01-02", "20-02");
 
         assertEquals(List.of(), actual);
     }
 
     @Test
-    void getAnniversariesBetween_singleDate_returnsDto() {
+    void findAnniversariesBetween_singleDate_returnsDto() {
         var departmentId = RANDOM.nextInt();
         var department = new Department();
         department.setId(departmentId);
@@ -159,7 +158,7 @@ class UserServiceTest {
         when(userRepository.findAnniversaries(2, 15, 2, 15))
             .thenReturn(List.of(anniversary));
 
-        var actual = userService.getAnniversariesBetween("15-02", "15-02");
+        var actual = userService.findAnniversariesBetween("15-02", "15-02");
 
         var expected = List.of(new UserHireDateDto(
             userId,
@@ -180,7 +179,7 @@ class UserServiceTest {
     }
 
     @Test
-    void getAnniversariesBetween_startAfterEnd_returnsDto() {
+    void findAnniversariesBetween_startAfterEnd_returnsDto() {
         var departmentId = RANDOM.nextInt();
         var department = new Department();
         department.setId(departmentId);
@@ -215,7 +214,7 @@ class UserServiceTest {
         when(userRepository.findAnniversaries(12, 10, 12, 31))
             .thenReturn(List.of(ellisonHireDate));
 
-        var actual = userService.getAnniversariesBetween("10-12", "20-02");
+        var actual = userService.findAnniversariesBetween("10-12", "20-02");
 
         var expected = List.of(
             new UserHireDateDto(
@@ -285,5 +284,62 @@ class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> userService.getUserById("user@example.com", userId));
+    }
+
+    @Test
+    void findNewHires_repositoryReturnsEmpty_returnsEmptyDtoList() {
+        var endDate = LocalDate.now();
+        var startDate = endDate.minusWeeks(1);
+        when(userRepository.findByHireDate(startDate, endDate)).thenReturn(List.of());
+
+        var result = userService.findNewHires();
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void findNewHires_repositoryReturnsNonEmpty_returnsNonEmptyDtoList() {
+        var endDate = LocalDate.now();
+        var startDate = endDate.minusWeeks(1);
+        var userId = RANDOM.nextInt();
+
+        var departmentId = RANDOM.nextInt();
+        var department = new Department();
+        department.setId(departmentId);
+        department.setName("Department");
+        var positionId = RANDOM.nextInt();
+        var position = new Position();
+        position.setId(positionId);
+        position.setName("Position");
+        position.setDepartment(department);
+
+        var userHireDate = mock(UserHireDate.class);
+        when(userHireDate.getUserId()).thenReturn(userId);
+        when(userHireDate.getFirstName()).thenReturn("John");
+        when(userHireDate.getLastName()).thenReturn("Doe");
+        when(userHireDate.getAvatarUrl()).thenReturn("https://avatar.com/john_doe.png");
+        when(userHireDate.getHireDate()).thenReturn(startDate);
+        when(userHireDate.getPosition()).thenReturn(position);
+        when(userRepository.findByHireDate(startDate, endDate)).thenReturn(List.of(userHireDate));
+
+        var result = userService.findNewHires();
+
+        var expected = new UserHireDateDto(
+            userId,
+            "John",
+            "Doe",
+            "https://avatar.com/john_doe.png",
+            new ProfilePositionDto(
+                positionId,
+                "Position",
+                new ProfileDepartmentDto(
+                    departmentId,
+                    "Department"
+                )
+            ),
+            startDate
+        );
+        assertEquals(1, result.size());
+        assertEquals(expected, result.get(0));
     }
 }

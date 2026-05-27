@@ -70,6 +70,10 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     private UserData setupUser(String role) {
+        return setupUser(role, LocalDate.of(2023, Month.FEBRUARY, 1));
+    }
+
+    private UserData setupUser(String role, LocalDate startPositionAt) {
         var user = new User();
         user.setEmail("user@example.com");
         user.setPassword("password");
@@ -118,7 +122,7 @@ class UserControllerTest extends AuthorizationControllerTest {
         userProjectRepository.save(userProject);
 
         var userPosition = UserPosition.of(user, position);
-        userPosition.setStartDate(LocalDate.of(2023, Month.FEBRUARY, 1));
+        userPosition.setStartDate(startPositionAt);
         userPositionRepository.save(userPosition);
 
         var params = Map.of(
@@ -188,7 +192,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     @ExtendWith(UserHireDateExtension.class)
-    void getAnniversariesBetween_validTokenAndRequest_isOkAndNotEmpty() {
+    void findAnniversariesBetween_validTokenAndRequest_isOkAndNotEmpty() {
         var data = setupUser(ROLE_EMPLOYEE);
         setupValidToken();
 
@@ -213,7 +217,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     @ExtendWith(UserHireDateExtension.class)
-    void getAnniversariesBetween_validTokenAndAfterHireDate_isOkAndEmpty() {
+    void findAnniversariesBetween_validTokenAndAfterHireDate_isOkAndEmpty() {
         setupUser(ROLE_EMPLOYEE);
         setupValidToken();
 
@@ -229,7 +233,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     @ExtendWith(UserHireDateExtension.class)
-    void getAnniversariesBetween_validTokenAndBeforeHireDate_isOkAndEmpty() {
+    void findAnniversariesBetween_validTokenAndBeforeHireDate_isOkAndEmpty() {
         setupUser(ROLE_EMPLOYEE);
         setupValidToken();
 
@@ -244,7 +248,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void getAnniversariesBetween_invalidToken_isUnauthorized() {
+    void findAnniversariesBetween_invalidToken_isUnauthorized() {
         setupUser(ROLE_EMPLOYEE);
         setupValidToken();
 
@@ -257,7 +261,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     @ExtendWith(UserHireDateExtension.class)
-    void getAnniversariesBetween_startAfterEnd_isOkAndNotEmpty() {
+    void findAnniversariesBetween_startAfterEnd_isOkAndNotEmpty() {
         setupUser(ROLE_EMPLOYEE);
         setupValidToken();
 
@@ -276,7 +280,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void getAnniversariesBetween_invalidStart_isBadRequest() {
+    void findAnniversariesBetween_invalidStart_isBadRequest() {
         setupUser(ROLE_EMPLOYEE);
         setupValidToken();
 
@@ -288,7 +292,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void getAnniversariesBetween_invalidEnd_isBadRequest() {
+    void findAnniversariesBetween_invalidEnd_isBadRequest() {
         setupUser(ROLE_EMPLOYEE);
         setupValidToken();
 
@@ -300,7 +304,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void getAnniversariesBetween_noStart_isBadRequest() {
+    void findAnniversariesBetween_noStart_isBadRequest() {
         setupUser(ROLE_EMPLOYEE);
         setupValidToken();
 
@@ -312,7 +316,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void getAnniversariesBetween_noEnd_isBadRequest() {
+    void findAnniversariesBetween_noEnd_isBadRequest() {
         setupUser(ROLE_EMPLOYEE);
         setupValidToken();
 
@@ -527,12 +531,13 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void findByHireDate_validDateRange_isOkAndNotEmpty() {
-        var data = setupUser(ROLE_EMPLOYEE);
+    void findNewHires_userHiredWithingWeek_isOkAndNotEmpty() {
+        var startPositionAt = LocalDate.now().minusDays(2);
+        var data = setupUser(ROLE_EMPLOYEE, startPositionAt);
         setupValidToken();
 
         buildClient(port).get()
-            .uri("/users/new-hires?startDate=2023-01-20&endDate=2023-02-10")
+            .uri("/users/new-hires")
             .header("Authorization", "Bearer " + VALID_TOKEN)
             .exchange()
             .expectStatus().isOk()
@@ -543,7 +548,7 @@ class UserControllerTest extends AuthorizationControllerTest {
             .jsonPath("$[0].firstName").isEqualTo("John")
             .jsonPath("$[0].lastName").isEqualTo("Doe")
             .jsonPath("$[0].avatarUrl").isEqualTo("https://avatar.com")
-            .jsonPath("$[0].hireDate").isEqualTo("2023-02-01")
+            .jsonPath("$[0].hireDate").isEqualTo(startPositionAt.toString())
             .jsonPath("$[0].position.id").isEqualTo(data.positionId())
             .jsonPath("$[0].position.name").isEqualTo("Java Developer")
             .jsonPath("$[0].position.department.id").isEqualTo(data.departmentId())
@@ -551,12 +556,12 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void findByHireDate_wrongDateRange_isOkAndEmpty() {
+    void findNewHires_userHiredMoreThanWeek_isOkAndEmpty() {
         setupUser(ROLE_EMPLOYEE);
         setupValidToken();
 
         buildClient(port).get()
-            .uri("/users/new-hires?startDate=2023-02-10&endDate=2023-02-20")
+            .uri("/users/new-hires")
             .header("Authorization", "Bearer " + VALID_TOKEN)
             .exchange()
             .expectStatus().isOk()
@@ -566,63 +571,15 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void findByHireDate_invalidToken_isUnauthorized() {
+    void findNewHires_invalidToken_isUnauthorized() {
         setupUser(ROLE_EMPLOYEE);
         setupValidToken();
 
         var spec = buildClient(port).get()
-            .uri("/users/new-hires?startDate=2023-01-20&endDate=2023-02-10")
+            .uri("/users/new-hires")
             .header("Authorization", "Bearer " + INVALID_TOKEN)
             .exchange();
         validateUnauthorized(spec);
-    }
-
-    @Test
-    void findByHireDate_noStartDate_isBadRequest() {
-        setupUser(ROLE_EMPLOYEE);
-        setupValidToken();
-
-        var spec = buildClient(port).get()
-            .uri("/users/new-hires?endDate=2023-02-10")
-            .header("Authorization", "Bearer " + VALID_TOKEN)
-            .exchange();
-        validateBadRequest(spec);
-    }
-
-    @Test
-    void findByHireDate_noEndDate_isBadRequest() {
-        setupUser(ROLE_EMPLOYEE);
-        setupValidToken();
-
-        var spec = buildClient(port).get()
-            .uri("/users/new-hires?startDate=2023-01-20")
-            .header("Authorization", "Bearer " + VALID_TOKEN)
-            .exchange();
-        validateBadRequest(spec);
-    }
-
-    @Test
-    void findByHireDate_invalidStartDate_isBadRequest() {
-        setupUser(ROLE_EMPLOYEE);
-        setupValidToken();
-
-        var spec = buildClient(port).get()
-            .uri("/users/new-hires?startDate=02-2023-01&endDate=2023-02-20")
-            .header("Authorization", "Bearer " + VALID_TOKEN)
-            .exchange();
-        validateBadRequest(spec);
-    }
-
-    @Test
-    void findByHireDate_invalidEndDate_isBadRequest() {
-        setupUser(ROLE_EMPLOYEE);
-        setupValidToken();
-
-        var spec = buildClient(port).get()
-            .uri("/users/new-hires?startDate=2023-01-20&endDate=02-2023-20")
-            .header("Authorization", "Bearer " + VALID_TOKEN)
-            .exchange();
-        validateBadRequest(spec);
     }
 
     private record UserData(

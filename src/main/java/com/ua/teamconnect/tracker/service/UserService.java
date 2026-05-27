@@ -38,7 +38,7 @@ public class UserService implements PageRequestService {
         return mapUserProfileFactory.full().entityToDto(user);
     }
 
-    public List<UserHireDateDto> getAnniversariesBetween(String startDate, String endDate) {
+    public List<UserHireDateDto> findAnniversariesBetween(String startDate, String endDate) {
         var stream = toListOfDatesPair(startDate, endDate).stream()
             .flatMap(pair -> userRepository.findAnniversaries(
                     pair.first().getMonthValue(),
@@ -92,7 +92,9 @@ public class UserService implements PageRequestService {
         return "lastName";
     }
 
-    public List<UserHireDateDto> findByHireDate(LocalDate startDate, LocalDate endDate) {
+    public List<UserHireDateDto> findNewHires() {
+        var endDate = LocalDate.now();
+        var startDate = endDate.minusWeeks(1);
         return userRepository.findByHireDate(startDate, endDate).stream()
             .map(userHireDateMapper::projectionToDto)
             .toList();

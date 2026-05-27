@@ -15,7 +15,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -38,13 +37,13 @@ public class UserController {
 
     @GetMapping("/anniversaries")
     @ApiResponseBadRequest @ApiResponseOk
-    public List<UserHireDateDto> getAnniversariesBetween(
+    public List<UserHireDateDto> findAnniversariesBetween(
         @Parameter(description = "Start date in dd-MM format", example = "20-01", required = true)
         String startDate,
         @Parameter(description = "End date in dd-MM format", example = "10-02", required = true)
         String endDate
     ) {
-        return userService.getAnniversariesBetween(startDate, endDate);
+        return userService.findAnniversariesBetween(startDate, endDate);
     }
 
     @GetMapping("/{id}")
@@ -76,12 +75,7 @@ public class UserController {
     @GetMapping("/new-hires")
     @ApiResponseOk
     @ApiResponseBadRequest
-    public List<UserHireDateDto> findByHireDate(
-        @Parameter(description = "Start date in yyyy-MM-dd format", example = "2024-01-01", required = true)
-        @RequestParam LocalDate startDate,
-        @Parameter(description = "End date in yyyy-MM-dd format", example = "2024-12-31", required = true)
-        @RequestParam LocalDate endDate
-    ) {
-        return userService.findByHireDate(startDate, endDate);
+    public List<UserHireDateDto> findNewHires() {
+        return userService.findNewHires();
     }
 }
