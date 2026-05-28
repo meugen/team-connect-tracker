@@ -3,6 +3,26 @@ spring:
     url: jdbc:h2:mem:tc2
     driver-class-name: org.h2.Driver
 
+  servlet:
+    multipart:
+      max-file-size: ${MAXFILESIZE:5MB}
+      max-request-size: ${MAXREQUESTSIZE:10MB}
+
   jpa:
     hibernate:
       ddl-auto: create
+
+  flyway:
+    enabled: false
+
+team:
+  connect:
+    files:
+      max-size: ${MAXSIZE:5MB}
+    storage:
+      adapter:
+        throw-if-not-configured: false
+
+server:
+  tomcat:
+    max-swallow-size: -1

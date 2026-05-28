@@ -12,5 +12,5 @@ import java.util.List;
 public interface UserStackRepository extends CrudRepository<UserStack, UserStackId> {
 
     @Query("select us from UserStack us join fetch us.stack where us.id.userId = :userId")
-    List<UserStack> findByUserId(Long userId);
+    List<UserStack> findByUserId(Integer userId);
 }

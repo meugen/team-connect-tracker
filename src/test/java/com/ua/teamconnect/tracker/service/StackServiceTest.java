@@ -1,7 +1,7 @@
 package com.ua.teamconnect.tracker.service;
 
-import com.ua.teamconnect.tracker.model.dto.StackDto;
 import com.ua.teamconnect.tracker.mapper.StackMapper;
+import com.ua.teamconnect.tracker.model.dto.StackDto;
 import com.ua.teamconnect.tracker.model.entity.Stack;
 import com.ua.teamconnect.tracker.repository.StackRepository;
 import org.junit.jupiter.api.BeforeAll;

@@ -1,6 +1,8 @@
 package com.ua.teamconnect.tracker.model.annotation;
 
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -14,4 +16,7 @@ import java.lang.annotation.Target;
     description = "Successfully retrieved entity/list of entities"
 )
 public @interface ApiResponseOk {
+
+    @AliasFor(annotation = ApiResponse.class, attribute = "content")
+    Content[] content() default {};
 }

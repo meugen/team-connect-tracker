@@ -10,8 +10,9 @@ import lombok.Setter;
 public class Stack {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "stacks_id_seq")
+    @SequenceGenerator(name = "stacks_id_seq", allocationSize = 1)
+    private Integer id;
     @Column(unique = true, nullable = false)
     private String name;
 

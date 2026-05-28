@@ -7,7 +7,7 @@ import java.time.LocalDate;
 @Schema(name = "Profile project", description = "Data for project in profile")
 public record ProfileProjectDto(
     @Schema(description = "Project id", example = "1")
-    Long id,
+    Integer id,
     @Schema(description = "Project name", example = "Team Connect")
     String name,
     @Schema(description = "Project start date", example = "2024-01-01")
