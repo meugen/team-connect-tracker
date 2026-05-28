@@ -1,7 +1,7 @@
 package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.model.dto.UploadedFileDto;
-import com.ua.teamconnect.tracker.service.adapter.storage.StorageAdapter;
+import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,19 +13,19 @@ import static org.mockito.Mockito.when;
 
 public class FilesServiceTest {
 
-    private StorageAdapter adapter;
+    private DropboxStorageService storageService;
     private FilesService service;
 
     @BeforeEach
     void setupService() {
-        adapter = mock(StorageAdapter.class);
-        service = new FilesService(mock(), adapter);
+        storageService = mock(DropboxStorageService.class);
+        service = new FilesService(mock(), storageService);
     }
 
     @Test
     void uploadFile_valid_sharedLink() {
-        when(adapter.upload(eq("user@example.com"), any())).thenReturn("filename.pdf");
-        when(adapter.shareLink(eq("filename.pdf"))).thenReturn("https://sharedlink.com/filename.pdf");
+        when(storageService.upload(eq("user@example.com"), any())).thenReturn("filename.pdf");
+        when(storageService.shareLink(eq("filename.pdf"))).thenReturn("https://sharedlink.com/filename.pdf");
 
         var actual = service.uploadFile("user@example.com", mock());
 

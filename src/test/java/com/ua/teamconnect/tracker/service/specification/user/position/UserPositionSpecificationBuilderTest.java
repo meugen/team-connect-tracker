@@ -3,6 +3,7 @@ package com.ua.teamconnect.tracker.service.specification.user.position;
 import com.ua.teamconnect.tracker.model.entity.*;
 import com.ua.teamconnect.tracker.model.pojo.Gender;
 import com.ua.teamconnect.tracker.repository.*;
+import com.ua.teamconnect.tracker.repository.specification.user.position.UserPositionSpecificationBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-public class UserPositionSpecificationBuilderTest {
+class UserPositionSpecificationBuilderTest {
 
     private static final UserData JOHN_DATA = new UserData(
         "John", "Doe", Gender.MALE, "jon.doe@example.com",
