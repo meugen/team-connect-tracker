@@ -1,8 +1,8 @@
-package com.ua.teamconnect.tracker.service.specification.user.position;
+package com.ua.teamconnect.tracker.repository.specification.user.position;
 
 import com.ua.teamconnect.tracker.model.entity.UserPosition;
 import com.ua.teamconnect.tracker.model.exception.UnsupportedFilterException;
-import com.ua.teamconnect.tracker.service.specification.common.FetchSpecification;
+import com.ua.teamconnect.tracker.repository.specification.common.FetchSpecification;
 import com.ua.teamconnect.tracker.util.Pair;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;

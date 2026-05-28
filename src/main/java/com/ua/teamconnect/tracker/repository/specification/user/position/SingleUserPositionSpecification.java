@@ -1,4 +1,4 @@
-package com.ua.teamconnect.tracker.service.specification.user.position;
+package com.ua.teamconnect.tracker.repository.specification.user.position;
 
 import com.ua.teamconnect.tracker.model.entity.UserPosition;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -17,6 +17,8 @@ import static lombok.AccessLevel.PRIVATE;
 @NoArgsConstructor(access = PRIVATE)
 public class SingleUserPositionSpecification implements Specification<UserPosition> {
 
+    private static final String USER_ID = "userId";
+
     public static Specification<UserPosition> wrap(Specification<UserPosition> spec) {
         return spec.and(new SingleUserPositionSpecification());
     }
@@ -33,18 +35,18 @@ public class SingleUserPositionSpecification implements Specification<UserPositi
     ) {
         var cq = query == null ? criteriaBuilder.createQuery() : query;
 
-        var userId = root.get("id").get("userId");
+        var userId = root.get("id").get(USER_ID);
         var maxStartDateSubquery = cq.subquery(LocalDate.class);
         var maxStartDateRoot = maxStartDateSubquery.from(UserPosition.class);
         maxStartDateSubquery.select(criteriaBuilder.<LocalDate>greatest(maxStartDateRoot.get("startDate")))
-            .where(criteriaBuilder.equal(maxStartDateRoot.get("id").get("userId"), userId));
+            .where(criteriaBuilder.equal(maxStartDateRoot.get("id").get(USER_ID), userId));
         // select max(up.startDate) from UserPosition up where up.id.userId=root.id.userId
 
         var positionIdSubquery = cq.subquery(Integer.class);
         var positionIdRoot = positionIdSubquery.from(UserPosition.class);
         positionIdSubquery.select(positionIdRoot.get("id").get("positionId"))
             .where(criteriaBuilder.and(
-                criteriaBuilder.equal(positionIdRoot.get("id").get("userId"), userId),
+                criteriaBuilder.equal(positionIdRoot.get("id").get(USER_ID), userId),
                 criteriaBuilder.equal(positionIdRoot.get("startDate"), maxStartDateSubquery)
             ));
         // select up1.position_id from UserPosition up1 where up1.id.userId=root.id.userId and

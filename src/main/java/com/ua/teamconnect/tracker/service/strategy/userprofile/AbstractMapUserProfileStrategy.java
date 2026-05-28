@@ -1,4 +1,4 @@
-package com.ua.teamconnect.tracker.service.strategy.user_profile;
+package com.ua.teamconnect.tracker.service.strategy.userprofile;
 
 import com.ua.teamconnect.tracker.model.pojo.ProfileDetails;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
