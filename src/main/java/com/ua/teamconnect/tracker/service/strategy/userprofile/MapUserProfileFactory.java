@@ -1,4 +1,4 @@
-package com.ua.teamconnect.tracker.service.strategy.user_profile;
+package com.ua.teamconnect.tracker.service.strategy.userprofile;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;

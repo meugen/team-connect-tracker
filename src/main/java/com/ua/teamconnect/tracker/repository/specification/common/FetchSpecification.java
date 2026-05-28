@@ -1,4 +1,4 @@
-package com.ua.teamconnect.tracker.service.specification.common;
+package com.ua.teamconnect.tracker.repository.specification.common;
 
 import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;

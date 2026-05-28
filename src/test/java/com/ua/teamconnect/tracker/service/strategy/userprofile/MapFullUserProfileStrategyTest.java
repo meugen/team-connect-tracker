@@ -1,4 +1,4 @@
-package com.ua.teamconnect.tracker.service.strategy.user_profile;
+package com.ua.teamconnect.tracker.service.strategy.userprofile;
 
 import com.ua.teamconnect.tracker.mapper.UserProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
@@ -26,7 +26,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class MapFullUserProfileStrategyTest extends AbstractMapUserProfileStrategyTest {
+class MapFullUserProfileStrategyTest extends AbstractMapUserProfileStrategyTest {
 
     private UserPositionRepository userPositionRepository;
     private UserProjectRepository userProjectRepository;

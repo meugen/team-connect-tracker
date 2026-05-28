@@ -1,4 +1,4 @@
-package com.ua.teamconnect.tracker.service.strategy.user_profile;
+package com.ua.teamconnect.tracker.service.strategy.userprofile;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
