@@ -31,7 +31,7 @@ class PositionControllerTest extends AuthorizationControllerTest {
         departmentRepository.deleteAll();
     }
 
-    private Long newPosition(String positionName, String departmentName) {
+    private Integer newPosition(String positionName, String departmentName) {
         var department = new Department();
         department.setName(departmentName);
         department = departmentRepository.save(department);

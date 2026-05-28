@@ -8,4 +8,8 @@ public class UserNotFoundException extends ResponseStatusException {
     public UserNotFoundException(String email) {
         super(HttpStatus.NOT_FOUND, String.format("User with email %s is not found", email));
     }
+
+    public UserNotFoundException(Integer id) {
+        super(HttpStatus.NOT_FOUND, String.format("User with id %d is not found", id));
+    }
 }

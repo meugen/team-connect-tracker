@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface PositionRepository extends JpaRepository<Position, Long> {
+public interface PositionRepository extends JpaRepository<Position, Integer> {
 
-    List<Position> findByDepartmentId(Long departmentId);
+    List<Position> findByDepartmentId(Integer departmentId);
 }

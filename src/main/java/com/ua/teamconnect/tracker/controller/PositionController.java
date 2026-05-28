@@ -26,7 +26,7 @@ public class PositionController {
 
     @GetMapping
     @ApiResponseNotFound
-    public List<PositionDto> findAll(@RequestParam(required = false) Long departmentId) {
+    public List<PositionDto> findAll(@RequestParam(required = false) Integer departmentId) {
         return positionService.findAll(departmentId);
     }
 }

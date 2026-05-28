@@ -19,7 +19,7 @@ public class PositionService {
     private final PositionRepository positionRepository;
     private final PositionMapper positionMapper;
 
-    public List<PositionDto> findAll(Long departmentId) {
+    public List<PositionDto> findAll(Integer departmentId) {
         var positions = departmentId == null ? findAll() : findAllByDepartmentId(departmentId);
         return positions.stream()
             .map(positionMapper::entityToDto)
@@ -30,7 +30,7 @@ public class PositionService {
         return positionRepository.findAll();
     }
 
-    private List<Position> findAllByDepartmentId(Long departmentId) {
+    private List<Position> findAllByDepartmentId(Integer departmentId) {
         if (!departmentRepository.existsById(departmentId)) {
             throw new DepartmentNotFoundException(departmentId);
         }
