@@ -30,12 +30,24 @@ public class SearchUserPositionSpecification implements Specification<UserPositi
         @Nullable CriteriaQuery<?> query,
         @NonNull CriteriaBuilder criteriaBuilder
     ) {
-        var escaped = escapeForLike(search.toLowerCase());
-        var pattern = "%" + escaped + "%";
-        var restrictions = new Predicate[] {
-            criteriaBuilder.like(criteriaBuilder.lower(root.get("user").get("firstName")), pattern, '\\'),
-            criteriaBuilder.like(criteriaBuilder.lower(root.get("user").get("lastName")), pattern, '\\')
-        };
-        return criteriaBuilder.or(restrictions);
+        var parts = search.strip().toLowerCase().split("\\s+", 2);
+
+        var firstName = criteriaBuilder.lower(root.get("user").get("firstName"));
+        var lastName = criteriaBuilder.lower(root.get("user").get("lastName"));
+        var firstNamePattern = "%" + escapeForLike(parts[0]) + "%";
+
+        if (parts.length == 1) {
+            return criteriaBuilder.or(
+                criteriaBuilder.like(firstName, firstNamePattern, '\\'),
+                criteriaBuilder.like(lastName, firstNamePattern, '\\')
+            );
+        }
+
+        var lastNamePattern = escapeForLike(parts[1]) + "%";
+
+        return criteriaBuilder.and(
+            criteriaBuilder.like(firstName, firstNamePattern, '\\'),
+            criteriaBuilder.like(lastName, lastNamePattern, '\\')
+        );
     }
 }

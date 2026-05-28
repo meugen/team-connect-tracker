@@ -1,6 +1,7 @@
 package com.ua.teamconnect.tracker.service.specification.user.position;
 
 import com.ua.teamconnect.tracker.model.entity.UserPosition;
+import com.ua.teamconnect.tracker.model.exception.UnsupportedFilterException;
 import com.ua.teamconnect.tracker.service.specification.common.FetchSpecification;
 import com.ua.teamconnect.tracker.util.Pair;
 import org.springframework.data.jpa.domain.Specification;
@@ -17,6 +18,12 @@ public class UserPositionSpecificationBuilder {
     static final String PARAM_DEPARTMENT = "department";
     static final String PARAM_POSITION = "position";
     static final String PARAM_STACK = "stack";
+    private static final Set<String> FILTER_PARAMS = Set.of(
+                    PARAM_SEARCH,
+                    PARAM_DEPARTMENT,
+                    PARAM_POSITION,
+                    PARAM_STACK
+                );
 
     /**
      * first - specification for data
@@ -25,6 +32,7 @@ public class UserPositionSpecificationBuilder {
     public Pair<Specification<UserPosition>, Specification<UserPosition>> build(
         Map<String, String> params, Set<String> fetchFields
     ) {
+        validateSupportedParams(params);
         var specification = Specification.<UserPosition>unrestricted();
         specification = SearchUserPositionSpecification.wrap(specification, params.get(PARAM_SEARCH));
         specification = DepartmentIdUserPositionSpecification.wrap(specification, params.get(PARAM_DEPARTMENT));
@@ -39,5 +47,13 @@ public class UserPositionSpecificationBuilder {
 
     public Pair<Specification<UserPosition>, Specification<UserPosition>> build(Map<String, String> params) {
         return build(params, Set.of("user", "position.department"));
+    }
+    
+    private void validateSupportedParams(Map<String, String> params) {
+        params.keySet().forEach(param -> {
+            if (!FILTER_PARAMS.contains(param)) {
+                throw new UnsupportedFilterException(param);
+            }
+        });
     }
 }
