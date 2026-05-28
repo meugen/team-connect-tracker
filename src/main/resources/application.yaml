@@ -32,4 +32,8 @@ team:
   connect:
     storage:
       adapter:
-        throw-if-not-configured: true
+        throw-if-not-configured: false
+    calendarific:
+      base-url: https://calendarific.com/api/v2
+      api-key: ${CALENDARIFIC_API_KEY}
+      update-on-startup: true

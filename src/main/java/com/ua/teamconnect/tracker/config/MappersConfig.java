@@ -42,4 +42,9 @@ public class MappersConfig {
     public UserRequestProfileMapper userRequestProfileMapper() {
         return Mappers.getMapper(UserRequestProfileMapper.class);
     }
+
+    @Bean
+    public HolidayMapper holidayMapper() {
+        return Mappers.getMapper(HolidayMapper.class);
+    }
 }
