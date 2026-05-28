@@ -25,14 +25,14 @@ class PositionMapperTest {
     @Test
     void entityToDto_entityIsNotNull_validDto() {
         var entity = new Position();
-        entity.setId(1L);
+        entity.setId(1);
         entity.setName("Backend Developer");
-        entity.setDepartmentId(2L);
+        entity.setDepartmentId(2);
         var dto = mapper.entityToDto(entity);
 
         assertNotNull(dto);
-        assertEquals(1L, dto.id());
+        assertEquals(1, dto.id());
         assertEquals("Backend Developer", dto.name());
-        assertEquals(2L, dto.departmentId());
+        assertEquals(2, dto.departmentId());
     }
 }

@@ -31,7 +31,7 @@ class DepartmentControllerTest extends AuthorizationControllerTest {
     private Department newDepartment(String name) {
         Department department = new Department();
         department.setName(name);
-        department.setHeadId(1L);
+        department.setHeadId(1);
         return department;
     }
 

@@ -20,8 +20,8 @@ public class UserPositionId implements Serializable {
     }
 
     @Column(nullable = false, name = "user_id")
-    private Long userId;
+    private Integer userId;
 
     @Column(nullable = false, name = "position_id")
-    private Long positionId;
+    private Integer positionId;
 }
