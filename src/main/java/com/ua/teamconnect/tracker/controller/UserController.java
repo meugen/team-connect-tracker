@@ -34,13 +34,13 @@ public class UserController {
     @ApiResponseOk(content = @Content(
         schema = @Schema(implementation = UserFullProfileDto.class)
     ))
-    public UserProfile profile(@AuthenticationPrincipal Jwt jwt) {
-        return userService.profile(jwt.getSubject());
+    public UserProfile findProfile(@AuthenticationPrincipal Jwt jwt) {
+        return userService.findProfile(jwt.getSubject());
     }
 
     @GetMapping("/anniversaries")
     @ApiResponseBadRequest @ApiResponseOk
-    public List<UserHireDateDto> findAnniversariesBetween(
+    public List<UserDateDto> findAnniversariesBetween(
         @Parameter(description = "Start date in dd-MM format", example = "20-01", required = true)
         String startDate,
         @Parameter(description = "End date in dd-MM format", example = "10-02", required = true)
@@ -53,12 +53,12 @@ public class UserController {
     @ApiResponseOk(content = @Content(
         schema = @Schema(oneOf = {UserFullProfileDto.class, UserShortProfileDto.class})
     ))
-    public UserProfile getUserById(
+    public UserProfile findUserById(
         @AuthenticationPrincipal Jwt jwt,
         @Parameter(description = "User id to get", example = "1", required = true)
         @PathVariable Integer id
     ) {
-        return userService.getUserById(jwt.getSubject(), id);
+        return userService.findUserById(jwt.getSubject(), id);
     }
 
     @GetMapping
@@ -85,7 +85,7 @@ public class UserController {
 
     @GetMapping("/new-hires")
     @ApiResponseOk
-    public List<UserHireDateDto> findNewHires() {
+    public List<UserDateDto> findNewHires() {
         return userService.findNewHires();
     }
 }

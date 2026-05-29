@@ -4,7 +4,7 @@ import com.ua.teamconnect.tracker.extension.UserHireDateExtension;
 import com.ua.teamconnect.tracker.model.entity.Department;
 import com.ua.teamconnect.tracker.model.entity.Position;
 import com.ua.teamconnect.tracker.model.entity.UserPosition;
-import com.ua.teamconnect.tracker.model.entity.projection.UserHireDate;
+import com.ua.teamconnect.tracker.model.entity.projection.UserDate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,7 +68,7 @@ class UserRepositoryTest extends UserRelatedRepositoryTest {
         userPositionRepository.save(userPosition);
     }
 
-    private void validateHiredUser(UserHireDate hiredUser) {
+    private void validateHiredUser(UserDate hiredUser) {
         assertEquals("John", hiredUser.getFirstName());
         assertEquals("Doe", hiredUser.getLastName());
         assertEquals("https://avatar.com", hiredUser.getAvatarUrl());

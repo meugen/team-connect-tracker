@@ -4,7 +4,7 @@ import com.ua.teamconnect.tracker.model.entity.Position;
 
 import java.time.LocalDate;
 
-public interface UserHireDate {
+public interface UserDate {
     Integer getUserId();
     String getFirstName();
     String getLastName();

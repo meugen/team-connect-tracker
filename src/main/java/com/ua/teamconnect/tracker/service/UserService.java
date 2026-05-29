@@ -1,6 +1,6 @@
 package com.ua.teamconnect.tracker.service;
 
-import com.ua.teamconnect.tracker.mapper.UserHireDateMapper;
+import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
@@ -31,20 +31,20 @@ public class UserService implements PageRequestService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final MapUserProfileFactory mapUserProfileFactory;
-    private final UserHireDateMapper userHireDateMapper;
+    private final UserDateMapper userDateMapper;
     private final UserRequestProfileMapper userRequestProfileMapper;
     private final UserPositionSpecificationBuilder userPositionSpecificationBuilder;
     private final UserPositionRepository userPositionRepository;
     private final UserPositionMapper userPositionMapper;
 
-    public UserProfile profile(String email) {
+    public UserProfile findProfile(String email) {
         var user = userRepository.findByEmail(email).orElseThrow(
             () -> new UserNotFoundException(email)
         );
         return mapUserProfileFactory.full().entityToDto(user);
     }
 
-    public List<UserHireDateDto> findAnniversariesBetween(String startDate, String endDate) {
+    public List<UserDateDto> findAnniversariesBetween(String startDate, String endDate) {
         var stream = toListOfDatesPair(startDate, endDate).stream()
             .flatMap(pair -> userRepository.findAnniversaries(
                     pair.first().getMonthValue(),
@@ -53,7 +53,7 @@ public class UserService implements PageRequestService {
                     pair.second().getDayOfMonth()
                 ).stream()
             );
-        return userHireDateMapper.projectionListTDtoList(stream.toList());
+        return userDateMapper.projectionListTDtoList(stream.toList());
     }
 
     private static List<Pair<MonthDay, MonthDay>> toListOfDatesPair(String startDate, String endDate) {
@@ -68,7 +68,7 @@ public class UserService implements PageRequestService {
         );
     }
 
-    public UserProfile getUserById(String email, Integer userId) {
+    public UserProfile findUserById(String email, Integer userId) {
         var role = userRepository.findRoleByEmail(email);
         var user = userRepository.findById(userId).orElseThrow(
             () -> new UserNotFoundException(userId)
@@ -114,11 +114,11 @@ public class UserService implements PageRequestService {
         return "lastName";
     }
 
-    public List<UserHireDateDto> findNewHires() {
+    public List<UserDateDto> findNewHires() {
         var endDate = LocalDate.now();
         var startDate = endDate.minusWeeks(1);
         return userRepository.findByHireDate(startDate, endDate).stream()
-            .map(userHireDateMapper::projectionToDto)
+            .map(userDateMapper::projectionToDto)
             .toList();
     }
 }

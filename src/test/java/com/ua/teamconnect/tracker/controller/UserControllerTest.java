@@ -173,7 +173,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void profile_validToken_isOk() {
+    void findProfile_validToken_isOk() {
         setupUser(UserParams.builder().build());
         setupValidToken("user@example.com");
 
@@ -187,7 +187,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void profile_invalidToken_isUnauthorized() {
+    void findProfile_invalidToken_isUnauthorized() {
         setupUser(UserParams.builder().build());
         setupValidToken();
 
@@ -336,7 +336,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void getUserById_roleEmployee_isOkShort() {
+    void findUserById_roleEmployee_isOkShort() {
         var userId = setupUser(UserParams.builder().build()).userId();
         setupValidToken("user@example.com");
 
@@ -350,7 +350,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void getUserById_roleAdmin_isOkFull() {
+    void findUserById_roleAdmin_isOkFull() {
         var userParams = UserParams.builder()
             .role(ROLE_ADMIN)
             .build();
@@ -367,7 +367,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void getUserById_invalidToken_isUnauthorized() {
+    void findUserById_invalidToken_isUnauthorized() {
         var userId = setupUser(UserParams.allDefaults()).userId();
         setupValidToken("user@example.com");
 
@@ -379,7 +379,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void getUserById_invalidUser_isNotFound() {
+    void findUserById_invalidUser_isNotFound() {
         var userId = setupUser(UserParams.allDefaults()).userId() + 1;
         setupValidToken("user@example.com");
 

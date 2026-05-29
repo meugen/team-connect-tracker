@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 
 @Schema(name = "User Hire Date", description = "User information with hire date")
-public record UserHireDateDto(
+public record UserDateDto(
     @Schema(description = "User ID", example = "1")
     Integer id,
     @Schema(description = "User's first name", example = "John")

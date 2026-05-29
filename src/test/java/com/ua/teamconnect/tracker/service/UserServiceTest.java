@@ -1,13 +1,13 @@
 package com.ua.teamconnect.tracker.service;
 
-import com.ua.teamconnect.tracker.mapper.UserHireDateMapper;
+import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.model.entity.Department;
 import com.ua.teamconnect.tracker.model.entity.Position;
 import com.ua.teamconnect.tracker.model.entity.User;
-import com.ua.teamconnect.tracker.model.entity.projection.UserHireDate;
+import com.ua.teamconnect.tracker.model.entity.projection.UserDate;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
@@ -58,7 +58,7 @@ class UserServiceTest {
                 shortUserProfileStrategy,
                 fullUserProfileStrategy
             ),
-            Mappers.getMapper(UserHireDateMapper.class),
+            Mappers.getMapper(UserDateMapper.class),
             Mappers.getMapper(UserRequestProfileMapper.class),
             userPositionSpecificationBuilder,
             userPositionRepository,
@@ -67,22 +67,22 @@ class UserServiceTest {
     }
 
     @Test
-    void profile_repositoryReturnsEntity_returnsDto() {
+    void findProfile_repositoryReturnsEntity_returnsDto() {
         var user = mock(User.class);
         var dto = mock(UserProfile.class);
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         when(fullUserProfileStrategy.entityToDto(user)).thenReturn(dto);
 
-        var result = userService.profile("user@example.com");
+        var result = userService.findProfile("user@example.com");
 
         assertEquals(dto, result);
     }
 
     @Test
-    void profile_repositoryReturnsEmpty_throwsException() {
+    void findProfile_repositoryReturnsEmpty_throwsException() {
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> userService.profile("user@example.com"));
+        assertThrows(UserNotFoundException.class, () -> userService.findProfile("user@example.com"));
     }
 
     @Test
@@ -99,7 +99,7 @@ class UserServiceTest {
         position.setDepartment(department);
 
         var userId = RANDOM.nextInt();
-        var userHireDate = mock(UserHireDate.class);
+        var userHireDate = mock(UserDate.class);
         when(userHireDate.getUserId()).thenReturn(userId);
         when(userHireDate.getFirstName()).thenReturn("John");
         when(userHireDate.getLastName()).thenReturn("Doe");
@@ -111,7 +111,7 @@ class UserServiceTest {
 
         var actual = userService.findAnniversariesBetween("01-02", "20-02");
 
-        var expected = List.of(new UserHireDateDto(
+        var expected = List.of(new UserDateDto(
             userId,
             "John",
             "Doe",
@@ -153,7 +153,7 @@ class UserServiceTest {
         position.setDepartment(department);
 
         var userId = RANDOM.nextInt();
-        var anniversary = mock(UserHireDate.class);
+        var anniversary = mock(UserDate.class);
         when(anniversary.getUserId()).thenReturn(userId);
         when(anniversary.getFirstName()).thenReturn("John");
         when(anniversary.getLastName()).thenReturn("Doe");
@@ -165,7 +165,7 @@ class UserServiceTest {
 
         var actual = userService.findAnniversariesBetween("15-02", "15-02");
 
-        var expected = List.of(new UserHireDateDto(
+        var expected = List.of(new UserDateDto(
             userId,
             "John",
             "Doe",
@@ -197,7 +197,7 @@ class UserServiceTest {
         position.setDepartment(department);
 
         var johnUserId = RANDOM.nextInt();
-        var johnHireDate = mock(UserHireDate.class);
+        var johnHireDate = mock(UserDate.class);
         when(johnHireDate.getUserId()).thenReturn(johnUserId);
         when(johnHireDate.getFirstName()).thenReturn("John");
         when(johnHireDate.getLastName()).thenReturn("Doe");
@@ -206,7 +206,7 @@ class UserServiceTest {
         when(johnHireDate.getPosition()).thenReturn(position);
 
         var ellisonUserId = RANDOM.nextInt();
-        var ellisonHireDate = mock(UserHireDate.class);
+        var ellisonHireDate = mock(UserDate.class);
         when(ellisonHireDate.getUserId()).thenReturn(ellisonUserId);
         when(ellisonHireDate.getFirstName()).thenReturn("Ellison");
         when(ellisonHireDate.getLastName()).thenReturn("Smith");
@@ -222,7 +222,7 @@ class UserServiceTest {
         var actual = userService.findAnniversariesBetween("10-12", "20-02");
 
         var expected = List.of(
-            new UserHireDateDto(
+            new UserDateDto(
                 ellisonUserId,
                 "Ellison",
                 "Smith",
@@ -237,7 +237,7 @@ class UserServiceTest {
                 ),
                 LocalDate.of(2020, Month.DECEMBER, 20)
             ),
-            new UserHireDateDto(
+            new UserDateDto(
                 johnUserId,
                 "John",
                 "Doe",
@@ -257,42 +257,42 @@ class UserServiceTest {
     }
 
     @Test
-    void getUserById_roleEmployee_returnsShortDto() {
+    void findUserById_roleEmployee_returnsShortDto() {
         var user = mock(User.class);
         var dto = mock(UserProfile.class);
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(userRepository.findRoleByEmail("user@example.com")).thenReturn("EMPLOYEE");
         when(shortUserProfileStrategy.entityToDto(user)).thenReturn(dto);
 
-        var result = userService.getUserById("user@example.com", user.getId());
+        var result = userService.findUserById("user@example.com", user.getId());
 
         assertEquals(dto, result);
     }
 
     @Test
-    void getUserById_roleAdmin_returnsFullDto() {
+    void findUserById_roleAdmin_returnsFullDto() {
         var user = mock(User.class);
         var dto = mock(UserProfile.class);
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(userRepository.findRoleByEmail("user@example.com")).thenReturn("ADMIN");
         when(fullUserProfileStrategy.entityToDto(user)).thenReturn(dto);
 
-        var result = userService.getUserById("user@example.com", user.getId());
+        var result = userService.findUserById("user@example.com", user.getId());
 
         assertEquals(dto, result);
     }
 
     @Test
-    void getUserById_repositoryReturnsEmpty_throwsException() {
+    void findUserById_repositoryReturnsEmpty_throwsException() {
         var userId = RANDOM.nextInt();
         when(userRepository.findRoleByEmail("user@example.com")).thenReturn("EMPLOYEE");
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> userService.getUserById("user@example.com", userId));
+        assertThrows(UserNotFoundException.class, () -> userService.findUserById("user@example.com", userId));
     }
 
     @Test
-    void updateProfile_userExists_updatesUserAndSaves() {
+    void updateFindProfile_userExists_updatesUserAndSaves() {
         var email = "user@example.com";
 
         var dto = new UserUpdateProfileDto("https://new-avatar.com",
@@ -313,7 +313,7 @@ class UserServiceTest {
     }
 
     @Test
-    void updateProfile_withoutPassword_doesNotEncodePassword() {
+    void updateFindProfile_withoutPassword_doesNotEncodePassword() {
         var email = "user@example.com";
         var dto = new UserUpdateProfileDto("https://new-avatar.com", Map.of("work", "+380697554332"), null);
         var user = new User();
@@ -328,7 +328,7 @@ class UserServiceTest {
     }
 
     @Test
-    void updateProfile_userNotFound_throwsException() {
+    void updateFindProfile_userNotFound_throwsException() {
         var email = "user@example.com";
         var dto = mock(UserUpdateProfileDto.class);
 
@@ -365,7 +365,7 @@ class UserServiceTest {
         position.setName("Position");
         position.setDepartment(department);
 
-        var userHireDate = mock(UserHireDate.class);
+        var userHireDate = mock(UserDate.class);
         when(userHireDate.getUserId()).thenReturn(userId);
         when(userHireDate.getFirstName()).thenReturn("John");
         when(userHireDate.getLastName()).thenReturn("Doe");
@@ -376,7 +376,7 @@ class UserServiceTest {
 
         var result = userService.findNewHires();
 
-        var expected = new UserHireDateDto(
+        var expected = new UserDateDto(
             userId,
             "John",
             "Doe",

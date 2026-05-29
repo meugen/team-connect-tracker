@@ -1,7 +1,7 @@
 package com.ua.teamconnect.tracker.repository;
 
 import com.ua.teamconnect.tracker.model.entity.User;
-import com.ua.teamconnect.tracker.model.entity.projection.UserHireDate;
+import com.ua.teamconnect.tracker.model.entity.projection.UserDate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -27,7 +27,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
        or (:startMonth < extract(month from uh.hireDate) and extract(month from uh.hireDate) = :endMonth and extract(day from uh.hireDate) <= :endDay)
        or (:startMonth = extract(month from uh.hireDate) and extract(month from uh.hireDate) = :endMonth and :startDay <= extract(day from uh.hireDate) and extract(day from uh.hireDate) <= :endDay)
     """)
-    List<UserHireDate> findAnniversaries(int startMonth, int startDay, int endMonth, int endDay);
+    List<UserDate> findAnniversaries(int startMonth, int startDay, int endMonth, int endDay);
 
     @Query("""
     select up.id.userId userId, up.user.firstName firstName, up.user.lastName lastName, up.user.avatar avatarUrl, up, up.position position, uh.hireDate hireDate
@@ -35,5 +35,5 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     join (select up.id.userId userId, max(up.startDate) hireDate from UserPosition up group by up.id.userId) uh on (uh.userId=up.id.userId)
     where :startDate <= uh.hireDate and uh.hireDate <= :endDate
     """)
-    List<UserHireDate> findByHireDate(LocalDate startDate, LocalDate endDate);
+    List<UserDate> findByHireDate(LocalDate startDate, LocalDate endDate);
 }
