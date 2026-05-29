@@ -230,7 +230,7 @@ class DropboxStorageServiceTest {
     }
 
     private record TestFixture(
-        StorageService service,
+        DropboxStorageService service,
         DbxClientV2 client,
         DbxUserFilesRequests filesRequests,
         UploadBuilder uploadBuilder,
