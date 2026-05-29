@@ -4,6 +4,8 @@ import com.ua.teamconnect.tracker.extension.UserHireDateExtension;
 import com.ua.teamconnect.tracker.model.entity.*;
 import com.ua.teamconnect.tracker.model.pojo.Gender;
 import com.ua.teamconnect.tracker.repository.*;
+import lombok.Builder;
+import lombok.Getter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,18 +73,22 @@ class UserControllerTest extends AuthorizationControllerTest {
         userRepository.deleteAll();
     }
 
-    private UserData setupUser(String role) {
-        return setupUser(role, LocalDate.of(2023, Month.FEBRUARY, 1));
-    }
+//    private UserData setupUser(String role) {
+//        return setupUser(role, "John", "Doe", "user@example.com", "");
+//    }
+//
+//    private UserData setupUser(String role, String firstName, String lastName, String email) {
+//        return setupUser(role, firstName, lastName, email, email);
+//    }
 
-    private UserData setupUser(String role, LocalDate startPositionAt) {
+    private UserData setupUser(UserParams userParams) {
         var user = new User();
-        user.setEmail("user@example.com");
+        user.setEmail(userParams.getEmail());
         user.setPassword("password");
         user.setAvatar("https://avatar.com");
-        user.setFirstName("John");
-        user.setLastName("Doe");
-        user.setRole(role);
+        user.setFirstName(userParams.getFirstName());
+        user.setLastName(userParams.getLastName());
+        user.setRole(userParams.getRole());
         user.setStatus("ACTIVE");
         user.setPhone(Map.of(
             "home", "+123456789",
@@ -91,23 +97,23 @@ class UserControllerTest extends AuthorizationControllerTest {
         user.setBirthDate(LocalDate.of(1990, Month.MAY, 10));
         user.setGender(Gender.MALE);
         user.setGrade("SENIOR");
-        user = userRepository.save(user);
 
+        user = userRepository.save(user);
         var stack = new Stack();
-        stack.setName("Java");
+        stack.setName("Java" + userParams.getSuffix());
         stack = stackRepository.save(stack);
 
         var department = new Department();
-        department.setName("Software Development");
+        department.setName("Software Development" + userParams.getSuffix());
         department = departmentRepository.save(department);
 
         var position = new Position();
-        position.setName("Java Developer");
+        position.setName("Java Developer" + userParams.getSuffix());
         position.setDepartment(department);
         position = positionRepository.save(position);
 
         var project = new Project();
-        project.setName("Team Connect");
+        project.setName("Team Connect" + userParams.getSuffix());
         project.setStatus("ACTIVE");
         project.setDescription("Project description");
         project.setStartDate(LocalDate.of(2022, Month.DECEMBER, 1));
@@ -119,19 +125,19 @@ class UserControllerTest extends AuthorizationControllerTest {
         userStackRepository.save(userStack);
 
         var userProject = UserProject.of(user, project);
-        userProject.setRole("DEVELOPER");
+        userProject.setRole("DEVELOPER" + userParams.getSuffix());
         userProject.setStartDate(LocalDate.of(2023, Month.MARCH, 1));
         userProjectRepository.save(userProject);
 
         var userPosition = UserPosition.of(user, position);
-        userPosition.setStartDate(startPositionAt);
+        userPosition.setStartDate(userParams.getStartPositionAt());
         userPositionRepository.save(userPosition);
 
         var params = Map.of(
             "department", department.getId().toString(),
             "position", position.getId().toString(),
             "stack", stack.getId().toString(),
-            "search", "john",
+            "search", userParams.getFirstName().toLowerCase(),
             "size", "10",
             "page", "1",
             "sort", "firstName",
@@ -168,7 +174,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void profile_validToken_isOk() {
-        setupUser(ROLE_EMPLOYEE);
+        setupUser(UserParams.builder().build());
         setupValidToken("user@example.com");
 
         var spec = buildClient(port).get()
@@ -182,7 +188,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void profile_invalidToken_isUnauthorized() {
-        setupUser(ROLE_EMPLOYEE);
+        setupUser(UserParams.builder().build());
         setupValidToken();
 
         var spec = buildClient(port).get()
@@ -195,7 +201,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     @Test
     @ExtendWith(UserHireDateExtension.class)
     void findAnniversariesBetween_validTokenAndRequest_isOkAndNotEmpty() {
-        var data = setupUser(ROLE_EMPLOYEE);
+        var data = setupUser(UserParams.builder().build());
         setupValidToken();
 
         buildClient(port).get()
@@ -220,7 +226,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     @Test
     @ExtendWith(UserHireDateExtension.class)
     void findAnniversariesBetween_validTokenAndAfterHireDate_isOkAndEmpty() {
-        setupUser(ROLE_EMPLOYEE);
+        setupUser(UserParams.builder().build());
         setupValidToken();
 
         buildClient(port).get()
@@ -236,7 +242,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     @Test
     @ExtendWith(UserHireDateExtension.class)
     void findAnniversariesBetween_validTokenAndBeforeHireDate_isOkAndEmpty() {
-        setupUser(ROLE_EMPLOYEE);
+        setupUser(UserParams.builder().build());
         setupValidToken();
 
         buildClient(port).get()
@@ -251,7 +257,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void findAnniversariesBetween_invalidToken_isUnauthorized() {
-        setupUser(ROLE_EMPLOYEE);
+        setupUser(UserParams.builder().build());
         setupValidToken();
 
         var spec = buildClient(port).get()
@@ -264,7 +270,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     @Test
     @ExtendWith(UserHireDateExtension.class)
     void findAnniversariesBetween_startAfterEnd_isOkAndNotEmpty() {
-        setupUser(ROLE_EMPLOYEE);
+        setupUser(UserParams.builder().build());
         setupValidToken();
 
         buildClient(port).get()
@@ -283,7 +289,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void findAnniversariesBetween_invalidStart_isBadRequest() {
-        setupUser(ROLE_EMPLOYEE);
+        setupUser(UserParams.builder().build());
         setupValidToken();
 
         var spec = buildClient(port).get()
@@ -295,7 +301,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void findAnniversariesBetween_invalidEnd_isBadRequest() {
-        setupUser(ROLE_EMPLOYEE);
+        setupUser(UserParams.builder().build());
         setupValidToken();
 
         var spec = buildClient(port).get()
@@ -307,7 +313,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void findAnniversariesBetween_noStart_isBadRequest() {
-        setupUser(ROLE_EMPLOYEE);
+        setupUser(UserParams.builder().build());
         setupValidToken();
 
         var spec = buildClient(port).get()
@@ -319,7 +325,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void findAnniversariesBetween_noEnd_isBadRequest() {
-        setupUser(ROLE_EMPLOYEE);
+        setupUser(UserParams.builder().build());
         setupValidToken();
 
         var spec = buildClient(port).get()
@@ -331,7 +337,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void getUserById_roleEmployee_isOkShort() {
-        var userId = setupUser(ROLE_EMPLOYEE).userId();
+        var userId = setupUser(UserParams.builder().build()).userId();
         setupValidToken("user@example.com");
 
         var spec = buildClient(port).get()
@@ -345,7 +351,10 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void getUserById_roleAdmin_isOkFull() {
-        var userId = setupUser(ROLE_ADMIN).userId();
+        var userParams = UserParams.builder()
+            .role(ROLE_ADMIN)
+            .build();
+        var userId = setupUser(userParams).userId();
         setupValidToken("user@example.com");
 
         var spec = buildClient(port).get()
@@ -359,7 +368,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void getUserById_invalidToken_isUnauthorized() {
-        var userId = setupUser(ROLE_EMPLOYEE).userId();
+        var userId = setupUser(UserParams.allDefaults()).userId();
         setupValidToken("user@example.com");
 
         var spec = buildClient(port).get()
@@ -371,7 +380,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void getUserById_invalidUser_isNotFound() {
-        var userId = setupUser(ROLE_EMPLOYEE).userId() + 1;
+        var userId = setupUser(UserParams.allDefaults()).userId() + 1;
         setupValidToken("user@example.com");
 
         var spec = buildClient(port).get()
@@ -401,7 +410,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void findFiltered_noParams_isOkAndNonEmpty() {
-        var user = setupUser(ROLE_EMPLOYEE);
+        var user = setupUser(UserParams.allDefaults());
         setupValidToken();
 
         var spec = buildClient(port).get()
@@ -415,7 +424,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void findFiltered_validParams_isOkAndNonEmpty() {
-        var user = setupUser(ROLE_EMPLOYEE);
+        var user = setupUser(UserParams.allDefaults());
         setupValidToken();
 
         var query = user.params().entrySet().stream()
@@ -445,7 +454,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     @ParameterizedTest
     @MethodSource("invalidParams")
     void findFiltered_invalidParam_isBadRequest(String name, String value) {
-        var user = setupUser(ROLE_EMPLOYEE);
+        var user = setupUser(UserParams.allDefaults());
         setupValidToken();
 
         var params = new HashMap<>(user.params());
@@ -462,7 +471,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void findFiltered_departmentValidButNotExists_isOkAndEmpty() {
-        var user = setupUser(ROLE_EMPLOYEE);
+        var user = setupUser(UserParams.allDefaults());
         setupValidToken();
 
         var params = new HashMap<>(user.params());
@@ -481,7 +490,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void findFiltered_positionValidButNotExists_isOkAndEmpty() {
-        var user = setupUser(ROLE_EMPLOYEE);
+        var user = setupUser(UserParams.allDefaults());
         setupValidToken();
 
         var params = new HashMap<>(user.params());
@@ -500,7 +509,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void findFiltered_stackValidButNotExists_isOkAndEmpty() {
-        var user = setupUser(ROLE_EMPLOYEE);
+        var user = setupUser(UserParams.allDefaults());
         setupValidToken();
 
         var params = new HashMap<>(user.params());
@@ -519,7 +528,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void findFiltered_invalidToken_isUnauthorized() {
-        var user = setupUser(ROLE_EMPLOYEE);
+        var user = setupUser(UserParams.allDefaults());
         setupValidToken();
 
         var query = user.params().entrySet().stream()
@@ -535,7 +544,10 @@ class UserControllerTest extends AuthorizationControllerTest {
     @Test
     void findNewHires_userHiredWithingWeek_isOkAndNotEmpty() {
         var startPositionAt = LocalDate.now().minusDays(2);
-        var data = setupUser(ROLE_EMPLOYEE, startPositionAt);
+        var userParams = UserParams.builder()
+            .startPositionAt(startPositionAt)
+            .build();
+        var data = setupUser(userParams);
         setupValidToken();
 
         buildClient(port).get()
@@ -559,7 +571,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void findNewHires_userHiredMoreThanWeek_isOkAndEmpty() {
-        setupUser(ROLE_EMPLOYEE);
+        setupUser(UserParams.allDefaults());
         setupValidToken();
 
         buildClient(port).get()
@@ -574,7 +586,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Test
     void findNewHires_invalidToken_isUnauthorized() {
-        setupUser(ROLE_EMPLOYEE);
+        setupUser(UserParams.allDefaults());
         setupValidToken();
 
         var spec = buildClient(port).get()
@@ -584,18 +596,123 @@ class UserControllerTest extends AuthorizationControllerTest {
         validateUnauthorized(spec);
     }
 
-    private record UserData(
-        Integer userId,
-        Integer positionId,
-        Integer departmentId,
-        Integer stackId,
-        Map<String, String> params
-    ) {
+    @Test
+    void findFiltered_unsupportedParam_isBadRequest() {
+        var userParams = UserParams.builder()
+            .role(ROLE_ADMIN)
+            .build();
+        setupUser(userParams);
+        setupValidToken("user@example.com");
+
+        var spec = buildClient(port)
+            .get()
+            .uri("/users?blabla=344")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+
+        validateBadRequest(spec);
     }
-    
+
+    @Test
+    void findFiltered_searchByFirstName_returnsUsers() {
+        setupValidToken("user@example.com");
+
+        List.of(
+            UserParams.builder()
+                .firstName("Ivan")
+                .lastName("Petrenko")
+                .email("ivan.petrenko@example.com")
+                .suffix("ivan.petrenko@example.com")
+                .build(),
+            UserParams.builder()
+                .firstName("Ivan")
+                .lastName("Paviuk")
+                .email("ivan.pavliuk@example.com")
+                .suffix("ivan.pavliuk@example.com")
+                .build()
+        ).forEach(this::setupUser);
+
+        var spec = buildClient(port)
+            .get()
+            .uri("/users?search=Ivan")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus()
+            .isOk();
+
+        spec.expectBody()
+            .jsonPath("$.items").isArray()
+            .jsonPath("$.items.length()").isEqualTo(2);
+    }
+
+    @Test
+    void findFiltered_searchByFirstNameAndLastNamePrefix_returnsUsers() {
+        setupValidToken("user@example.com");
+
+        List.of(
+            UserParams.builder()
+                .firstName("Ivan")
+                .lastName("Petrenko")
+                .email("ivan.petrenko@example.com")
+                .suffix("ivan.petrenko@example.com")
+                .build(),
+            UserParams.builder()
+                .firstName("Ivan")
+                .lastName("Paviuk")
+                .email("ivan.pavliuk@example.com")
+                .suffix("ivan.pavliuk@example.com")
+                .build()
+        ).forEach(this::setupUser);
+
+        var spec = buildClient(port)
+            .get()
+            .uri("/users?search=Ivan P")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus()
+            .isOk();
+
+        spec.expectBody()
+            .jsonPath("$.items.length()").isEqualTo(2);
+    }
+
+    @Test
+    void findFiltered_searchByFlexibleFirstName_returnsUsers() {
+        setupValidToken("user@example.com");
+
+        List.of(
+            UserParams.builder()
+                .firstName("Anna")
+                .lastName("Ivankova")
+                .email("anna.ivankova@example.com")
+                .suffix("anna.ivankova@example.com")
+                .build(),
+            UserParams.builder()
+                .firstName("Hanna")
+                .lastName("Ivankova")
+                .email("hanna.ivankova@example.com")
+                .suffix("hanna.ivankova@example.com")
+                .build()
+        ).forEach(this::setupUser);
+
+        var spec = buildClient(port)
+            .get()
+            .uri("/users?search=anna Ivankova")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus()
+            .isOk();
+
+        spec.expectBody()
+            .jsonPath("$.items.length()").isEqualTo(2);
+    }
+
     @Test
     void updateProfile_updatedProfile_isNoContent() {
-        setupUser(ROLE_ADMIN);
+        var userParams = UserParams.builder()
+            .role(ROLE_ADMIN)
+            .build();
+        setupUser(userParams);
         setupValidToken("user@example.com");
         var bodyValue = """
                         {
@@ -624,7 +741,10 @@ class UserControllerTest extends AuthorizationControllerTest {
     
     @Test
     void updateProfile_invalidToken_isUnauthorized() {
-        setupUser(ROLE_ADMIN);
+        var userParams = UserParams.builder()
+            .role(ROLE_ADMIN)
+            .build();
+        setupUser(userParams);
         setupValidToken("user@example.com");
         var bodyValue = """
                         {
@@ -644,7 +764,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     
     @Test
     void updateProfile_invalidPassword_isBadRequest() {
-        setupUser(ROLE_EMPLOYEE);
+        setupUser(UserParams.allDefaults());
         setupValidToken("user@example.com");
         var bodyValue = """
                         {
@@ -659,6 +779,36 @@ class UserControllerTest extends AuthorizationControllerTest {
             .bodyValue(bodyValue)
             .exchange();
         spec.expectStatus().isBadRequest();
+    }
+
+    private record UserData(
+        Integer userId,
+        Integer positionId,
+        Integer departmentId,
+        Integer stackId,
+        Map<String, String> params
+    ) {
+    }
+
+    @Builder
+    @Getter
+    private static class UserParams {
+        @Builder.Default
+        private String role = ROLE_EMPLOYEE;
+        @Builder.Default
+        private String firstName = "John";
+        @Builder.Default
+        private String lastName = "Doe";
+        @Builder.Default
+        private String email = "user@example.com";
+        @Builder.Default
+        private String suffix = "";
+        @Builder.Default
+        private LocalDate startPositionAt = LocalDate.of(2023, Month.FEBRUARY, 1);
+
+        public static UserParams allDefaults() {
+            return UserParams.builder().build();
+        }
     }
 
 }
