@@ -5,9 +5,6 @@ import com.dropbox.core.v2.files.WriteMode;
 import com.dropbox.core.v2.sharing.RequestedLinkAccessLevel;
 import com.dropbox.core.v2.sharing.RequestedVisibility;
 import com.dropbox.core.v2.sharing.SharedLinkSettings;
-
-import java.io.File;
-import java.nio.file.Paths;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,7 +14,7 @@ import java.util.concurrent.Callable;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
 @Service
-public class DropboxStorageService {
+public class DropboxStorageService implements StorageService {
 
     private final DbxClientV2 client;
 
@@ -25,6 +22,7 @@ public class DropboxStorageService {
         this.client = client;
     }
 
+    @Override
     public String upload(String email, MultipartFile file) {
         return retry(() -> {
             var folder = getFolderFromEmail(email);
@@ -40,6 +38,7 @@ public class DropboxStorageService {
         });
     }
 
+    @Override
     public String shareLink(String dropboxPath) {
         return retry(() -> {
             var settings = SharedLinkSettings.newBuilder()
