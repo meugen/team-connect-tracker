@@ -12,11 +12,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Map;
@@ -34,31 +34,31 @@ public class UserController {
     @ApiResponseOk(content = @Content(
         schema = @Schema(implementation = UserFullProfileDto.class)
     ))
-    public UserProfile profile(@AuthenticationPrincipal Jwt jwt) {
-        return userService.profile(jwt.getSubject());
+    public UserProfile findProfile(@AuthenticationPrincipal Jwt jwt) {
+        return userService.findProfile(jwt.getSubject());
     }
 
     @GetMapping("/anniversaries")
     @ApiResponseBadRequest @ApiResponseOk
-    public List<UserAnniversaryDto> getAnniversariesBetween(
+    public List<UserDateDto> findAnniversariesBetween(
         @Parameter(description = "Start date in dd-MM format", example = "20-01", required = true)
         String startDate,
         @Parameter(description = "End date in dd-MM format", example = "10-02", required = true)
         String endDate
     ) {
-        return userService.getAnniversariesBetween(startDate, endDate);
+        return userService.findAnniversariesBetween(startDate, endDate);
     }
 
     @GetMapping("/{id}")
     @ApiResponseOk(content = @Content(
         schema = @Schema(oneOf = {UserFullProfileDto.class, UserShortProfileDto.class})
     ))
-    public UserProfile getUserById(
+    public UserProfile findUserById(
         @AuthenticationPrincipal Jwt jwt,
         @Parameter(description = "User id to get", example = "1", required = true)
         @PathVariable Integer id
     ) {
-        return userService.getUserById(jwt.getSubject(), id);
+        return userService.findUserById(jwt.getSubject(), id);
     }
 
     @GetMapping
@@ -74,12 +74,18 @@ public class UserController {
     public PageDto<UserDto> findFiltered(@RequestParam @Parameter(hidden = true) Map<String, String> params) {
         return userService.findFiltered(params);
     }
-    
+
     @ApiResponseNoContent
     @ApiResponseBadRequest
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping("/profile")
     public void updateProfile(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody UserUpdateProfileDto dto) {
         userService.updateProfile(jwt.getSubject(), dto);
+    }
+
+    @GetMapping("/new-hires")
+    @ApiResponseOk
+    public List<UserDateDto> findNewHires() {
+        return userService.findNewHires();
     }
 }
