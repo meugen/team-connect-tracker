@@ -1,7 +1,7 @@
 package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.model.dto.UploadedFileDto;
-import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
+import com.ua.teamconnect.tracker.service.storage.StorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,12 +13,12 @@ import static org.mockito.Mockito.when;
 
 public class FilesServiceTest {
 
-    private DropboxStorageService storageService;
+    private StorageService storageService;
     private FilesService service;
 
     @BeforeEach
     void setupService() {
-        storageService = mock(DropboxStorageService.class);
+        storageService = mock(StorageService.class);
         service = new FilesService(mock(), storageService);
     }
 

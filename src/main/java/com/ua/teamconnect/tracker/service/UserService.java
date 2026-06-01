@@ -1,13 +1,9 @@
 package com.ua.teamconnect.tracker.service;
 
-import com.ua.teamconnect.tracker.mapper.UserAnniversaryMapper;
+import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
-import com.ua.teamconnect.tracker.model.dto.PageDto;
-import com.ua.teamconnect.tracker.model.dto.UserAnniversaryDto;
-import com.ua.teamconnect.tracker.model.dto.UserDto;
-import com.ua.teamconnect.tracker.model.dto.UserProfile;
-import com.ua.teamconnect.tracker.model.dto.UserUpdateProfileDto;
+import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
@@ -18,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.time.LocalDate;
 import java.time.Month;
 import java.time.MonthDay;
 import java.util.List;
@@ -33,20 +31,20 @@ public class UserService implements PageRequestService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final MapUserProfileFactory mapUserProfileFactory;
-    private final UserAnniversaryMapper userAnniversaryMapper;
+    private final UserDateMapper userDateMapper;
     private final UserRequestProfileMapper userRequestProfileMapper;
     private final UserPositionSpecificationBuilder userPositionSpecificationBuilder;
     private final UserPositionRepository userPositionRepository;
     private final UserPositionMapper userPositionMapper;
 
-    public UserProfile profile(String email) {
+    public UserProfile findProfile(String email) {
         var user = userRepository.findByEmail(email).orElseThrow(
             () -> new UserNotFoundException(email)
         );
         return mapUserProfileFactory.full().entityToDto(user);
     }
 
-    public List<UserAnniversaryDto> getAnniversariesBetween(String startDate, String endDate) {
+    public List<UserDateDto> findAnniversariesBetween(String startDate, String endDate) {
         var stream = toListOfDatesPair(startDate, endDate).stream()
             .flatMap(pair -> userRepository.findAnniversaries(
                     pair.first().getMonthValue(),
@@ -55,7 +53,7 @@ public class UserService implements PageRequestService {
                     pair.second().getDayOfMonth()
                 ).stream()
             );
-        return userAnniversaryMapper.projectionListTDtoList(stream.toList());
+        return userDateMapper.projectionListTDtoList(stream.toList());
     }
 
     private static List<Pair<MonthDay, MonthDay>> toListOfDatesPair(String startDate, String endDate) {
@@ -70,14 +68,14 @@ public class UserService implements PageRequestService {
         );
     }
 
-    public UserProfile getUserById(String email, Integer userId) {
+    public UserProfile findUserById(String email, Integer userId) {
         var role = userRepository.findRoleByEmail(email);
         var user = userRepository.findById(userId).orElseThrow(
             () -> new UserNotFoundException(userId)
         );
         return mapUserProfileFactory.byRole(role).entityToDto(user);
     }
-    
+
     public void updateProfile(String email, UserUpdateProfileDto dto) {
         var user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
         userRequestProfileMapper.updateEntityFromDto(dto, user);
@@ -94,7 +92,7 @@ public class UserService implements PageRequestService {
         var page = userPositionRepository.findAll(pair.first(), pair.second(), pageRequest);
         return userPositionMapper.pageToPageUserDto(page);
     }
-    
+
     private Map<String, String> extractFilterParams(Map<String, String> params) {
         return params.entrySet().stream()
             .filter(entry -> !Set.of(PARAM_PAGE, PARAM_SIZE, PARAM_SORT, PARAM_ORDER).contains(entry.getKey()))
@@ -114,5 +112,13 @@ public class UserService implements PageRequestService {
     @Override
     public String defaultSort() {
         return "lastName";
+    }
+
+    public List<UserDateDto> findNewHires() {
+        var endDate = LocalDate.now();
+        var startDate = endDate.minusWeeks(1);
+        return userRepository.findByHireDate(startDate, endDate).stream()
+            .map(userDateMapper::projectionToDto)
+            .toList();
     }
 }
