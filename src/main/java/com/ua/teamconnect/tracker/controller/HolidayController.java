@@ -23,8 +23,8 @@ public class HolidayController {
     private final HolidayService holidayService;
 
     @GetMapping("/upcoming")
-    @Tag(name = "Find Upcoming Holidays", description = "Get a list of upcoming holidays")
-    public List<HolidayDto> findUpcoming() {
-        return holidayService.findUpcoming();
+    @Tag(name = "Find Upcoming Holidays", description = "Returns the next five upcoming holidays starting from today.")
+    public List<HolidayDto> findFiveUpcoming() {
+        return holidayService.findFiveUpcoming();
     }
 }

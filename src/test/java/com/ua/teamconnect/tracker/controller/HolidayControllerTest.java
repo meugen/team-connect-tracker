@@ -54,7 +54,7 @@ class HolidayControllerTest extends AuthorizationControllerTest {
 
 
     @Test
-    void findUpcoming_valid_response() {
+    void findFiveUpcoming_valid_response() {
         setupData();
         setupValidToken();
 
@@ -75,7 +75,7 @@ class HolidayControllerTest extends AuthorizationControllerTest {
     }
 
     @Test
-    void findUpcoming__invalidToken_unauthorized() {
+    void findFiveUpcoming_invalidToken_unauthorized() {
         setupData();
         setupValidToken();
 

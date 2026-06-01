@@ -39,7 +39,7 @@ public class HolidayService {
         });
     }
 
-    public List<HolidayDto> findUpcoming() {
+    public List<HolidayDto> findFiveUpcoming() {
         return holidayRepository.findUpcoming(LocalDateTime.now().toLocalDate(), Limit.of(5))
             .stream()
             .map(holidayMapper::entityToDto)
