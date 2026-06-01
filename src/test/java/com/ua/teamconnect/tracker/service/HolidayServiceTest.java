@@ -1,22 +1,18 @@
 package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.client.HolidayClient;
-import com.ua.teamconnect.tracker.mapper.HolidayMapper;
 import com.ua.teamconnect.tracker.model.dto.api.calendarific.HolidaysList;
 import com.ua.teamconnect.tracker.model.dto.api.calendarific.HolidaysListResponse;
 import com.ua.teamconnect.tracker.model.dto.api.calendarific.HolidaysListResponseHoliday;
 import com.ua.teamconnect.tracker.model.dto.api.calendarific.HolidaysListResponseHolidayDate;
 import com.ua.teamconnect.tracker.model.entity.Holiday;
 import com.ua.teamconnect.tracker.repository.HolidayRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
@@ -26,7 +22,8 @@ import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class HolidayServiceTest {

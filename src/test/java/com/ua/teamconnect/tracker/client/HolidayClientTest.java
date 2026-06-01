@@ -7,8 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.Month;
 
 import static org.junit.jupiter.api.Assertions.*;
 
