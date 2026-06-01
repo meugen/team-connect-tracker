@@ -32,7 +32,6 @@ class HolidayControllerTest extends AuthorizationControllerTest {
         holiday1.setName("Holiday 1");
         holiday1.setDescription("Holiday 1 description");
         holiday1.setDate(LocalDate.now().minusDays(2));
-        holiday1.setIsActive(true);
         holidayRepository.save(holiday1);
 
         var holiday2 = new Holiday();
@@ -40,16 +39,7 @@ class HolidayControllerTest extends AuthorizationControllerTest {
         holiday2.setName("Holiday 2");
         holiday2.setDescription("Holiday 2 description");
         holiday2.setDate(LocalDate.now().plusDays(2));
-        holiday2.setIsActive(true);
         holidayRepository.save(holiday2);
-
-        var holiday3 = new Holiday();
-        holiday3.setId("holiday-3");
-        holiday3.setName("Holiday 3");
-        holiday3.setDescription("Holiday 3 description");
-        holiday3.setDate(LocalDate.now().plusDays(4));
-        holiday3.setIsActive(false);
-        holidayRepository.save(holiday3);
     }
 
 

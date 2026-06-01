@@ -13,7 +13,7 @@ import java.util.List;
 public interface HolidayRepository extends CrudRepository<Holiday, Integer> {
 
     @Query("""
-    select h from Holiday h where :now <= h.date and h.isActive order by h.date asc
+    select h from Holiday h where :now <= h.date order by h.date asc
     """)
     List<Holiday> findUpcoming(LocalDate now, Limit limit);
 }

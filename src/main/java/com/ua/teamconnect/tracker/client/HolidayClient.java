@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.client;
 
+import com.ua.teamconnect.tracker.model.dto.api.calendarific.HolidaysList;
 import com.ua.teamconnect.tracker.model.entity.Holiday;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,24 +29,18 @@ public class HolidayClient {
         @Value("${team.connect.calendarific.base-url}")
         String baseUrl
     ) {
-        var objectMapper = Jackson2ObjectMapperBuilder.json()
-            .deserializerByType(HolidaysDeserializer.HolidaysList.class, new HolidaysDeserializer())
-            .build();
         this.webClient = builder
             .baseUrl(baseUrl)
-            .codecs(configurer -> configurer
-                .defaultCodecs().jackson2JsonDecoder(new Jackson2JsonDecoder(objectMapper)))
             .build();
         this.apiKey = apiKey;
     }
 
-    public Mono<Set<Holiday>> fetchHolidaysInYear(int year) {
+    public Mono<HolidaysList> fetchHolidaysInYear(int year) {
         return webClient.get()
             .uri("/holidays?api_key={api_key}&year={year}&country=UA", apiKey, year)
             .accept(MediaType.APPLICATION_JSON)
             .retrieve()
-            .bodyToMono(HolidaysDeserializer.HolidaysList.class)
-            .map(HolidaysDeserializer.HolidaysList::holidays)
+            .bodyToMono(HolidaysList.class)
             .doOnError(throwable -> {
                 var message = String.format("Failed to fetch holidays for year %d", year);
                 LOGGER.error(message, throwable);

@@ -25,7 +25,4 @@ public class Holiday {
 
     @Column(nullable = false)
     private LocalDate date;
-
-    @Column(nullable = false, name = "is_active")
-    private Boolean isActive = Boolean.TRUE;
 }

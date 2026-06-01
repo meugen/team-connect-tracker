@@ -10,8 +10,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Month;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class HolidayClientTest {
 
@@ -88,27 +87,29 @@ class HolidayClientTest {
             .setBody(json)
             .addHeader("Content-Type", "application/json"));
 
-        var holidays = holidayClient.fetchHolidaysInYear(2020).block();
+        var holidays = assertDoesNotThrow(() ->
+            holidayClient.fetchHolidaysInYear(2020).block().response().holidays()
+        );
 
         assertNotNull(holidays);
         assertEquals(3, holidays.size());
         var iterator = holidays.iterator();
-        var holiday3 = iterator.next();
-        assertEquals("-1424651880", holiday3.getId());
-        assertEquals("Holiday 3", holiday3.getName());
-        assertEquals("Holiday 3 description", holiday3.getDescription());
-        assertEquals(LocalDate.of(2022, Month.AUGUST, 10), holiday3.getDate());
-
         var holiday1 = iterator.next();
-        assertEquals("ukraine/holiday-1-2018-12-31", holiday1.getId());
-        assertEquals("Holiday 1", holiday1.getName());
-        assertEquals("Holiday 1 description", holiday1.getDescription());
-        assertEquals(LocalDate.of(2018, Month.DECEMBER, 31), holiday1.getDate());
+        assertEquals("ukraine/holiday-1", holiday1.urlid());
+        assertEquals("Holiday 1", holiday1.name());
+        assertEquals("Holiday 1 description", holiday1.description());
+        assertEquals("2018-12-31", holiday1.date().iso());
 
         var holiday2 = iterator.next();
-        assertEquals("ukraine/holiday-2-2020-05-20", holiday2.getId());
-        assertEquals("Holiday 2", holiday2.getName());
-        assertEquals("Holiday 2 description", holiday2.getDescription());
-        assertEquals(LocalDate.of(2020, Month.MAY, 20), holiday2.getDate());
+        assertEquals("ukraine/holiday-2", holiday2.urlid());
+        assertEquals("Holiday 2", holiday2.name());
+        assertEquals("Holiday 2 description", holiday2.description());
+        assertEquals("2020-05-20T12:00:10.123456", holiday2.date().iso());
+
+        var holiday3 = iterator.next();
+        assertNull(holiday3.urlid());
+        assertEquals("Holiday 3", holiday3.name());
+        assertEquals("Holiday 3 description", holiday3.description());
+        assertEquals("2022-08-10", holiday3.date().iso());
     }
 }
