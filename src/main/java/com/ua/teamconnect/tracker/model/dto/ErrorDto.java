@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -39,7 +40,7 @@ public record ErrorDto(
     public ErrorDto(MaxUploadSizeExceededException ex, String url) {
         this(HttpStatus.PAYLOAD_TOO_LARGE.value(), ex.getMessage(), LocalDateTime.now(), url);
     }
-    
+
     public ErrorDto(MethodArgumentNotValidException ex, String url) {
         this(
             HttpStatus.BAD_REQUEST.value(),
@@ -52,5 +53,9 @@ public record ErrorDto(
             LocalDateTime.now(),
             url
         );
+    }
+
+    public ErrorDto(MissingServletRequestParameterException ex, String url) {
+        this(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), LocalDateTime.now(), url);
     }
 }

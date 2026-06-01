@@ -1,13 +1,8 @@
 package com.ua.teamconnect.tracker.mapper;
 
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
-
 import com.ua.teamconnect.tracker.model.dto.UserUpdateProfileDto;
 import com.ua.teamconnect.tracker.model.entity.User;
+import org.mapstruct.*;
 
 @Mapper
 public interface UserRequestProfileMapper {

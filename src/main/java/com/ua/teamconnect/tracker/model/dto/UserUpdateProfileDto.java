@@ -1,12 +1,11 @@
 package com.ua.teamconnect.tracker.model.dto;
 
-import java.util.Map;
-
-import org.hibernate.validator.constraints.URL;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
+import org.hibernate.validator.constraints.URL;
+
+import java.util.Map;
 
 @Schema(name = "Update user profile", description = "Data for updating user profile")
 public record UserUpdateProfileDto (
