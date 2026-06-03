@@ -4,7 +4,6 @@ import com.ua.teamconnect.tracker.config.secrets.SecretsProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.jdbc.JdbcConnectionDetails;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 @Component
