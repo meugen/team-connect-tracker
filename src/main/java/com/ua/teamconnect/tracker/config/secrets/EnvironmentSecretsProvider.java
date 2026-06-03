@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.env.Environment;
 
 @RequiredArgsConstructor
-public class EnvironmentSecretsProvider implements SecretsProvider {
+class EnvironmentSecretsProvider implements SecretsProvider {
 
     private final Environment environment;
 

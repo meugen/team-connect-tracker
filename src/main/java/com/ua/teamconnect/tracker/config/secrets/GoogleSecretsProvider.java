@@ -6,20 +6,25 @@ import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceSettings;
 import com.google.cloud.secretmanager.v1.SecretVersionName;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.util.Optional;
 
 @RequiredArgsConstructor
-public class GoogleSecretsProvider implements SecretsProvider {
+class GoogleSecretsProvider implements SecretsProvider {
 
-    public static Optional<SecretsProvider> create() {
+    private static final Logger logger = LoggerFactory.getLogger(GoogleSecretsProvider.class);
+
+    static Optional<SecretsProvider> create(ClassLoader classLoader) {
         try {
-            var resource = new ClassPathResource("teamconnect-2-2ee0e331a62b.json");
+            var resource = new ClassPathResource("teamconnect-2-2ee0e331a62b.json", classLoader);
             var credentials = GoogleCredentials.fromStream(resource.getInputStream());
             return Optional.of(new GoogleSecretsProvider(credentials));
         } catch (Exception e) {
+            logger.error("Could not load teamconnect-2-2ee0e331a62b.json", e);
             return Optional.empty();
         }
     }

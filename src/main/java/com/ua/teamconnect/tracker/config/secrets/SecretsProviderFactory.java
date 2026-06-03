@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,10 +12,12 @@ import org.springframework.stereotype.Component;
 public class SecretsProviderFactory implements FactoryBean<SecretsProvider> {
 
     private final Environment environment;
+    private final ResourceLoader resourceLoader;
 
     @Override
     public @Nullable SecretsProvider getObject() {
-        return GoogleSecretsProvider.create().orElseGet(
+        var classLoader = resourceLoader.getClassLoader();
+        return GoogleSecretsProvider.create(classLoader).orElseGet(
             () -> new EnvironmentSecretsProvider(environment)
         );
     }
