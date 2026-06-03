@@ -2,6 +2,7 @@ package com.ua.teamconnect.tracker.config.jdbc;
 
 import com.ua.teamconnect.tracker.config.secrets.SecretsProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.jdbc.JdbcConnectionDetails;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -10,12 +11,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TeamConnectConnectionDetails implements JdbcConnectionDetails {
 
-    private final Environment environment;
+    @Value("${spring.datasource.url}")
+    private final String dbUrl;
+    @Value("${spring.datasource.username:#{null}}")
+    private final String dbUsername;
     private final SecretsProvider secretsProvider;
 
     @Override
     public String getUsername() {
-        return environment.getProperty("DB_USERNAME");
+        return dbUsername;
     }
 
     @Override
@@ -25,6 +29,6 @@ public class TeamConnectConnectionDetails implements JdbcConnectionDetails {
 
     @Override
     public String getJdbcUrl() {
-        return environment.getProperty("DB_URL");
+        return dbUrl;
     }
 }
