@@ -41,7 +41,7 @@ class GoogleSecretsProvider implements SecretsProvider {
             );
             return client.accessSecretVersion(versionName)
                 .getPayload().getData().toStringUtf8();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to access secret version", e);
         }
     }
