@@ -5,6 +5,8 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceClient;
 import com.google.cloud.secretmanager.v1.SecretManagerServiceSettings;
 import com.google.cloud.secretmanager.v1.SecretVersionName;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,7 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
 class GoogleSecretsProvider implements SecretsProvider {
@@ -30,19 +33,33 @@ class GoogleSecretsProvider implements SecretsProvider {
     }
 
     private final GoogleCredentials credentials;
+    private final Cache<String, String> cache = CacheBuilder.newBuilder()
+        .expireAfterWrite(5, TimeUnit.MINUTES)
+        .build();
 
     @Override
     public String dbPassword() {
+        return getSecretValue("datasourse-password").orElseThrow(
+            () -> new IllegalStateException("Could not load DB password")
+        );
+    }
+
+    private Optional<String> getSecretValue(String name) {
+        var result = cache.getIfPresent(name);
+        if (result != null) return Optional.of(result);
         try (SecretManagerServiceClient client = buildClient()) {
             var versionName = SecretVersionName.of(
                 credentials.getProjectId(),
-                "datasourse-password",
+                name,
                 "latest"
             );
-            return client.accessSecretVersion(versionName)
+            result = client.accessSecretVersion(versionName)
                 .getPayload().getData().toStringUtf8();
+            cache.put(name, result);
+            return Optional.of(result);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to access secret version", e);
+            logger.error("Could not load secret with name: %s".formatted(name), e);
+            return Optional.empty();
         }
     }
 
