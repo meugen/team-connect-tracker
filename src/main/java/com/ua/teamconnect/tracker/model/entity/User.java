@@ -38,7 +38,7 @@ public class User {
     @Column(nullable = false, name = "last_name")
     private String lastName;
 
-    @Column
+    @Column(unique = true)
     private String avatar;
 
     @JdbcTypeCode(SqlTypes.JSON)

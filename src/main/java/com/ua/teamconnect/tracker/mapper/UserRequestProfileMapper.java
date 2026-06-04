@@ -18,6 +18,7 @@ public interface UserRequestProfileMapper {
     @Mapping(target = "grade", ignore = true)
     @Mapping(target = "gender", ignore = true)
     @Mapping(target = "password", ignore = true)
+    @Mapping(target = "avatar", ignore = true)
     void updateEntityFromDto(UserUpdateProfileDto dto, @MappingTarget User entity);
 
 }

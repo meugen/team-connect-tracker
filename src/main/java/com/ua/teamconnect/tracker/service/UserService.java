@@ -5,12 +5,15 @@ import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
+import com.ua.teamconnect.tracker.repository.MediaFileRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
 import com.ua.teamconnect.tracker.repository.specification.user.position.UserPositionSpecificationBuilder;
+import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
 import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileFactory;
 import com.ua.teamconnect.tracker.util.Pair;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -24,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import static com.ua.teamconnect.tracker.util.DateUtil.toMonthDay;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService implements PageRequestService {
@@ -36,6 +40,8 @@ public class UserService implements PageRequestService {
     private final UserPositionSpecificationBuilder userPositionSpecificationBuilder;
     private final UserPositionRepository userPositionRepository;
     private final UserPositionMapper userPositionMapper;
+    private final MediaFileRepository mediaFileRepository;
+    private final DropboxStorageService dropboxStorageService;
 
     public UserProfile findProfile(String email) {
         var user = userRepository.findByEmail(email).orElseThrow(
@@ -78,11 +84,39 @@ public class UserService implements PageRequestService {
 
     public void updateProfile(String email, UserUpdateProfileDto dto) {
         var user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+        var oldAvatar = user.getAvatar();
+        var avatarChanged = false;
+
+        if (dto.avatar() != null && dto.avatar().isPresent()) {
+            var newAvatar = dto.avatar().orElse(null);
+            avatarChanged = !newAvatar.equals(oldAvatar);
+            if (newAvatar != null && avatarChanged) {
+                mediaFileRepository.findByUrl(newAvatar)
+                                .orElseThrow(() -> new IllegalArgumentException("Avatar file not found"));
+            }
+            user.setAvatar(newAvatar);
+        }
+
         userRequestProfileMapper.updateEntityFromDto(dto, user);
         if (StringUtils.hasText(dto.password())) {
             user.setPassword(passwordEncoder.encode(dto.password()));
         }
-        userRepository.save(user);
+        user = userRepository.save(user);
+        if (avatarChanged) {
+            deleteOldAvatarIfExists(oldAvatar);
+        }
+    }
+    
+    private void deleteOldAvatarIfExists(String oldAvatar) {
+        mediaFileRepository.findByUrl(oldAvatar).ifPresent(mediaFile -> {
+            try {
+                dropboxStorageService.delete(mediaFile.getDropboxPath());
+                mediaFileRepository.delete(mediaFile);
+            } catch (Exception e) {
+                log.warn("Failed to delete old avatar file: {}", oldAvatar, e);
+            }
+        });
+        
     }
 
     public PageDto<UserDto> findFiltered(Map<String, String> params) {
