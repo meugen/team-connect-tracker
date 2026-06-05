@@ -16,9 +16,9 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 class GoogleSecretsProvider implements SecretsProvider {
 
-    @Value("${PROJECT_NAME}")
+    @Value("${team.connect.gcloud.project-name}")
     private final String projectName;
-    @Value("${DB_PASSWORD_SECRET}")
+    @Value("${team.connect.gcloud.db-password-secret}")
     private final String dbPasswordSecret;
     private final Cache<String, String> cache = CacheBuilder.newBuilder()
         .expireAfterWrite(5, TimeUnit.MINUTES)
