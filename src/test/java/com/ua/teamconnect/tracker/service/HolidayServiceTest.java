@@ -1,6 +1,7 @@
 package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.client.HolidayClient;
+import com.ua.teamconnect.tracker.config.MockConfig;
 import com.ua.teamconnect.tracker.model.dto.api.calendarific.HolidaysList;
 import com.ua.teamconnect.tracker.model.dto.api.calendarific.HolidaysListResponse;
 import com.ua.teamconnect.tracker.model.dto.api.calendarific.HolidaysListResponseHoliday;
@@ -25,7 +26,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    classes = {MockConfig.class}
+)
 class HolidayServiceTest {
 
     @MockitoBean

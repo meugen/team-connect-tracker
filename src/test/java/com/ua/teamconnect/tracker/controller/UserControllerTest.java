@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.controller;
 
+import com.ua.teamconnect.tracker.config.MockConfig;
 import com.ua.teamconnect.tracker.extension.UserHireDateExtension;
 import com.ua.teamconnect.tracker.model.entity.*;
 import com.ua.teamconnect.tracker.model.pojo.Gender;
@@ -28,7 +29,10 @@ import java.util.stream.Collectors;
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    classes = {MockConfig.class}
+)
 class UserControllerTest extends AuthorizationControllerTest {
 
     private static final String ROLE_EMPLOYEE = "EMPLOYEE";

@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.controller;
 
+import com.ua.teamconnect.tracker.config.MockConfig;
 import com.ua.teamconnect.tracker.service.storage.StorageService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,7 +16,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    classes = {MockConfig.class}
+)
 class FilesControllerTest extends AuthorizationControllerTest {
 
     @LocalServerPort

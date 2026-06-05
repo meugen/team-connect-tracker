@@ -1,20 +1,22 @@
 package com.ua.teamconnect.tracker.repository;
 
+import com.ua.teamconnect.tracker.config.MockConfig;
 import com.ua.teamconnect.tracker.model.entity.Project;
 import com.ua.teamconnect.tracker.model.entity.UserProject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    classes = {MockConfig.class}
+)
 class UserProjectRepositoryTest extends UserRelatedRepositoryTest {
 
     @Autowired
@@ -25,10 +27,6 @@ class UserProjectRepositoryTest extends UserRelatedRepositoryTest {
 
     @Autowired
     private UserProjectRepository userProjectRepository;
-
-    @MockitoBean
-    @SuppressWarnings("unused") // Need for context not complaining of missing bean
-    private JwtDecoder jwtDecoder;
 
     @AfterEach
     void cleanUp() {

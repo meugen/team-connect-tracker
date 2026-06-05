@@ -1,9 +1,9 @@
 package com.ua.teamconnect.tracker.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.Instant;
@@ -15,7 +15,7 @@ abstract class AuthorizationControllerTest {
     static final String VALID_TOKEN = "valid-token";
     static final String INVALID_TOKEN = "invalid-token";
 
-    @MockitoBean
+    @Autowired
     private JwtDecoder jwtDecoder;
 
     void setupValidToken(String subject) {

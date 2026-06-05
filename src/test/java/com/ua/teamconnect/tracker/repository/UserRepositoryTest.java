@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.repository;
 
+import com.ua.teamconnect.tracker.config.MockConfig;
 import com.ua.teamconnect.tracker.extension.UserHireDateExtension;
 import com.ua.teamconnect.tracker.model.entity.Department;
 import com.ua.teamconnect.tracker.model.entity.Position;
@@ -13,8 +14,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -23,7 +22,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    classes = {MockConfig.class}
+)
 @ExtendWith(UserHireDateExtension.class)
 class UserRepositoryTest extends UserRelatedRepositoryTest {
 
@@ -38,10 +40,6 @@ class UserRepositoryTest extends UserRelatedRepositoryTest {
 
     @Autowired
     private UserPositionRepository userPositionRepository;
-
-    @MockitoBean
-    @SuppressWarnings("unused") // Need for context not complaining of missing bean
-    private JwtDecoder jwtDecoder;
 
     @AfterEach
     void cleanUp() {

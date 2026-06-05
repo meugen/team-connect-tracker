@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.controller;
 
+import com.ua.teamconnect.tracker.config.MockConfig;
 import com.ua.teamconnect.tracker.model.entity.Holiday;
 import com.ua.teamconnect.tracker.repository.HolidayRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -12,7 +13,10 @@ import java.time.LocalDate;
 
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    classes = {MockConfig.class}
+)
 class HolidayControllerTest extends AuthorizationControllerTest {
 
     @LocalServerPort
