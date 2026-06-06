@@ -33,9 +33,6 @@ spring:
 
 team:
   connect:
-    gcloud:
-      project-name: ${PROJECT_NAME}
-      db-password-secret: ${DB_PASSWORD_SECRET}
     calendarific:
       base-url: https://calendarific.com/api/v2
       api-key: ${CALENDARIFIC_API_KEY}
