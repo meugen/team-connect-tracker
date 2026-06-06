@@ -1,6 +1,5 @@
 package com.ua.teamconnect.tracker.service.specification.user.position;
 
-import com.ua.teamconnect.tracker.config.MockConfig;
 import com.ua.teamconnect.tracker.model.entity.*;
 import com.ua.teamconnect.tracker.model.pojo.Gender;
 import com.ua.teamconnect.tracker.repository.*;
@@ -9,6 +8,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -16,10 +17,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = {MockConfig.class}
-)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UserPositionSpecificationBuilderTest {
 
     private static final UserData JOHN_DATA = new UserData(
@@ -47,6 +45,10 @@ class UserPositionSpecificationBuilderTest {
     private UserStackRepository userStackRepository;
     @Autowired
     private StackRepository stackRepository;
+
+    @MockitoBean
+    @SuppressWarnings("unused") // Need for context not complaining of missing bean
+    private JwtDecoder jwtDecoder;
 
     @AfterEach
     void deleteAll() {

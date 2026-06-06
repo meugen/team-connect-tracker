@@ -1,6 +1,5 @@
 package com.ua.teamconnect.tracker.controller;
 
-import com.ua.teamconnect.tracker.config.MockConfig;
 import com.ua.teamconnect.tracker.model.entity.Department;
 import com.ua.teamconnect.tracker.repository.DepartmentRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -15,10 +14,7 @@ import java.util.List;
 
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
 
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = {MockConfig.class}
-)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class DepartmentControllerTest extends AuthorizationControllerTest {
 
     @Autowired
