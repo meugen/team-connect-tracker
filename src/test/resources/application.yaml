@@ -30,7 +30,6 @@ team:
     calendarific:
       base-url: https://calendarific.com/api/v2
       api-key: calendarific-api-key
-      update-on-startup: false
 
 server:
   tomcat:
