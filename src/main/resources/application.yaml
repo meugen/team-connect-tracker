@@ -4,11 +4,11 @@ server:
 spring:
   config:
     import:
-      - "sm://"
+      - "sm@"
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
-    password: ${sm\://${DB_PASSWORD_SECRET:datasourse-password}}
+    password: ${sm@${DB_PASSWORD_SECRET:datasourse-password}}
     driver-class-name: org.postgresql.Driver
 
   servlet:
