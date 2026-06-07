@@ -1,4 +1,9 @@
 spring:
+  cloud:
+    gcp:
+      secretmanager:
+        enabled: false
+
   datasource:
     url: jdbc:h2:mem:tc2
     driver-class-name: org.h2.Driver
@@ -25,7 +30,6 @@ team:
     calendarific:
       base-url: https://calendarific.com/api/v2
       api-key: calendarific-api-key
-      update-on-startup: false
 
 server:
   tomcat:

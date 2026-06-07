@@ -1,0 +1,6 @@
+
+team:
+  connect:
+    storage:
+      adapter:
+        throw-if-not-configured: true
