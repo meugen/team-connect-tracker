@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class PositionServiceTest {
+class PositionServiceTest {
 
     private static DepartmentRepository departmentRepository;
     private static PositionRepository positionRepository;
