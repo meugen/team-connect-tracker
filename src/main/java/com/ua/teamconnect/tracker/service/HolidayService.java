@@ -27,14 +27,17 @@ public class HolidayService {
     private final TransactionTemplate transactionTemplate;
     private final HolidayMapper holidayMapper;
 
-    @SuppressWarnings("unused")
     public void updateHolidaysInYear(int year) {
         holidayClient.fetchHolidaysInYear(year)
             .map(this::apiToEntity)
             .onErrorComplete()
             .subscribe(holidays -> {
                 transactionTemplate.execute(status -> {
-                    holidayRepository.saveAll(holidays);
+                    var ids = holidayRepository.findAllIdsInYear(year);
+                    var filteredHolidays = holidays.stream()
+                        .filter(holiday -> !ids.contains(holiday.getId()))
+                        .toList();
+                    holidayRepository.saveAll(filteredHolidays);
                     return null;
                 });
             });

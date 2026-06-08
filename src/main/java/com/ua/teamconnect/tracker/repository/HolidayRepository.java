@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface HolidayRepository extends CrudRepository<Holiday, Integer> {
@@ -16,4 +17,7 @@ public interface HolidayRepository extends CrudRepository<Holiday, Integer> {
     select h from Holiday h where :now <= h.date order by h.date asc
     """)
     List<Holiday> findUpcoming(LocalDate now, Limit limit);
+
+    @Query("select distinct h.id from Holiday h where extract(year from h.date) = :year ")
+    Set<String> findAllIdsInYear(int year);
 }

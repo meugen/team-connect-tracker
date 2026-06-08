@@ -30,6 +30,8 @@ team:
     calendarific:
       base-url: https://calendarific.com/api/v2
       api-key: calendarific-api-key
+    cron:
+      holiday-sync: "-"
 
 server:
   tomcat:
