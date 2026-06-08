@@ -2,10 +2,13 @@ server:
   port: ${SERVER_PORT:8081}
 
 spring:
+  config:
+    import:
+      - "sm@"
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    password: ${sm@${DB_PASSWORD_SECRET:datasourse-password}}
     driver-class-name: org.postgresql.Driver
 
   servlet:
@@ -30,10 +33,6 @@ spring:
 
 team:
   connect:
-    storage:
-      adapter:
-        throw-if-not-configured: true
     calendarific:
       base-url: https://calendarific.com/api/v2
       api-key: ${CALENDARIFIC_API_KEY}
-      update-on-startup: true

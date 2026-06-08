@@ -129,10 +129,7 @@ class UserRepositoryTest extends UserRelatedRepositoryTest {
     void findByHireDate_validPeriod_nonEmptyList(LocalDate startDate, LocalDate endDate) {
         setupData();
 
-        var hires = userRepository.findByHireDate(
-            LocalDate.of(2024, Month.FEBRUARY, 1),
-            LocalDate.of(2024, Month.FEBRUARY, 10)
-        );
+        var hires = userRepository.findByHireDate(startDate, endDate);
 
         assertEquals(1, hires.size());
         validateHiredUser(hires.get(0));
