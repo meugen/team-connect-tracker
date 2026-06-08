@@ -37,4 +37,4 @@ team:
       base-url: https://calendarific.com/api/v2
       api-key: ${CALENDARIFIC_API_KEY}
     cron:
-      holiday-sync: ${HOLIDAY_SINC_CRON:0 0 0 30 11 *}
+      holiday-sync: ${HOLIDAY_SYNC_CRON:0 0 0 30 11 *}
