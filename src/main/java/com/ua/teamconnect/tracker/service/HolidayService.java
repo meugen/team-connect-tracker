@@ -7,9 +7,12 @@ import com.ua.teamconnect.tracker.model.dto.api.calendarific.HolidaysList;
 import com.ua.teamconnect.tracker.model.entity.Holiday;
 import com.ua.teamconnect.tracker.repository.HolidayRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -22,19 +25,30 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class HolidayService {
 
+    private final Logger logger = LoggerFactory.getLogger(HolidayService.class);
+
     private final HolidayClient holidayClient;
     private final HolidayRepository holidayRepository;
     private final TransactionTemplate transactionTemplate;
     private final HolidayMapper holidayMapper;
 
-    @SuppressWarnings("unused")
-    public void updateHolidaysInYear(int year) {
-        holidayClient.fetchHolidaysInYear(year)
+    public Mono<Set<Holiday>> updateHolidaysInYear(int year) {
+        return holidayClient.fetchHolidaysInYear(year)
             .map(this::apiToEntity)
-            .onErrorComplete()
-            .subscribe(holidays -> {
+            .doOnError(throwable -> {
+                logger.error("Failed to fetch holidays in year {}", year, throwable);
+            })
+            .doOnSuccess(holidays -> {
                 transactionTemplate.execute(status -> {
-                    holidayRepository.saveAll(holidays);
+                    var ids = holidayRepository.findAllIdsInYear(year);
+                    var filteredHolidays = holidays.stream()
+                        .filter(holiday -> !ids.contains(holiday.getId()))
+                        .toList();
+                    holidayRepository.saveAll(filteredHolidays);
+                    logger.info(
+                        "Holiday sync completed for year {}. Received: {}, saved: {}",
+                        year, holidays.size(), filteredHolidays.size()
+                    );
                     return null;
                 });
             });
