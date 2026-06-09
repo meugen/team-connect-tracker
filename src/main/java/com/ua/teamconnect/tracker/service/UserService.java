@@ -4,6 +4,7 @@ import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
+import com.ua.teamconnect.tracker.model.entity.MediaFile;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.repository.MediaFileRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
@@ -14,8 +15,10 @@ import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileFac
 import com.ua.teamconnect.tracker.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
@@ -23,6 +26,7 @@ import java.time.Month;
 import java.time.MonthDay;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import static com.ua.teamconnect.tracker.util.DateUtil.toMonthDay;
@@ -82,14 +86,15 @@ public class UserService implements PageRequestService {
         return mapUserProfileFactory.byRole(role).entityToDto(user);
     }
 
+    @Transactional
     public void updateProfile(String email, UserUpdateProfileDto dto) {
         var user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
         var oldAvatar = user.getAvatar();
         var avatarChanged = false;
 
         if (dto.avatar() != null && dto.avatar().isPresent()) {
-            var newAvatar = dto.avatar().orElse(null);
-            avatarChanged = !newAvatar.equals(oldAvatar);
+            var newAvatar = dto.avatar().get();
+            avatarChanged = !Objects.equals(newAvatar, oldAvatar);
             if (newAvatar != null && avatarChanged) {
                 mediaFileRepository.findByUrl(newAvatar)
                                 .orElseThrow(() -> new IllegalArgumentException("Avatar file not found"));
@@ -102,21 +107,43 @@ public class UserService implements PageRequestService {
             user.setPassword(passwordEncoder.encode(dto.password()));
         }
         user = userRepository.save(user);
+        
         if (avatarChanged) {
-            deleteOldAvatarIfExists(oldAvatar);
+            markOldAvatarForDeletion(oldAvatar);
         }
     }
     
-    private void deleteOldAvatarIfExists(String oldAvatar) {
-        mediaFileRepository.findByUrl(oldAvatar).ifPresent(mediaFile -> {
-            try {
-                dropboxStorageService.delete(mediaFile.getDropboxPath());
+    private void markOldAvatarForDeletion(String oldAvatar) {
+        if (!StringUtils.hasText(oldAvatar)) {
+            return;
+        }
+        mediaFileRepository.findByUrl(oldAvatar)
+            .ifPresent(mediaFile -> {
+                mediaFile.setPendingDelete(true);
+                mediaFileRepository.save(mediaFile);
+                tryDeletePendingFile(mediaFile);
+            });
+    }
+    
+    private void tryDeletePendingFile(MediaFile mediaFile) {
+        try {
+            dropboxStorageService.delete(mediaFile.getDropboxPath());
+            mediaFileRepository.delete(mediaFile);
+        } catch (Exception e) {
+            if (dropboxStorageService.isDropboxNotFound(e)) {
                 mediaFileRepository.delete(mediaFile);
-            } catch (Exception e) {
-                log.warn("Failed to delete old avatar file: {}", oldAvatar, e);
+                return;
             }
-        });
-        
+            mediaFile.setDeleteAttempts(mediaFile.getDeleteAttempts() + 1);
+            mediaFileRepository.save(mediaFile);
+            log.warn("Failed to delete media file from Dropbox: {}", mediaFile.getUrl(), e);
+        }
+    }
+    
+    @Scheduled(fixedDelay = 60 * 60 * 1000)
+    public void cleanupPendingFiles() {
+        mediaFileRepository.findByPendingDeleteTrue()
+            .forEach(this::tryDeletePendingFile);
     }
 
     public PageDto<UserDto> findFiltered(Map<String, String> params) {

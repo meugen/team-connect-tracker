@@ -95,8 +95,8 @@ class UserControllerTest extends AuthorizationControllerTest {
         user.setGrade("SENIOR");
         
         var newAvatar = new MediaFile();
-        newAvatar.setUrl("https://new-avatar.com");
-        newAvatar.setDropboxPath("/user/new-avatar.png");
+        newAvatar.setUrl(userParams.getAvatar());
+        newAvatar.setDropboxPath("/user/" + userParams.getSuffix() + "/avatar.png");
         mediaFileRepository.save(newAvatar);
 
         user = userRepository.save(user);
@@ -721,6 +721,11 @@ class UserControllerTest extends AuthorizationControllerTest {
             .build();
         setupUser(userParams);
         setupValidToken("user@example.com");
+        
+        var newAvatar = new MediaFile();
+        newAvatar.setUrl("https://new-avatar.com");
+        newAvatar.setDropboxPath("/user/new-avatar.png");
+        mediaFileRepository.save(newAvatar);
         var bodyValue = """
                         {
                         "avatar": "https://new-avatar.com",

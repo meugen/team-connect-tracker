@@ -29,7 +29,7 @@ public class MediaFile {
     @Column(name = "dropbox_path", nullable = false)
     private String dropboxPath;
     
-    @Column(nullable = false, columnDefinition = "text")
+    @Column(nullable = false, unique = true, columnDefinition = "text")
     private String url;
     
     @Column(name = "content_type")
@@ -38,6 +38,12 @@ public class MediaFile {
     @Column
     private Long size;
     
+    @Column(name = "pending_delete", nullable = false)
+    private boolean pendingDelete = false;
+    
+    @Column(name = "delete_attempts", nullable = false)
+    private int deleteAttempts = 0;
+    
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -45,5 +51,4 @@ public class MediaFile {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
 }

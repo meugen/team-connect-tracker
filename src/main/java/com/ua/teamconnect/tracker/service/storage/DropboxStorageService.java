@@ -1,6 +1,7 @@
 package com.ua.teamconnect.tracker.service.storage;
 
 import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.files.DeleteErrorException;
 import com.dropbox.core.v2.files.WriteMode;
 import com.dropbox.core.v2.sharing.RequestedLinkAccessLevel;
 import com.dropbox.core.v2.sharing.RequestedVisibility;
@@ -111,5 +112,19 @@ public class DropboxStorageService {
 
             throw new IllegalStateException(message, e);
         }
+    }
+    
+    public boolean isDropboxNotFound(Exception e) {
+        Throwable current = e;
+        
+        while (current != null) {
+            if (current instanceof DeleteErrorException deleteErrorException) {
+                return deleteErrorException.errorValue.isPathLookup()
+                    && deleteErrorException.errorValue.getPathLookupValue().isNotFound();
+            }
+
+            current = current.getCause();
+        }
+        return false;
     }
 }
