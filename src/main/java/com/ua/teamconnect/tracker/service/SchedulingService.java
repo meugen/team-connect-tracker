@@ -13,14 +13,17 @@ public class SchedulingService {
 
     private final HolidayService holidayService;
 
-    @Scheduled(cron = "${team.connect.cron.holiday-sync}")
+    @Scheduled(
+        cron = "${team.connect.cron.holiday-sync}",
+        zone = "UTC"
+    )
     @SchedulerLock(
         name = "updateHolidaysNextYear",
-        lockAtLeastFor = "1m",
-        lockAtMostFor = "10m"
+        lockAtLeastFor = "1m"
     )
     public void updateHolidaysNextYear() {
         int year = Year.now().plusYears(1).getValue();
-        holidayService.updateHolidaysInYear(year);
+        holidayService.updateHolidaysInYear(year)
+            .block();
     }
 }

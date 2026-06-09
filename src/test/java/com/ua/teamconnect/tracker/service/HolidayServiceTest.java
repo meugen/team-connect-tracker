@@ -60,7 +60,7 @@ class HolidayServiceTest {
         );
         when(holidayClient.fetchHolidaysInYear(2024)).thenReturn(Mono.just(holidaysList));
 
-        holidayService.updateHolidaysInYear(2024);
+        holidayService.updateHolidaysInYear(2024).block();
 
         ArgumentCaptor<Iterable<Holiday>> holidaysCaptor = ArgumentCaptor.captor();
         verify(holidayRepository).saveAll(holidaysCaptor.capture());
