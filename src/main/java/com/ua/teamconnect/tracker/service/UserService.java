@@ -4,7 +4,6 @@ import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
-import com.ua.teamconnect.tracker.model.entity.MediaFile;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.repository.MediaFileRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
@@ -15,7 +14,6 @@ import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileFac
 import com.ua.teamconnect.tracker.util.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,60 +88,39 @@ public class UserService implements PageRequestService {
     public void updateProfile(String email, UserUpdateProfileDto dto) {
         var user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
         var oldAvatar = user.getAvatar();
-        var avatarChanged = false;
 
         if (dto.avatar() != null && dto.avatar().isPresent()) {
             var newAvatar = dto.avatar().get();
-            avatarChanged = !Objects.equals(newAvatar, oldAvatar);
-            if (newAvatar != null && avatarChanged) {
+            if (newAvatar != null) {
                 mediaFileRepository.findByUrl(newAvatar)
                                 .orElseThrow(() -> new IllegalArgumentException("Avatar file not found"));
             }
             user.setAvatar(newAvatar);
+            if (!Objects.equals(oldAvatar, newAvatar)) {
+                deleteOldAvatar(oldAvatar);
+            }
         }
-
+        
         userRequestProfileMapper.updateEntityFromDto(dto, user);
         if (StringUtils.hasText(dto.password())) {
             user.setPassword(passwordEncoder.encode(dto.password()));
         }
         user = userRepository.save(user);
-        
-        if (avatarChanged) {
-            markOldAvatarForDeletion(oldAvatar);
-        }
     }
     
-    private void markOldAvatarForDeletion(String oldAvatar) {
+    private void deleteOldAvatar(String oldAvatar) {
         if (!StringUtils.hasText(oldAvatar)) {
             return;
         }
         mediaFileRepository.findByUrl(oldAvatar)
             .ifPresent(mediaFile -> {
-                mediaFile.setPendingDelete(true);
-                mediaFileRepository.save(mediaFile);
-                tryDeletePendingFile(mediaFile);
-            });
-    }
-    
-    private void tryDeletePendingFile(MediaFile mediaFile) {
-        try {
-            dropboxStorageService.delete(mediaFile.getDropboxPath());
-            mediaFileRepository.delete(mediaFile);
-        } catch (Exception e) {
-            if (dropboxStorageService.isDropboxNotFound(e)) {
                 mediaFileRepository.delete(mediaFile);
-                return;
-            }
-            mediaFile.setDeleteAttempts(mediaFile.getDeleteAttempts() + 1);
-            mediaFileRepository.save(mediaFile);
-            log.warn("Failed to delete media file from Dropbox: {}", mediaFile.getUrl(), e);
-        }
-    }
-    
-    @Scheduled(fixedDelay = 60 * 60 * 1000)
-    public void cleanupPendingFiles() {
-        mediaFileRepository.findByPendingDeleteTrue()
-            .forEach(this::tryDeletePendingFile);
+                try {
+                    dropboxStorageService.delete(mediaFile.getDropboxPath());
+                } catch (Exception e) {
+                    log.warn("Failed to delete old avatar from Dropbox: {}", mediaFile.getUrl(), e);
+                }
+            });
     }
 
     public PageDto<UserDto> findFiltered(Map<String, String> params) {

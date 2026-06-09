@@ -5,9 +5,7 @@ CREATE TABLE public.media_files (
 							  content_type character varying(100),
 							  size bigint,
 							  created_at timestamp NOT NULL default now(),
-							  updated_at timestamp NOT NULL default now(),
-							  pending_delete boolean NOT NULL default false,
-							  delete_attempts integer NOT NULL default 0
+							  updated_at timestamp NOT NULL default now()
 );
 
 ALTER TABLE public.users

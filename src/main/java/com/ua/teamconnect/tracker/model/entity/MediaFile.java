@@ -38,12 +38,6 @@ public class MediaFile {
     @Column
     private Long size;
     
-    @Column(name = "pending_delete", nullable = false)
-    private boolean pendingDelete = false;
-    
-    @Column(name = "delete_attempts", nullable = false)
-    private int deleteAttempts = 0;
-    
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
