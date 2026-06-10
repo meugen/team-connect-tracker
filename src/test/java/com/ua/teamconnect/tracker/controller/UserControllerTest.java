@@ -73,14 +73,6 @@ class UserControllerTest extends AuthorizationControllerTest {
         userRepository.deleteAll();
     }
 
-//    private UserData setupUser(String role) {
-//        return setupUser(role, "John", "Doe", "user@example.com", "");
-//    }
-//
-//    private UserData setupUser(String role, String firstName, String lastName, String email) {
-//        return setupUser(role, firstName, lastName, email, email);
-//    }
-
     private UserData setupUser(UserParams userParams) {
         var user = new User();
         user.setEmail(userParams.getEmail());
