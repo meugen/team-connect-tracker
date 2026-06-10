@@ -1,5 +1,5 @@
 CREATE TABLE public.media_files (
-							  id bigserial primary key,
+							  id serial primary key,
 							  dropbox_path character varying(500) NOT NULL,
 							  url text UNIQUE NOT NULL,
 							  content_type character varying(100),
