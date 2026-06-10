@@ -105,7 +105,7 @@ public class UserService implements PageRequestService {
         if (StringUtils.hasText(dto.password())) {
             user.setPassword(passwordEncoder.encode(dto.password()));
         }
-        user = userRepository.save(user);
+        userRepository.save(user);
     }
     
     private void deleteOldAvatar(String oldAvatar) {
