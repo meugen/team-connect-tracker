@@ -57,6 +57,9 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Autowired
     private UserProjectRepository userProjectRepository;
+    
+    @Autowired
+    private MediaFileRepository mediaFileRepository;
 
     @LocalServerPort
     private int port;
@@ -71,21 +74,14 @@ class UserControllerTest extends AuthorizationControllerTest {
         departmentRepository.deleteAll();
         stackRepository.deleteAll();
         userRepository.deleteAll();
+        mediaFileRepository.deleteAll();
     }
-
-//    private UserData setupUser(String role) {
-//        return setupUser(role, "John", "Doe", "user@example.com", "");
-//    }
-//
-//    private UserData setupUser(String role, String firstName, String lastName, String email) {
-//        return setupUser(role, firstName, lastName, email, email);
-//    }
 
     private UserData setupUser(UserParams userParams) {
         var user = new User();
         user.setEmail(userParams.getEmail());
         user.setPassword("password");
-        user.setAvatar("https://avatar.com");
+        user.setAvatar(userParams.getAvatar());
         user.setFirstName(userParams.getFirstName());
         user.setLastName(userParams.getLastName());
         user.setRole(userParams.getRole());
@@ -97,6 +93,11 @@ class UserControllerTest extends AuthorizationControllerTest {
         user.setBirthDate(LocalDate.of(1990, Month.MAY, 10));
         user.setGender(Gender.MALE);
         user.setGrade("SENIOR");
+        
+        var newAvatar = new MediaFile();
+        newAvatar.setUrl(userParams.getAvatar());
+        newAvatar.setDropboxPath("/user/" + userParams.getSuffix() + "/avatar.png");
+        mediaFileRepository.save(newAvatar);
 
         user = userRepository.save(user);
         var stack = new Stack();
@@ -623,12 +624,14 @@ class UserControllerTest extends AuthorizationControllerTest {
                 .lastName("Petrenko")
                 .email("ivan.petrenko@example.com")
                 .suffix("ivan.petrenko@example.com")
+                .avatar("https://avatar-ivan-petrenko.com")
                 .build(),
             UserParams.builder()
                 .firstName("Ivan")
                 .lastName("Paviuk")
                 .email("ivan.pavliuk@example.com")
                 .suffix("ivan.pavliuk@example.com")
+                .avatar("https://avatar-ivan-paviuk.com")
                 .build()
         ).forEach(this::setupUser);
 
@@ -655,12 +658,14 @@ class UserControllerTest extends AuthorizationControllerTest {
                 .lastName("Petrenko")
                 .email("ivan.petrenko@example.com")
                 .suffix("ivan.petrenko@example.com")
+                .avatar("https://avatar-ivan-petrenko.com")
                 .build(),
             UserParams.builder()
                 .firstName("Ivan")
                 .lastName("Paviuk")
                 .email("ivan.pavliuk@example.com")
                 .suffix("ivan.pavliuk@example.com")
+                .avatar("https://avatar-ivan-paviuk.com")
                 .build()
         ).forEach(this::setupUser);
 
@@ -686,12 +691,14 @@ class UserControllerTest extends AuthorizationControllerTest {
                 .lastName("Ivankova")
                 .email("anna.ivankova@example.com")
                 .suffix("anna.ivankova@example.com")
+                .avatar("https://avatar-ivan-petrenko.com")
                 .build(),
             UserParams.builder()
                 .firstName("Hanna")
                 .lastName("Ivankova")
                 .email("hanna.ivankova@example.com")
                 .suffix("hanna.ivankova@example.com")
+                .avatar("https://avatar-ivan-paviuk.com")
                 .build()
         ).forEach(this::setupUser);
 
@@ -714,6 +721,11 @@ class UserControllerTest extends AuthorizationControllerTest {
             .build();
         setupUser(userParams);
         setupValidToken("user@example.com");
+        
+        var newAvatar = new MediaFile();
+        newAvatar.setUrl("https://new-avatar.com");
+        newAvatar.setDropboxPath("/user/new-avatar.png");
+        mediaFileRepository.save(newAvatar);
         var bodyValue = """
                         {
                         "avatar": "https://new-avatar.com",
@@ -803,6 +815,8 @@ class UserControllerTest extends AuthorizationControllerTest {
         private String email = "user@example.com";
         @Builder.Default
         private String suffix = "";
+        @Builder.Default
+        private String avatar = "https://avatar.com";
         @Builder.Default
         private LocalDate startPositionAt = LocalDate.of(2023, Month.FEBRUARY, 1);
 

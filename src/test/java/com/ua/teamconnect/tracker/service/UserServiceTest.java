@@ -5,18 +5,22 @@ import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.model.entity.Department;
+import com.ua.teamconnect.tracker.model.entity.MediaFile;
 import com.ua.teamconnect.tracker.model.entity.Position;
 import com.ua.teamconnect.tracker.model.entity.User;
 import com.ua.teamconnect.tracker.model.entity.projection.UserDate;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
+import com.ua.teamconnect.tracker.repository.MediaFileRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
 import com.ua.teamconnect.tracker.repository.specification.user.position.UserPositionSpecificationBuilder;
+import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
 import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileFactory;
 import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
@@ -42,6 +46,8 @@ class UserServiceTest {
     private UserService userService;
     private UserPositionSpecificationBuilder userPositionSpecificationBuilder;
     private UserPositionRepository userPositionRepository;
+    private MediaFileRepository mediaFileRepository;
+    private DropboxStorageService dropboxStorageService;
 
     @BeforeEach
     void setupService() {
@@ -51,6 +57,8 @@ class UserServiceTest {
         passwordEncoder = mock(PasswordEncoder.class);
         userPositionSpecificationBuilder = mock(UserPositionSpecificationBuilder.class);
         userPositionRepository = mock(UserPositionRepository.class);
+        mediaFileRepository = mock(MediaFileRepository.class);
+        dropboxStorageService = mock(DropboxStorageService.class);
         userService = new UserService(
             userRepository,
             passwordEncoder,
@@ -62,7 +70,9 @@ class UserServiceTest {
             Mappers.getMapper(UserRequestProfileMapper.class),
             userPositionSpecificationBuilder,
             userPositionRepository,
-            Mappers.getMapper(UserPositionMapper.class)
+            Mappers.getMapper(UserPositionMapper.class),
+            mediaFileRepository,
+            dropboxStorageService
         );
     }
 
@@ -292,39 +302,47 @@ class UserServiceTest {
     }
 
     @Test
-    void updateFindProfile_userExists_updatesUserAndSaves() {
+    void updateProfile_userExists_updatesUserAndSaves() {
         var email = "user@example.com";
 
-        var dto = new UserUpdateProfileDto("https://new-avatar.com",
+        var dto = new UserUpdateProfileDto(JsonNullable.of("https://new-avatar.com"),
                         Map.of("work", "+380697554332", "home", "+380441234567"), "new_password");
 
         var user = new User();
         user.setEmail(email);
+        var mediaFile = new MediaFile();
+        mediaFile.setUrl("https://new-avatar.com");
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
         when(passwordEncoder.encode("new_password")).thenReturn("encoded_password");
+        when(mediaFileRepository.findByUrl("https://new-avatar.com")).thenReturn(Optional.of(mediaFile));
 
         userService.updateProfile(email, dto);
 
         verify(passwordEncoder).encode("new_password");
         verify(userRepository).save(user);
-
+        verify(mediaFileRepository).findByUrl("https://new-avatar.com");
+        
         assertEquals("encoded_password", user.getPassword());
     }
 
     @Test
-    void updateFindProfile_withoutPassword_doesNotEncodePassword() {
+    void updateProfile_withoutPassword_doesNotEncodePassword() {
         var email = "user@example.com";
-        var dto = new UserUpdateProfileDto("https://new-avatar.com", Map.of("work", "+380697554332"), null);
+        var dto = new UserUpdateProfileDto(JsonNullable.of("https://new-avatar.com"), Map.of("work", "+380697554332"), null);
         var user = new User();
+        var mediaFile = new MediaFile();
+        mediaFile.setUrl("https://new-avatar.com");
         user.setEmail(email);
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(mediaFileRepository.findByUrl("https://new-avatar.com")).thenReturn(Optional.of(mediaFile));
 
         userService.updateProfile(email, dto);
 
         verify(passwordEncoder, never()).encode(anyString());
         verify(userRepository).save(user);
+        verify(mediaFileRepository).findByUrl("https://new-avatar.com");
     }
 
     @Test
@@ -393,5 +411,44 @@ class UserServiceTest {
         );
         assertEquals(1, result.size());
         assertEquals(expected, result.get(0));
+    }
+    
+    @Test
+    void updateProfile_avatarChanged_deletesOldAvatarFromDropbox() {
+        var email = "user@example.com";
+        var dto = new UserUpdateProfileDto(
+                        JsonNullable.of("https://new-avatar.com"),
+            Map.of("work", "+380697554332"),
+            null
+        );
+
+        var oldAvatar = new MediaFile();
+        oldAvatar.setId(1);
+        oldAvatar.setUrl("https://old-avatar.com");
+        oldAvatar.setDropboxPath("/user/old-avatar.png");
+
+        var newAvatar = new MediaFile();
+        newAvatar.setId(2);
+        newAvatar.setUrl("https://new-avatar.com");
+        newAvatar.setDropboxPath("/user/new-avatar.png");
+
+        var user = new User();
+        user.setEmail(email);
+        user.setAvatar(oldAvatar.getUrl());
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(mediaFileRepository.findByUrl("https://new-avatar.com"))
+            .thenReturn(Optional.of(newAvatar));
+        when(mediaFileRepository.findByUrl("https://old-avatar.com"))
+        .thenReturn(Optional.of(oldAvatar));
+
+        userService.updateProfile(email, dto);
+
+        verify(dropboxStorageService).delete("/user/old-avatar.png");
+        verify(userRepository).save(user);
+        verify(mediaFileRepository).findByUrl("https://new-avatar.com");
+        verify(mediaFileRepository).findByUrl("https://old-avatar.com");
+        verify(dropboxStorageService).delete(oldAvatar.getDropboxPath());
+        verify(mediaFileRepository).delete(oldAvatar);
     }
 }
