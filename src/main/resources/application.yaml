@@ -8,7 +8,7 @@ spring:
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME:teamConnect}
-    password: ${sm@${DB_PASSWORD_SECRET:datasourse-password}}
+    password: ${sm@${DB_PASSWORD_SECRET:datasource-password}}
     driver-class-name: org.postgresql.Driver
 
   servlet:
@@ -35,4 +35,6 @@ team:
   connect:
     calendarific:
       base-url: https://calendarific.com/api/v2
-      api-key: ${CALENDARIFIC_API_KEY}
+      api-key: ${sm@${CALENDARIFIC_API_KEY_SECRET:calendarific-api-key}}
+    cron:
+      holiday-sync: ${HOLIDAY_SYNC_CRON:0 0 0 30 11 *}
