@@ -69,7 +69,7 @@ class UserPositionSpecificationBuilderTest {
         user.setEmail(data.email());
         user.setPhone(Map.of());
         user.setPassword("password");
-        user.setAvatar("avatar.png");
+        user.setAvatar("avatar.png" + data.email);
         user.setBirthDate(LocalDate.now());
         user.setGrade("Senior");
         user.setRole("ENGINEER");

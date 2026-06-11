@@ -4,7 +4,7 @@ import com.ua.teamconnect.tracker.model.annotation.ApiResponseBadRequest;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseOk;
 import com.ua.teamconnect.tracker.model.annotation.ApiResponseUnauthorized;
 import com.ua.teamconnect.tracker.model.dto.UploadedFileDto;
-import com.ua.teamconnect.tracker.service.FilesService;
+import com.ua.teamconnect.tracker.service.MediaFileService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "Files Controller", description = "Endpoints related to file management")
 public class FilesController {
 
-    private final FilesService filesService;
+    private final MediaFileService mediaFileService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiResponseBadRequest
@@ -33,6 +33,6 @@ public class FilesController {
         @Parameter(description = "File to upload", required = true)
         @RequestParam MultipartFile file
     ) {
-        return filesService.uploadFile(jwt.getSubject(), file);
+        return mediaFileService.uploadFile(jwt.getSubject(), file);
     }
 }

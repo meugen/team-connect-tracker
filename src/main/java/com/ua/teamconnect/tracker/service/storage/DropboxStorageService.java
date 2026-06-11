@@ -14,7 +14,7 @@ import java.util.concurrent.Callable;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
 @Service
-public class DropboxStorageService implements StorageService {
+public class DropboxStorageService {
 
     private final DbxClientV2 client;
 
@@ -22,7 +22,6 @@ public class DropboxStorageService implements StorageService {
         this.client = client;
     }
 
-    @Override
     public String upload(String email, MultipartFile file) {
         return retry(() -> {
             var folder = getFolderFromEmail(email);
@@ -38,7 +37,6 @@ public class DropboxStorageService implements StorageService {
         });
     }
 
-    @Override
     public String shareLink(String dropboxPath) {
         return retry(() -> {
             var settings = SharedLinkSettings.newBuilder()
@@ -52,6 +50,14 @@ public class DropboxStorageService implements StorageService {
 
             return link.getUrl();
         });
+    }
+    
+    public void delete(String fileName) {
+        retry(() -> {
+            client.files().deleteV2(fileName);
+            return null;
+        });
+        
     }
 
     private String getFolderFromEmail(String email) {
@@ -68,21 +74,20 @@ public class DropboxStorageService implements StorageService {
             return "file";
         }
 
-        var parts = filename.split("/");
-        filename = parts[parts.length - 1]
-            .replaceAll("[\\\\/:*?\"<>|]", "_");
+        filename = filename.replace("\\", "/");
+        filename = filename.substring(filename.lastIndexOf('/') + 1);
+        filename = filename.replaceAll("[:*?\"<>|]", "_");
 
-        parts = filename.split("\\.");
+        var lastDotIndex = filename.lastIndexOf('.');
 
-        if (parts.length < 2) {
+        if (lastDotIndex <= 0) {
             return filename.length() > 100
                 ? filename.substring(0, 100)
                 : filename;
         }
 
-        var extension = parts[parts.length - 1];
-
-        var name = filename.substring(0, filename.lastIndexOf('.'));
+        var name = filename.substring(0, lastDotIndex);
+        var extension = filename.substring(lastDotIndex + 1);
 
         if (name.length() > 100) {
             name = name.substring(0, 100);
