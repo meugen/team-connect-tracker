@@ -1,6 +1,6 @@
 package com.ua.teamconnect.tracker.controller;
 
-import com.ua.teamconnect.tracker.service.storage.StorageService;
+import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -22,13 +22,13 @@ class FilesControllerTest extends AuthorizationControllerTest {
     private int port;
 
     @MockitoBean
-    private StorageService storageService;
+    private DropboxStorageService dropboxStorageService;
 
     @Test
     void uploadFile_lessThan5Mb_isOk() {
-        when(storageService.upload(eq("user@example.com"), any()))
+        when(dropboxStorageService.upload(eq("user@example.com"), any()))
             .thenReturn("filename.pdf");
-        when(storageService.shareLink("filename.pdf"))
+        when(dropboxStorageService.shareLink("filename.pdf"))
             .thenReturn("https://sharedlink.com/filename.pdf");
         setupValidToken("user@example.com");
 
@@ -59,9 +59,9 @@ class FilesControllerTest extends AuthorizationControllerTest {
 
     @Test
     void uploadFile_moreThan5Mb_isPayloadTooLarge() {
-        when(storageService.upload(eq("user@example.com"), any()))
+        when(dropboxStorageService.upload(eq("user@example.com"), any()))
             .thenReturn("filename.pdf");
-        when(storageService.shareLink("filename.pdf"))
+        when(dropboxStorageService.shareLink("filename.pdf"))
             .thenReturn("https://sharedlink.com/filename.pdf");
         setupValidToken("user@example.com");
 
@@ -78,9 +78,9 @@ class FilesControllerTest extends AuthorizationControllerTest {
 
     @Test
     void uploadFile_wrongExtension_isBadRequest() {
-        when(storageService.upload(eq("user@example.com"), any()))
+        when(dropboxStorageService.upload(eq("user@example.com"), any()))
             .thenReturn("filename.pdf");
-        when(storageService.shareLink("filename.pdf"))
+        when(dropboxStorageService.shareLink("filename.pdf"))
             .thenReturn("https://sharedlink.com/filename.pdf");
         setupValidToken("user@example.com");
 
@@ -97,9 +97,9 @@ class FilesControllerTest extends AuthorizationControllerTest {
 
     @Test
     void uploadFile_invalidToken_isUnauthorized() {
-        when(storageService.upload(eq("user@example.com"), any()))
+        when(dropboxStorageService.upload(eq("user@example.com"), any()))
             .thenReturn("filename.pdf");
-        when(storageService.shareLink("filename.pdf"))
+        when(dropboxStorageService.shareLink("filename.pdf"))
             .thenReturn("https://sharedlink.com/filename.pdf");
         setupValidToken("user@example.com");
 
