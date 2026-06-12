@@ -186,4 +186,14 @@ class UserRepositoryTest extends UserRelatedRepositoryTest {
             )
         );
     }
+    
+    @Test
+    void findUsersWithBirthdaysBetween_validRange_returnsUsers() {
+        setupData();
+
+        var result = userRepository.findUsersWithBirthdaysBetween(1, 1, 1, 30);
+
+        assertEquals(1, result.size());
+        assertEquals("John", result.get(0).getFirstName());
+    }
 }

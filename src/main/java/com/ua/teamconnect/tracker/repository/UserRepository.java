@@ -5,6 +5,7 @@ import com.ua.teamconnect.tracker.model.entity.projection.UserDate;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import static com.ua.teamconnect.tracker.repository.query.MonthDayQueryConditions.BIRTH_DATE_IN_RANGE;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -36,4 +37,14 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     where :startDate <= uh.hireDate and uh.hireDate <= :endDate
     """)
     List<UserDate> findByHireDate(LocalDate startDate, LocalDate endDate);
+    
+    @Query("""
+    select u
+    from User u
+    where u.birthDate is not null
+      and (""" + BIRTH_DATE_IN_RANGE + """
+    )
+    order by u.lastName, u.firstName
+    """)
+    List<User> findUsersWithBirthdaysBetween(int startMonth, int startDay, int endMonth, int endDay);
 }
