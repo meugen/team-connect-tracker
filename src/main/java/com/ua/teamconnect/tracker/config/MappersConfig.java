@@ -47,4 +47,9 @@ public class MappersConfig {
     public HolidayMapper holidayMapper() {
         return Mappers.getMapper(HolidayMapper.class);
     }
+    
+    @Bean
+    public UserBirthdayMapper userBirthdayMapper() {
+        return Mappers.getMapper(UserBirthdayMapper.class);
+    }
 }
