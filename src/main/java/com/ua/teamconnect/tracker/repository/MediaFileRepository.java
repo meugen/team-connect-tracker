@@ -1,10 +1,9 @@
 package com.ua.teamconnect.tracker.repository;
 
-import com.ua.teamconnect.tracker.model.entity.MediaFile;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
+import com.ua.teamconnect.tracker.model.entity.MediaFile;
 
 @Repository
 public interface MediaFileRepository extends JpaRepository<MediaFile, Integer> {

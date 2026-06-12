@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.service;
 
+import com.ua.teamconnect.tracker.mapper.UserBirthdayMapper;
 import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
@@ -9,12 +10,14 @@ import com.ua.teamconnect.tracker.model.entity.MediaFile;
 import com.ua.teamconnect.tracker.model.entity.Position;
 import com.ua.teamconnect.tracker.model.entity.User;
 import com.ua.teamconnect.tracker.model.entity.projection.UserDate;
+import com.ua.teamconnect.tracker.model.exception.InvalidMonthDayException;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.repository.MediaFileRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
 import com.ua.teamconnect.tracker.repository.specification.user.position.UserPositionSpecificationBuilder;
 import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
+import com.ua.teamconnect.tracker.service.storage.userbirthday.MapUserBirthday;
 import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileFactory;
 import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileStrategy;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +51,7 @@ class UserServiceTest {
     private UserPositionRepository userPositionRepository;
     private MediaFileRepository mediaFileRepository;
     private DropboxStorageService dropboxStorageService;
+    private MapUserBirthday mapUserBirthday;
 
     @BeforeEach
     void setupService() {
@@ -59,6 +63,7 @@ class UserServiceTest {
         userPositionRepository = mock(UserPositionRepository.class);
         mediaFileRepository = mock(MediaFileRepository.class);
         dropboxStorageService = mock(DropboxStorageService.class);
+        mapUserBirthday = new MapUserBirthday(Mappers.getMapper(UserBirthdayMapper.class));
         userService = new UserService(
             userRepository,
             passwordEncoder,
@@ -72,7 +77,8 @@ class UserServiceTest {
             userPositionRepository,
             Mappers.getMapper(UserPositionMapper.class),
             mediaFileRepository,
-            dropboxStorageService
+            dropboxStorageService,
+            mapUserBirthday
         );
     }
 
@@ -450,5 +456,49 @@ class UserServiceTest {
         verify(mediaFileRepository).findByUrl("https://old-avatar.com");
         verify(dropboxStorageService).delete(oldAvatar.getDropboxPath());
         verify(mediaFileRepository).delete(oldAvatar);
+    }
+    
+    @Test
+    void findBirthdaysBetween_crossYearRange_queriesBothRanges() {
+        when(userRepository.findUsersWithBirthdaysBetween(12, 20, 12, 31)).thenReturn(List.of());
+        when(userRepository.findUsersWithBirthdaysBetween(1, 1, 1, 10)).thenReturn(List.of());
+        when(userRepository.findRoleByEmail("user@example.com")).thenReturn("FINANCE");
+        
+        userService.findBirthdaysBetween("user@example.com", "12-20", "01-10");
+        
+        verify(userRepository).findUsersWithBirthdaysBetween(12, 20, 12, 31);
+        verify(userRepository).findUsersWithBirthdaysBetween(1, 1, 1, 10);
+    }
+    
+    @Test
+    void findBirthdaysBetween_duplicateAdminUsers_removesDuplicatesAndReturnsFullBirthDate() {
+        var user = new User();
+        user.setId(1);
+        user.setBirthDate(LocalDate.of(1990, 6, 15));
+
+        when(userRepository.findUsersWithBirthdaysBetween(6, 1, 6, 30)).thenReturn(List.of(user, user));
+        when(userRepository.findRoleByEmail(anyString())).thenReturn("ADMIN");
+
+        var result = userService.findBirthdaysBetween(
+            "user@example.com",
+            "06-01",
+            "06-30"
+        );
+        
+        assertEquals(1, result.size());
+        assertEquals("06-15-1990", result.get(0).birthDate());
+    }
+    
+    @Test
+    void findBirthdaysBetween_invalidStartDate_throwsException() {
+        var exception = assertThrows(
+            InvalidMonthDayException.class,
+            () -> userService.findBirthdaysBetween(
+                "user@example.com",
+                "invalid",
+                "06-30"
+            )
+        );
+        assertEquals("Invalid month day: 'invalid'. Required format: MM-dd", exception.getReason());
     }
 }
