@@ -14,7 +14,7 @@ public class ExceptionLoggingAspect extends AbstractLoggingAspect {
     private final Logger logger = LoggerFactory.getLogger(ExceptionLoggingAspect.class);
 
     @AfterThrowing(
-        pointcut = "within(com.ua.teamconnect.tracker.service.*) || within(com.ua.teamconnect.tracker.repository.*)",
+        pointcut = "within(com.ua.teamconnect.tracker.service..*) || within(com.ua.teamconnect.tracker.repository..*)",
         throwing = "exception"
     )
     public void logException(JoinPoint joinPoint, Exception exception) {
