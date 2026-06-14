@@ -10,10 +10,12 @@ import java.util.stream.Stream;
 abstract class AbstractLoggingAspect {
 
     String findCallingClassName(JoinPoint joinPoint) {
-        var stream = Arrays.stream(joinPoint.getTarget().getClass().getInterfaces());
+        var target = joinPoint.getTarget();
+        if (target == null) return joinPoint.getSignature().getDeclaringTypeName();
+        var stream = Arrays.stream(target.getClass().getInterfaces());
         stream = Stream.concat(stream, Stream.of(
-            joinPoint.getTarget().getClass().getSuperclass(),
-            joinPoint.getTarget().getClass()
+            target.getClass().getSuperclass(),
+            target.getClass()
         ));
         return stream
             .filter(implementedInterface -> Arrays.stream(implementedInterface.getMethods())
@@ -33,4 +35,5 @@ abstract class AbstractLoggingAspect {
         }
         return true;
     }
+
 }

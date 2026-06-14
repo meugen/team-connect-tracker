@@ -20,7 +20,7 @@ public class ModificationLoggingAspect extends AbstractLoggingAspect {
     execution(* com.ua.teamconnect.tracker.repository.*.save*(..)) ||
     execution(* com.ua.teamconnect.tracker.repository.*.delete*(..))
     """)
-    public void afterUpdate(JoinPoint joinPoint) {
+    public void afterSuccessfulModification(JoinPoint joinPoint) {
         logger.info("Method {}.{}() completed successfully",
             findCallingClassName(joinPoint),
             joinPoint.getSignature().getName()
