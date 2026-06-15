@@ -5,6 +5,8 @@ import com.dropbox.core.v2.files.WriteMode;
 import com.dropbox.core.v2.sharing.RequestedLinkAccessLevel;
 import com.dropbox.core.v2.sharing.RequestedVisibility;
 import com.dropbox.core.v2.sharing.SharedLinkSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +18,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @Service
 public class DropboxStorageService {
 
+    private final Logger logger = LoggerFactory.getLogger(DropboxStorageService.class.getName());
     private final DbxClientV2 client;
 
     public DropboxStorageService(@Lazy DbxClientV2 client) {
@@ -33,7 +36,9 @@ public class DropboxStorageService {
                 .withMode(WriteMode.OVERWRITE)
                 .uploadAndFinish(file.getInputStream());
 
-            return metadata.getPathLower();
+            var path = metadata.getPathLower();
+            logger.info("Uploaded file {} to Dropbox", path);
+            return path;
         });
     }
 
@@ -48,13 +53,16 @@ public class DropboxStorageService {
             var link = client.sharing()
                 .createSharedLinkWithSettings(dropboxPath, settings);
 
-            return link.getUrl();
+            var url = link.getUrl();
+            logger.info("Shared link {} to Dropbox", url);
+            return url;
         });
     }
     
     public void delete(String fileName) {
         retry(() -> {
             client.files().deleteV2(fileName);
+            logger.info("Deleted file {} from Dropbox", fileName);
             return null;
         });
         
