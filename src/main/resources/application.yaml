@@ -38,3 +38,7 @@ team:
       api-key: ${sm@${CALENDARIFIC_API_KEY_SECRET:calendarific-api-key}}
     cron:
       holiday-sync: ${HOLIDAY_SYNC_CRON:0 0 0 30 11 *}
+
+logging:
+  file:
+    path: ${LOG_PATH:./logs}

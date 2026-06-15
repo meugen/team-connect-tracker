@@ -57,7 +57,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Autowired
     private UserProjectRepository userProjectRepository;
-    
+
     @Autowired
     private MediaFileRepository mediaFileRepository;
 
@@ -93,7 +93,7 @@ class UserControllerTest extends AuthorizationControllerTest {
         user.setBirthDate(LocalDate.of(1990, Month.MAY, 10));
         user.setGender(Gender.MALE);
         user.setGrade("SENIOR");
-        
+
         var newAvatar = new MediaFile();
         newAvatar.setUrl(userParams.getAvatar());
         newAvatar.setDropboxPath("/user/" + userParams.getSuffix() + "/avatar.png");
@@ -721,7 +721,7 @@ class UserControllerTest extends AuthorizationControllerTest {
             .build();
         setupUser(userParams);
         setupValidToken("user@example.com");
-        
+
         var newAvatar = new MediaFile();
         newAvatar.setUrl("https://new-avatar.com");
         newAvatar.setDropboxPath("/user/new-avatar.png");
