@@ -3,22 +3,22 @@ package com.ua.teamconnect.tracker.service;
 import com.ua.teamconnect.tracker.client.HolidayClient;
 import com.ua.teamconnect.tracker.mapper.HolidayMapper;
 import com.ua.teamconnect.tracker.model.dto.HolidayDto;
+import com.ua.teamconnect.tracker.model.dto.UpdateHolidayDto;
 import com.ua.teamconnect.tracker.model.dto.api.calendarific.HolidaysList;
 import com.ua.teamconnect.tracker.model.entity.Holiday;
+import com.ua.teamconnect.tracker.model.exception.HolidayNotFoundException;
 import com.ua.teamconnect.tracker.repository.HolidayRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Limit;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,6 +63,7 @@ public class HolidayService {
                 holiday.setDate(holidayApi.parseLocalDate());
                 holiday.setName(holidayApi.name());
                 holiday.setDescription(holidayApi.description());
+                holiday.setIsDayOff(Boolean.TRUE);
                 return holiday;
             })
             .collect(Collectors.toCollection(
@@ -75,5 +76,26 @@ public class HolidayService {
             .stream()
             .map(holidayMapper::entityToDto)
             .toList();
+    }
+
+    public HolidayDto create(UpdateHolidayDto dto) {
+        var holiday = new Holiday();
+        holiday.setId(UUID.randomUUID().toString());
+        var savedHoliday = internalSave(dto, holiday);
+        return holidayMapper.entityToDto(savedHoliday);
+    }
+
+    public void update(String holidayId, UpdateHolidayDto dto) {
+        var holiday = holidayRepository.findById(holidayId).orElseThrow(
+            () -> new HolidayNotFoundException(holidayId)
+        );
+        internalSave(dto, holiday);
+    }
+
+    private Holiday internalSave(
+        UpdateHolidayDto dto, Holiday holiday
+    ) {
+        holidayMapper.dtoToEntity(dto, holiday);
+        return holidayRepository.save(holiday);
     }
 }

@@ -17,7 +17,7 @@ public class Holiday {
     @Id
     private String id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)
@@ -25,4 +25,7 @@ public class Holiday {
 
     @Column(nullable = false)
     private LocalDate date;
+
+    @Column(nullable = false, name = "day_off")
+    private Boolean isDayOff;
 }

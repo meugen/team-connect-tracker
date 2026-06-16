@@ -1,7 +1,9 @@
 package com.ua.teamconnect.tracker.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -56,6 +58,10 @@ public record ErrorDto(
     }
 
     public ErrorDto(MissingServletRequestParameterException ex, String url) {
+        this(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), LocalDateTime.now(), url);
+    }
+
+    public ErrorDto(HttpMessageNotReadableException ex, String url) {
         this(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), LocalDateTime.now(), url);
     }
 }
