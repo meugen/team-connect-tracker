@@ -1,9 +1,7 @@
 package com.ua.teamconnect.tracker.repository;
 
 import com.ua.teamconnect.tracker.model.entity.Holiday;
-import com.ua.teamconnect.tracker.model.entity.UserPosition;
 import org.springframework.data.domain.Limit;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

@@ -1,7 +1,6 @@
 package com.ua.teamconnect.tracker.model.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.AuthenticationException;
