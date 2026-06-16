@@ -8,10 +8,12 @@ import com.ua.teamconnect.tracker.model.dto.api.calendarific.HolidaysList;
 import com.ua.teamconnect.tracker.model.entity.Holiday;
 import com.ua.teamconnect.tracker.model.exception.HolidayNotFoundException;
 import com.ua.teamconnect.tracker.repository.HolidayRepository;
+import com.ua.teamconnect.tracker.repository.specification.holiday.DuplicateHolidaySpecification;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Limit;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Mono;
@@ -80,7 +82,10 @@ public class HolidayService {
     public HolidayDto create(UpdateHolidayDto dto) {
         var holiday = new Holiday();
         holiday.setId(UUID.randomUUID().toString());
-        var savedHoliday = internalSave(dto, holiday);
+        var spec = new DuplicateHolidaySpecification(
+            dto.name(), dto.date()
+        );
+        var savedHoliday = internalSave(dto, holiday, spec);
         return holidayMapper.entityToDto(savedHoliday);
     }
 
@@ -88,12 +93,19 @@ public class HolidayService {
         var holiday = holidayRepository.findById(holidayId).orElseThrow(
             () -> new HolidayNotFoundException(holidayId)
         );
-        internalSave(dto, holiday);
+        var spec = new DuplicateHolidaySpecification(
+            dto.name(), dto.date(), holidayId
+        );
+        internalSave(dto, holiday, spec);
     }
 
     private Holiday internalSave(
-        UpdateHolidayDto dto, Holiday holiday
+        UpdateHolidayDto dto, Holiday holiday,
+        Specification<Holiday> spec
     ) {
+        if (holidayRepository.exists(spec)) {
+            throw new IllegalArgumentException("Holiday with the same name and date already exists");
+        }
         holidayMapper.dtoToEntity(dto, holiday);
         return holidayRepository.save(holiday);
     }

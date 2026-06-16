@@ -13,6 +13,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
@@ -47,6 +48,14 @@ class HolidayControllerTest extends AuthorizationControllerTest {
         holiday2.setDate(LocalDate.now().plusDays(2));
         holiday2.setIsDayOff(Boolean.TRUE);
         holidayRepository.save(holiday2);
+
+        var holiday3 = new Holiday();
+        holiday3.setId("holiday-3");
+        holiday3.setName("Duplicated holiday");
+        holiday3.setDescription("Duplicated holiday description");
+        holiday3.setDate(LocalDate.of(2026, Month.JULY, 10));
+        holiday3.setIsDayOff(Boolean.FALSE);
+        holidayRepository.save(holiday3);
     }
 
 
@@ -109,6 +118,28 @@ class HolidayControllerTest extends AuthorizationControllerTest {
             .jsonPath("$.description").isEqualTo("New holiday description")
             .jsonPath("$.date").isEqualTo("2026-07-10")
             .jsonPath("$.dayOfWeek").isEqualTo("FRIDAY");
+    }
+
+    @Test
+    void create_duplicated_badResponse() {
+        setupData();
+        setupValidToken();
+
+        var body = """
+            {
+              "name": "Duplicated holiday",
+              "description": "New holiday description",
+              "date": "2026-07-10",
+              "isDayOff": true
+            }
+            """;
+        var spec = buildClient(port).post()
+            .uri("/holidays")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange();
+        validateBadRequest(spec);
     }
 
     @Test
@@ -194,6 +225,51 @@ class HolidayControllerTest extends AuthorizationControllerTest {
             """;
         buildClient(port).put()
             .uri("/holidays/holiday-1")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus().isNoContent()
+            .expectBody().isEmpty();
+    }
+
+    @Test
+    void update_duplicated_badRequest() {
+        setupData();
+        setupValidToken();
+
+        var body = """
+            {
+              "name": "Duplicated holiday",
+              "description": "Updated holiday description",
+              "date": "2026-07-10",
+              "isDayOff": true
+            }
+            """;
+        var spec = buildClient(port).put()
+            .uri("/holidays/holiday-1")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange();
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void update_isDayOff_response() {
+        setupData();
+        setupValidToken();
+
+        var body = """
+            {
+              "name": "Duplicated holiday",
+              "description": "Updated holiday description",
+              "date": "2026-07-10",
+              "isDayOff": true
+            }
+            """;
+        buildClient(port).put()
+            .uri("/holidays/holiday-3")
             .header("Authorization", "Bearer " + VALID_TOKEN)
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
