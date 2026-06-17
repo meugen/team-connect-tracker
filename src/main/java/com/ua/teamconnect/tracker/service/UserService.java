@@ -14,7 +14,6 @@ import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
 import com.ua.teamconnect.tracker.service.storage.userbirthday.MapUserBirthday;
 import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileFactory;
 
-import static com.ua.teamconnect.tracker.util.DateUtil.toMonthDayRanges;
 import static com.ua.teamconnect.tracker.util.DateUtil.toDayMonthRanges;
 
 import lombok.RequiredArgsConstructor;
@@ -151,17 +150,14 @@ public class UserService implements PageRequestService {
             .toList();
     }
     
-    public List<UserBirthdayDto> findBirthdaysBetween(String email, String startDate, String endDate) {
-        var users = toMonthDayRanges(startDate, endDate).stream()
+    public List<UserBirthdayDto> findByBirthdaysBetween(String email, String startDate, String endDate) {
+        var users = toDayMonthRanges(startDate, endDate).stream()
                 .flatMap(pair -> userRepository.findUsersWithBirthdaysBetween(
                         pair.first().getMonthValue(),
                         pair.first().getDayOfMonth(),
                         pair.second().getMonthValue(),
                         pair.second().getDayOfMonth()
                 ).stream())
-                .collect(Collectors.toMap(User::getId, user -> user, (left, right) -> left))
-                .values()
-                .stream()
                 .toList();
         var role = userRepository.findRoleByEmail(email);
         return mapUserBirthday.toDto(users, role);

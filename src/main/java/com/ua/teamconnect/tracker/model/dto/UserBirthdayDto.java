@@ -17,7 +17,7 @@ public record UserBirthdayDto(
         @Schema(description = "User's avatar URL", example = "https://example.com/avatar.jpg")
         String avatar,
 
-        @Schema(description = "User's birth date (MM-dd for employees, MM-dd-yyyy for HR/PM/ADMIN)", example = "06-15")
+        @Schema(description = "User's birth date (MM-dd for employees, MM-dd-yyyy for HR/PM/ADMIN)", example = "15-06")
         String birthDate
 
 ) {

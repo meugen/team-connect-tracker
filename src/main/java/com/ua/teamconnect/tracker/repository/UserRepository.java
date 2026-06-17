@@ -42,8 +42,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("""
     select u
     from User u
-    where u.birthDate is not null
-    and (""" + BIRTH_DATE_IN_RANGE + """
+    where (""" + BIRTH_DATE_IN_RANGE + """
     )
     order by u.lastName, u.firstName
     """)

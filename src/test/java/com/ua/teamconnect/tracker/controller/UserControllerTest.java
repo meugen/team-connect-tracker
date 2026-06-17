@@ -57,7 +57,7 @@ class UserControllerTest extends AuthorizationControllerTest {
 
     @Autowired
     private UserProjectRepository userProjectRepository;
-
+    
     @Autowired
     private MediaFileRepository mediaFileRepository;
 
@@ -90,10 +90,10 @@ class UserControllerTest extends AuthorizationControllerTest {
             "home", "+123456789",
             "mobile", "+987654321"
         ));
-        user.setBirthDate(LocalDate.of(1990, Month.MAY, 10));
+        user.setBirthDate(userParams.getBirthDate());
         user.setGender(Gender.MALE);
         user.setGrade("SENIOR");
-
+        
         var newAvatar = new MediaFile();
         newAvatar.setUrl(userParams.getAvatar());
         newAvatar.setDropboxPath("/user/" + userParams.getSuffix() + "/avatar.png");
@@ -171,6 +171,40 @@ class UserControllerTest extends AuthorizationControllerTest {
                 .jsonPath("$.phones.mobile").isEqualTo("+987654321")
                 .jsonPath("$.birthDate").isEqualTo("1990-05-10");
         }
+    }
+    
+    private record UserData(
+                    Integer userId,
+                    Integer positionId,
+                    Integer departmentId,
+                    Integer stackId,
+                    Map<String, String> params
+                ) {
+                }
+
+     @Builder
+     @Getter
+     private static class UserParams {
+        @Builder.Default
+        private String role = ROLE_EMPLOYEE;
+        @Builder.Default
+        private String firstName = "John";
+        @Builder.Default
+        private String lastName = "Doe";
+        @Builder.Default
+        private String email = "user@example.com";
+        @Builder.Default
+        private String suffix = "";
+        @Builder.Default
+        private String avatar = "https://avatar.com";
+        @Builder.Default
+        private LocalDate startPositionAt = LocalDate.of(2023, Month.FEBRUARY, 1);
+        @Builder.Default
+        private LocalDate birthDate = LocalDate.of(1990, Month.MAY, 10);
+
+      public static UserParams allDefaults() {
+          return UserParams.builder().build();
+      }
     }
 
     @Test
@@ -721,7 +755,7 @@ class UserControllerTest extends AuthorizationControllerTest {
             .build();
         setupUser(userParams);
         setupValidToken("user@example.com");
-
+        
         var newAvatar = new MediaFile();
         newAvatar.setUrl("https://new-avatar.com");
         newAvatar.setDropboxPath("/user/new-avatar.png");
@@ -793,36 +827,51 @@ class UserControllerTest extends AuthorizationControllerTest {
         spec.expectStatus().isBadRequest();
     }
 
-    private record UserData(
-        Integer userId,
-        Integer positionId,
-        Integer departmentId,
-        Integer stackId,
-        Map<String, String> params
-    ) {
+    @Test
+    void findBirthdays_validTokenAndRequest_isOk() {
+        setupUser(UserParams.builder()
+                        .birthDate(LocalDate.of(1990, Month.JUNE, 15))
+                        .build());
+        setupValidToken("user@example.com");
+
+        buildClient(port).get()
+            .uri("/users/birthdays?startDate=01-06&endDate=30-06")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$").isArray()
+            .jsonPath("$.length()").isEqualTo(1)
+            .jsonPath("$[0].id").isNumber()
+            .jsonPath("$[0].firstName").isEqualTo("John")
+            .jsonPath("$[0].lastName").isEqualTo("Doe")
+            .jsonPath("$[0].avatar").isEqualTo("https://avatar.com")
+            .jsonPath("$[0].birthDate").isEqualTo("15-06");
     }
+    
+    @Test
+    void findBirthdays_invalidToken_isUnauthorized() {
+        setupUser(UserParams.allDefaults());
+        setupValidToken("user@example.com");
 
-    @Builder
-    @Getter
-    private static class UserParams {
-        @Builder.Default
-        private String role = ROLE_EMPLOYEE;
-        @Builder.Default
-        private String firstName = "John";
-        @Builder.Default
-        private String lastName = "Doe";
-        @Builder.Default
-        private String email = "user@example.com";
-        @Builder.Default
-        private String suffix = "";
-        @Builder.Default
-        private String avatar = "https://avatar.com";
-        @Builder.Default
-        private LocalDate startPositionAt = LocalDate.of(2023, Month.FEBRUARY, 1);
+        var spec = buildClient(port).get()
+            .uri("/users/birthdays?startDate=01-06&endDate=30-06")
+            .header("Authorization", "Bearer " + INVALID_TOKEN)
+            .exchange();
 
-        public static UserParams allDefaults() {
-            return UserParams.builder().build();
-        }
+        validateUnauthorized(spec);
     }
+    
+    @Test
+    void findBirthdays_invalidDate_isBadRequest() {
+        setupUser(UserParams.allDefaults());
+        setupValidToken("user@example.com");
 
+        var spec = buildClient(port).get()
+            .uri("/users/birthdays?startDate=bad&endDate=30-06")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange();
+
+        validateBadRequest(spec);
+    }
 }

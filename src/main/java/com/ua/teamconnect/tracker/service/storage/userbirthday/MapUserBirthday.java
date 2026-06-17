@@ -11,8 +11,8 @@ import com.ua.teamconnect.tracker.model.pojo.UserRole;
 @Component
 public class MapUserBirthday {
 
-    private static final DateTimeFormatter FULL_DATE = DateTimeFormatter.ofPattern("MM-dd-yyyy");
-    private static final DateTimeFormatter SHORT_DATE = DateTimeFormatter.ofPattern("MM-dd");
+    private static final DateTimeFormatter FULL_DATE = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    private static final DateTimeFormatter SHORT_DATE = DateTimeFormatter.ofPattern("dd-MM");
 
     private final UserBirthdayMapper mapper;
 

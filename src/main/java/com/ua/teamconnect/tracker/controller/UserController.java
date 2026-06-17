@@ -92,10 +92,11 @@ public class UserController {
     @GetMapping("/birthdays")
     @ApiResponseOk
     @ApiResponseBadRequest
-    @Parameter(name = "startDate", description = "Start date in dd-MM format", example = "01-06")
-    @Parameter(name = "endDate", description = "End date in dd-MM format", example = "30-06")
-    public List<UserBirthdayDto> findBirthdays(@AuthenticationPrincipal Jwt jwt, @RequestParam @Parameter(hidden = true) String startDate,
+    @Parameter(name = "startDate", description = "Start date in dd-MM format", example = "06-01")
+    @Parameter(name = "endDate", description = "End date in dd-MM format", example = "06-30")
+    public List<UserBirthdayDto> findBirthdays(@AuthenticationPrincipal Jwt jwt,
+                    @RequestParam @Parameter(hidden = true) String startDate,
                     @RequestParam @Parameter(hidden = true) String endDate) {
-        return userService.findBirthdaysBetween(jwt.getSubject(), startDate, endDate);
+        return userService.findByBirthdaysBetween(jwt.getSubject(), startDate, endDate);
     }
 }

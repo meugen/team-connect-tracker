@@ -464,41 +464,41 @@ class UserServiceTest {
         when(userRepository.findUsersWithBirthdaysBetween(1, 1, 1, 10)).thenReturn(List.of());
         when(userRepository.findRoleByEmail("user@example.com")).thenReturn("FINANCE");
         
-        userService.findBirthdaysBetween("user@example.com", "12-20", "01-10");
+        userService.findByBirthdaysBetween("user@example.com", "20-12", "10-01");
         
         verify(userRepository).findUsersWithBirthdaysBetween(12, 20, 12, 31);
         verify(userRepository).findUsersWithBirthdaysBetween(1, 1, 1, 10);
     }
     
     @Test
-    void findBirthdaysBetween_duplicateAdminUsers_removesDuplicatesAndReturnsFullBirthDate() {
+    void findBirthdaysBetween_AdminUsers_returnsFullBirthDate() {
         var user = new User();
         user.setId(1);
         user.setBirthDate(LocalDate.of(1990, 6, 15));
 
-        when(userRepository.findUsersWithBirthdaysBetween(6, 1, 6, 30)).thenReturn(List.of(user, user));
+        when(userRepository.findUsersWithBirthdaysBetween(6, 1, 6, 30)).thenReturn(List.of(user));
         when(userRepository.findRoleByEmail(anyString())).thenReturn("ADMIN");
 
-        var result = userService.findBirthdaysBetween(
+        var result = userService.findByBirthdaysBetween(
             "user@example.com",
-            "06-01",
-            "06-30"
+            "01-06",
+            "30-06"
         );
         
         assertEquals(1, result.size());
-        assertEquals("06-15-1990", result.get(0).birthDate());
+        assertEquals("15-06-1990", result.get(0).birthDate());
     }
     
     @Test
     void findBirthdaysBetween_invalidStartDate_throwsException() {
         var exception = assertThrows(
             InvalidMonthDayException.class,
-            () -> userService.findBirthdaysBetween(
+            () -> userService.findByBirthdaysBetween(
                 "user@example.com",
                 "invalid",
-                "06-30"
+                "30-06"
             )
         );
-        assertEquals("Invalid month day: 'invalid'. Required format: MM-dd", exception.getReason());
+        assertEquals("Invalid month day: 'invalid'. Required format: dd-MM", exception.getReason());
     }
 }
