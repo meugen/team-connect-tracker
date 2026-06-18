@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Schema(description = "Data Transfer Object for updating a holiday")
-public record UpdateHolidayDto(
+public record HolidayRequestDto(
     @Schema(description = "Name of the holiday", example = "New Year's Day")
     @NotEmpty(message = "Holiday name must not be null or empty")
     String name,

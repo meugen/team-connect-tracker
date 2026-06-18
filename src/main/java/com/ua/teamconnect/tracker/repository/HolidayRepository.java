@@ -22,5 +22,7 @@ public interface HolidayRepository extends CrudRepository<Holiday, String>, JpaS
     @Query("select distinct h.id from Holiday h where extract(year from h.date) = :year ")
     Set<String> findAllIdsInYear(int year);
 
+    boolean existsByNameAndDate(String name, LocalDate date);
 
+    boolean existsByNameAndDateAndIdNot(String name, LocalDate date, String id);
 }

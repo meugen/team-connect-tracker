@@ -77,7 +77,8 @@ class HolidayControllerTest extends AuthorizationControllerTest {
             .jsonPath("$[0].name").isEqualTo("Holiday 2")
             .jsonPath("$[0].description").isEqualTo("Holiday 2 description")
             .jsonPath("$[0].date").isEqualTo(expectedDate.toString())
-            .jsonPath("$[0].dayOfWeek").isEqualTo(expectedDate.getDayOfWeek().toString());
+            .jsonPath("$[0].dayOfWeek").isEqualTo(expectedDate.getDayOfWeek().toString())
+            .jsonPath("$[0].isDayOff").isEqualTo(true);
     }
 
     @Test
@@ -92,10 +93,26 @@ class HolidayControllerTest extends AuthorizationControllerTest {
         validateUnauthorized(spec);
     }
 
-    @Test
-    void create_valid_response() {
+    static List<Arguments> validRolesToChangeHolidays() {
+        return List.of(
+            Arguments.of("HR"),
+            Arguments.of("ADMIN")
+        );
+    }
+
+    static List<Arguments> invalidRolesToChangeHolidays() {
+        return List.of(
+            Arguments.of("ENGINEER"),
+            Arguments.of("FINANCE"),
+            Arguments.of("PM")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("validRolesToChangeHolidays")
+    void create_valid_response(String role) {
         setupData();
-        setupValidToken();
+        setupValidToken("user@example.com", role);
 
         var body = """
             {
@@ -117,13 +134,38 @@ class HolidayControllerTest extends AuthorizationControllerTest {
             .jsonPath("$.name").isEqualTo("New holiday")
             .jsonPath("$.description").isEqualTo("New holiday description")
             .jsonPath("$.date").isEqualTo("2026-07-10")
-            .jsonPath("$.dayOfWeek").isEqualTo("FRIDAY");
+            .jsonPath("$.dayOfWeek").isEqualTo("FRIDAY")
+            .jsonPath("$.isDayOff").isEqualTo(true);
     }
 
-    @Test
-    void create_duplicated_badResponse() {
+    @ParameterizedTest
+    @MethodSource("invalidRolesToChangeHolidays")
+    void create_invalidRole_response(String role) {
         setupData();
-        setupValidToken();
+        setupValidToken("user@example.com", role);
+
+        var body = """
+            {
+              "name": "New holiday",
+              "description": "New holiday description",
+              "date": "2026-07-10",
+              "isDayOff": true
+            }
+            """;
+        buildClient(port).post()
+            .uri("/holidays")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus().isForbidden();
+    }
+
+    @ParameterizedTest
+    @MethodSource("validRolesToChangeHolidays")
+    void create_duplicated_badResponse(String role) {
+        setupData();
+        setupValidToken("user@example.com", role);
 
         var body = """
             {
@@ -168,7 +210,7 @@ class HolidayControllerTest extends AuthorizationControllerTest {
     @MethodSource("invalidJson")
     void create_invalidJson_badRequest(String body) {
         setupData();
-        setupValidToken();
+        setupValidToken("user@example.com", "ADMIN");
 
         var spec = buildClient(port).post()
             .uri("/holidays")
@@ -210,10 +252,11 @@ class HolidayControllerTest extends AuthorizationControllerTest {
         );
     }
 
-    @Test
-    void update_valid_response() {
+    @ParameterizedTest
+    @MethodSource("validRolesToChangeHolidays")
+    void update_valid_response(String role) {
         setupData();
-        setupValidToken();
+        setupValidToken("user@example.com", role);
 
         var body = """
             {
@@ -229,14 +272,44 @@ class HolidayControllerTest extends AuthorizationControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
             .exchange()
-            .expectStatus().isNoContent()
-            .expectBody().isEmpty();
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$.id").isNotEmpty()
+            .jsonPath("$.name").isEqualTo("Updated holiday")
+            .jsonPath("$.description").isEqualTo("Updated holiday description")
+            .jsonPath("$.date").isEqualTo("2026-07-10")
+            .jsonPath("$.dayOfWeek").isEqualTo("FRIDAY")
+            .jsonPath("$.isDayOff").isEqualTo(true);
     }
 
-    @Test
-    void update_duplicated_badRequest() {
+    @ParameterizedTest
+    @MethodSource("invalidRolesToChangeHolidays")
+    void update_invalidRole_response(String role) {
         setupData();
-        setupValidToken();
+        setupValidToken("user@example.com", role);
+
+        var body = """
+            {
+              "name": "Updated holiday",
+              "description": "Updated holiday description",
+              "date": "2026-07-10",
+              "isDayOff": true
+            }
+            """;
+        buildClient(port).put()
+            .uri("/holidays/holiday-1")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange()
+            .expectStatus().isForbidden();
+    }
+
+    @ParameterizedTest
+    @MethodSource("validRolesToChangeHolidays")
+    void update_duplicated_badRequest(String role) {
+        setupData();
+        setupValidToken("user@example.com", role);
 
         var body = """
             {
@@ -255,15 +328,16 @@ class HolidayControllerTest extends AuthorizationControllerTest {
         validateBadRequest(spec);
     }
 
-    @Test
-    void update_isDayOff_response() {
+    @ParameterizedTest
+    @MethodSource("validRolesToChangeHolidays")
+    void update_isDayOff_response(String role) {
         setupData();
-        setupValidToken();
+        setupValidToken("user@example.com", role);
 
         var body = """
             {
               "name": "Duplicated holiday",
-              "description": "Updated holiday description",
+              "description": "Duplicated holiday description",
               "date": "2026-07-10",
               "isDayOff": true
             }
@@ -274,8 +348,14 @@ class HolidayControllerTest extends AuthorizationControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
             .exchange()
-            .expectStatus().isNoContent()
-            .expectBody().isEmpty();
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$.id").isNotEmpty()
+            .jsonPath("$.name").isEqualTo("Duplicated holiday")
+            .jsonPath("$.description").isEqualTo("Duplicated holiday description")
+            .jsonPath("$.date").isEqualTo("2026-07-10")
+            .jsonPath("$.dayOfWeek").isEqualTo("FRIDAY")
+            .jsonPath("$.isDayOff").isEqualTo(true);
     }
 
     @Test
@@ -304,7 +384,7 @@ class HolidayControllerTest extends AuthorizationControllerTest {
     @MethodSource("invalidJson")
     void update_invalidJson_badRequest(String body) {
         setupData();
-        setupValidToken();
+        setupValidToken("user@example.com", "ADMIN");
 
         var spec = buildClient(port).put()
             .uri("/holidays/holiday-1")
@@ -315,10 +395,11 @@ class HolidayControllerTest extends AuthorizationControllerTest {
         validateBadRequest(spec);
     }
 
-    @Test
-    void update_invalidId_notFound() {
+    @ParameterizedTest
+    @MethodSource("validRolesToChangeHolidays")
+    void update_invalidId_notFound(String role) {
         setupData();
-        setupValidToken();
+        setupValidToken("user@example.com", role);
 
         var body = """
             {
