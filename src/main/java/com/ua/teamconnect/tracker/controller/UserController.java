@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -92,11 +93,11 @@ public class UserController {
     @GetMapping("/birthdays")
     @ApiResponseOk
     @ApiResponseBadRequest
-    @Parameter(name = "startDate", description = "Start date in dd-MM format", example = "06-01")
-    @Parameter(name = "endDate", description = "End date in dd-MM format", example = "06-30")
     public List<UserBirthdayDto> findBirthdays(@AuthenticationPrincipal Jwt jwt,
-                    @RequestParam @Parameter(hidden = true) String startDate,
-                    @RequestParam @Parameter(hidden = true) String endDate) {
+                    @RequestParam @Parameter(description = "Start date in dd-MM format",
+                                    example = "01-06") String startDate,
+                    @RequestParam @Parameter(description = "End date in dd-MM format",
+                                    example = "30-06") String endDate) {
         return userService.findByBirthdaysBetween(jwt.getSubject(), startDate, endDate);
     }
 }

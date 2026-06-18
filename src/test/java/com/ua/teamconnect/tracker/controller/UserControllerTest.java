@@ -850,6 +850,23 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
     
     @Test
+    void findBirthdays_adminUser_isOkAndReturnsBirthDateWithYear() {
+        setupUser(UserParams.builder()
+            .role(ROLE_ADMIN)
+            .birthDate(LocalDate.of(1990, Month.JUNE, 15))
+            .build());
+        setupValidToken("user@example.com");
+
+        buildClient(port).get()
+            .uri("/users/birthdays?startDate=01-06&endDate=30-06")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody()
+            .jsonPath("$[0].birthDate").isEqualTo("15-06-1990");
+    }
+    
+    @Test
     void findBirthdays_invalidToken_isUnauthorized() {
         setupUser(UserParams.allDefaults());
         setupValidToken("user@example.com");

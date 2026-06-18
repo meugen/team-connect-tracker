@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.service;
 
+import com.ua.teamconnect.tracker.mapper.MapUserBirthday;
 import com.ua.teamconnect.tracker.mapper.UserBirthdayMapper;
 import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
@@ -17,7 +18,6 @@ import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
 import com.ua.teamconnect.tracker.repository.specification.user.position.UserPositionSpecificationBuilder;
 import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
-import com.ua.teamconnect.tracker.service.storage.userbirthday.MapUserBirthday;
 import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileFactory;
 import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileStrategy;
 import org.junit.jupiter.api.BeforeEach;
@@ -466,8 +466,8 @@ class UserServiceTest {
         
         userService.findByBirthdaysBetween("user@example.com", "20-12", "10-01");
         
-        verify(userRepository).findUsersWithBirthdaysBetween(12, 20, 12, 31);
-        verify(userRepository).findUsersWithBirthdaysBetween(1, 1, 1, 10);
+        verify(userRepository, times(1)).findUsersWithBirthdaysBetween(12, 20, 12, 31);
+        verify(userRepository, times(1)).findUsersWithBirthdaysBetween(1, 1, 1, 10);
     }
     
     @Test
@@ -500,5 +500,25 @@ class UserServiceTest {
             )
         );
         assertEquals("Invalid month day: 'invalid'. Required format: dd-MM", exception.getReason());
+    }
+    
+    @Test
+    void findBirthdaysBetween_regularRange_queriesRepositoryOnce() {
+        when(userRepository.findUsersWithBirthdaysBetween(6, 1, 6, 30)).thenReturn(List.of());
+        when(userRepository.findRoleByEmail("user@example.com")).thenReturn("FINANCE");
+
+        userService.findByBirthdaysBetween("user@example.com", "01-06", "30-06");
+
+        verify(userRepository, times(1)).findUsersWithBirthdaysBetween(6, 1, 6, 30);
+    }
+    
+    @Test
+    void findBirthdaysBetween_sameStartAndEndDate_queriesRepositoryOnce() {
+        when(userRepository.findUsersWithBirthdaysBetween(6, 15, 6, 15)).thenReturn(List.of());
+        when(userRepository.findRoleByEmail("user@example.com")).thenReturn("FINANCE");
+
+        userService.findByBirthdaysBetween("user@example.com", "15-06", "15-06");
+
+        verify(userRepository, times(1)).findUsersWithBirthdaysBetween(6, 15, 6, 15);
     }
 }

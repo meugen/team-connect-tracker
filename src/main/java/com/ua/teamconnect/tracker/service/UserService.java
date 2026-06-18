@@ -1,17 +1,16 @@
 package com.ua.teamconnect.tracker.service;
 
+import com.ua.teamconnect.tracker.mapper.MapUserBirthday;
 import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
-import com.ua.teamconnect.tracker.model.entity.User;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.repository.MediaFileRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
 import com.ua.teamconnect.tracker.repository.specification.user.position.UserPositionSpecificationBuilder;
 import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
-import com.ua.teamconnect.tracker.service.storage.userbirthday.MapUserBirthday;
 import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileFactory;
 
 import static com.ua.teamconnect.tracker.util.DateUtil.toDayMonthRanges;
