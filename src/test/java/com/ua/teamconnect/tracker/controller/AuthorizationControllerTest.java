@@ -7,6 +7,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.Instant;
+import java.util.List;
 
 import static org.mockito.Mockito.when;
 
@@ -18,14 +19,19 @@ abstract class AuthorizationControllerTest {
     @MockitoBean
     private JwtDecoder jwtDecoder;
 
-    void setupValidToken(String subject) {
+    void setupValidToken(String subject, String role) {
         var jwt = Jwt.withTokenValue(VALID_TOKEN)
             .header("alg", "none")
             .subject(subject)
+            .claim("roles", List.of("ROLE_" + role))
             .issuedAt(Instant.now())
             .expiresAt(Instant.now().plusSeconds(3600))
             .build();
         when(jwtDecoder.decode(VALID_TOKEN)).thenReturn(jwt);
+    }
+
+    void setupValidToken(String subject) {
+        setupValidToken(subject, "ENGINEER");
     }
 
     void setupValidToken() {
