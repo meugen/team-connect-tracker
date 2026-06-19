@@ -16,6 +16,8 @@ public record HolidayDto(
     @Schema(description = "Date of the holiday", example = "2026-01-01")
     LocalDate date,
     @Schema(description = "Day of the week for the holiday", example = "THURSDAY")
-    DayOfWeek dayOfWeek
+    DayOfWeek dayOfWeek,
+    @Schema(description = "Is this holiday considered as a day off", example = "true")
+    boolean isDayOff
 ) {
 }
