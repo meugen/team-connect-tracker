@@ -462,9 +462,8 @@ class UserServiceTest {
     void findBirthdaysBetween_crossYearRange_queriesBothRanges() {
         when(userRepository.findUsersWithBirthdaysBetween(12, 20, 12, 31)).thenReturn(List.of());
         when(userRepository.findUsersWithBirthdaysBetween(1, 1, 1, 10)).thenReturn(List.of());
-        when(userRepository.findRoleByEmail("user@example.com")).thenReturn("FINANCE");
         
-        userService.findByBirthdaysBetween("user@example.com", "20-12", "10-01");
+        userService.findByBirthdaysBetween("EMPLOYEE", "20-12", "10-01");
         
         verify(userRepository, times(1)).findUsersWithBirthdaysBetween(12, 20, 12, 31);
         verify(userRepository, times(1)).findUsersWithBirthdaysBetween(1, 1, 1, 10);
@@ -477,10 +476,9 @@ class UserServiceTest {
         user.setBirthDate(LocalDate.of(1990, 6, 15));
 
         when(userRepository.findUsersWithBirthdaysBetween(6, 1, 6, 30)).thenReturn(List.of(user));
-        when(userRepository.findRoleByEmail(anyString())).thenReturn("ADMIN");
 
         var result = userService.findByBirthdaysBetween(
-            "user@example.com",
+            "ADMIN",
             "01-06",
             "30-06"
         );
@@ -494,7 +492,7 @@ class UserServiceTest {
         var exception = assertThrows(
             InvalidMonthDayException.class,
             () -> userService.findByBirthdaysBetween(
-                "user@example.com",
+                "EMPLOYEE",
                 "invalid",
                 "30-06"
             )
@@ -505,9 +503,8 @@ class UserServiceTest {
     @Test
     void findBirthdaysBetween_regularRange_queriesRepositoryOnce() {
         when(userRepository.findUsersWithBirthdaysBetween(6, 1, 6, 30)).thenReturn(List.of());
-        when(userRepository.findRoleByEmail("user@example.com")).thenReturn("FINANCE");
 
-        userService.findByBirthdaysBetween("user@example.com", "01-06", "30-06");
+        userService.findByBirthdaysBetween("EMPLOYEE", "01-06", "30-06");
 
         verify(userRepository, times(1)).findUsersWithBirthdaysBetween(6, 1, 6, 30);
     }
@@ -515,9 +512,8 @@ class UserServiceTest {
     @Test
     void findBirthdaysBetween_sameStartAndEndDate_queriesRepositoryOnce() {
         when(userRepository.findUsersWithBirthdaysBetween(6, 15, 6, 15)).thenReturn(List.of());
-        when(userRepository.findRoleByEmail("user@example.com")).thenReturn("FINANCE");
 
-        userService.findByBirthdaysBetween("user@example.com", "15-06", "15-06");
+        userService.findByBirthdaysBetween("EMPLOYEE", "15-06", "15-06");
 
         verify(userRepository, times(1)).findUsersWithBirthdaysBetween(6, 15, 6, 15);
     }

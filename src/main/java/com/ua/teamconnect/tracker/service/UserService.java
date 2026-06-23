@@ -149,7 +149,7 @@ public class UserService implements PageRequestService {
             .toList();
     }
     
-    public List<UserBirthdayDto> findByBirthdaysBetween(String email, String startDate, String endDate) {
+    public List<UserBirthdayDto> findByBirthdaysBetween(String role, String startDate, String endDate) {
         var users = toDayMonthRanges(startDate, endDate).stream()
                 .flatMap(pair -> userRepository.findUsersWithBirthdaysBetween(
                         pair.first().getMonthValue(),
@@ -158,7 +158,6 @@ public class UserService implements PageRequestService {
                         pair.second().getDayOfMonth()
                 ).stream())
                 .toList();
-        var role = userRepository.findRoleByEmail(email);
         return mapUserBirthday.toDto(users, role);
     }
 }

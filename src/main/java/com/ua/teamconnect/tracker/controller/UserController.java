@@ -98,6 +98,6 @@ public class UserController {
                                     example = "01-06") String startDate,
                     @RequestParam @Parameter(description = "End date in dd-MM format",
                                     example = "30-06") String endDate) {
-        return userService.findByBirthdaysBetween(jwt.getSubject(), startDate, endDate);
+        return userService.findByBirthdaysBetween(jwt.getClaimAsStringList("roles").get(0).replace("ROLE_", ""), startDate, endDate);
     }
 }

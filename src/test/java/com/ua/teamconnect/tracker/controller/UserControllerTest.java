@@ -832,7 +832,7 @@ class UserControllerTest extends AuthorizationControllerTest {
         setupUser(UserParams.builder()
                         .birthDate(LocalDate.of(1990, Month.JUNE, 15))
                         .build());
-        setupValidToken("user@example.com");
+        setupValidToken("user@example.com", ROLE_EMPLOYEE);
 
         buildClient(port).get()
             .uri("/users/birthdays?startDate=01-06&endDate=30-06")
@@ -855,7 +855,7 @@ class UserControllerTest extends AuthorizationControllerTest {
             .role(ROLE_ADMIN)
             .birthDate(LocalDate.of(1990, Month.JUNE, 15))
             .build());
-        setupValidToken("user@example.com");
+        setupValidToken("user@example.com", ROLE_ADMIN);
 
         buildClient(port).get()
             .uri("/users/birthdays?startDate=01-06&endDate=30-06")
@@ -869,7 +869,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     @Test
     void findBirthdays_invalidToken_isUnauthorized() {
         setupUser(UserParams.allDefaults());
-        setupValidToken("user@example.com");
+        setupValidToken("user@example.com", ROLE_ADMIN);
 
         var spec = buildClient(port).get()
             .uri("/users/birthdays?startDate=01-06&endDate=30-06")
@@ -882,7 +882,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     @Test
     void findBirthdays_invalidDate_isBadRequest() {
         setupUser(UserParams.allDefaults());
-        setupValidToken("user@example.com");
+        setupValidToken("user@example.com", ROLE_ADMIN);
 
         var spec = buildClient(port).get()
             .uri("/users/birthdays?startDate=bad&endDate=30-06")
