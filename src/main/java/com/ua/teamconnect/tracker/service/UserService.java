@@ -1,5 +1,6 @@
 package com.ua.teamconnect.tracker.service;
 
+import com.ua.teamconnect.tracker.mapper.MapUserBirthday;
 import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
@@ -11,7 +12,9 @@ import com.ua.teamconnect.tracker.repository.UserRepository;
 import com.ua.teamconnect.tracker.repository.specification.user.position.UserPositionSpecificationBuilder;
 import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
 import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileFactory;
-import com.ua.teamconnect.tracker.util.Pair;
+
+import static com.ua.teamconnect.tracker.util.DateUtil.toDayMonthRanges;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,14 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
-import java.time.Month;
-import java.time.MonthDay;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import static com.ua.teamconnect.tracker.util.DateUtil.toMonthDay;
 
 @Slf4j
 @Service
@@ -44,6 +44,7 @@ public class UserService implements PageRequestService {
     private final UserPositionMapper userPositionMapper;
     private final MediaFileRepository mediaFileRepository;
     private final DropboxStorageService dropboxStorageService;
+    private final MapUserBirthday mapUserBirthday;
 
     public UserProfile findProfile(String email) {
         var user = userRepository.findByEmail(email).orElseThrow(
@@ -53,7 +54,7 @@ public class UserService implements PageRequestService {
     }
 
     public List<UserDateDto> findAnniversariesBetween(String startDate, String endDate) {
-        var stream = toListOfDatesPair(startDate, endDate).stream()
+        var stream = toDayMonthRanges(startDate, endDate).stream()
             .flatMap(pair -> userRepository.findAnniversaries(
                     pair.first().getMonthValue(),
                     pair.first().getDayOfMonth(),
@@ -62,18 +63,6 @@ public class UserService implements PageRequestService {
                 ).stream()
             );
         return userDateMapper.projectionListTDtoList(stream.toList());
-    }
-
-    private static List<Pair<MonthDay, MonthDay>> toListOfDatesPair(String startDate, String endDate) {
-        var start = toMonthDay(startDate);
-        var end = toMonthDay(endDate);
-        if (start.equals(end) || start.isBefore(end)) {
-            return List.of(new Pair<>(start, end));
-        }
-        return List.of(
-            new Pair<>(start, MonthDay.of(Month.DECEMBER, 31)),
-            new Pair<>(MonthDay.of(Month.JANUARY, 1), end)
-        );
     }
 
     public UserProfile findUserById(String email, Integer userId) {
@@ -158,5 +147,17 @@ public class UserService implements PageRequestService {
         return userRepository.findByHireDate(startDate, endDate).stream()
             .map(userDateMapper::projectionToDto)
             .toList();
+    }
+    
+    public List<UserBirthdayDto> findByBirthdaysBetween(String role, String startDate, String endDate) {
+        var users = toDayMonthRanges(startDate, endDate).stream()
+                .flatMap(pair -> userRepository.findUsersWithBirthdaysBetween(
+                        pair.first().getMonthValue(),
+                        pair.first().getDayOfMonth(),
+                        pair.second().getMonthValue(),
+                        pair.second().getDayOfMonth()
+                ).stream())
+                .toList();
+        return mapUserBirthday.toDto(users, role);
     }
 }

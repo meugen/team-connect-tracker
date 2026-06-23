@@ -1,5 +1,7 @@
 package com.ua.teamconnect.tracker.service;
 
+import com.ua.teamconnect.tracker.mapper.MapUserBirthday;
+import com.ua.teamconnect.tracker.mapper.UserBirthdayMapper;
 import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
@@ -9,6 +11,7 @@ import com.ua.teamconnect.tracker.model.entity.MediaFile;
 import com.ua.teamconnect.tracker.model.entity.Position;
 import com.ua.teamconnect.tracker.model.entity.User;
 import com.ua.teamconnect.tracker.model.entity.projection.UserDate;
+import com.ua.teamconnect.tracker.model.exception.InvalidMonthDayException;
 import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
 import com.ua.teamconnect.tracker.repository.MediaFileRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
@@ -48,6 +51,7 @@ class UserServiceTest {
     private UserPositionRepository userPositionRepository;
     private MediaFileRepository mediaFileRepository;
     private DropboxStorageService dropboxStorageService;
+    private MapUserBirthday mapUserBirthday;
 
     @BeforeEach
     void setupService() {
@@ -59,6 +63,7 @@ class UserServiceTest {
         userPositionRepository = mock(UserPositionRepository.class);
         mediaFileRepository = mock(MediaFileRepository.class);
         dropboxStorageService = mock(DropboxStorageService.class);
+        mapUserBirthday = new MapUserBirthday(Mappers.getMapper(UserBirthdayMapper.class));
         userService = new UserService(
             userRepository,
             passwordEncoder,
@@ -72,7 +77,8 @@ class UserServiceTest {
             userPositionRepository,
             Mappers.getMapper(UserPositionMapper.class),
             mediaFileRepository,
-            dropboxStorageService
+            dropboxStorageService,
+            mapUserBirthday
         );
     }
 
@@ -450,5 +456,65 @@ class UserServiceTest {
         verify(mediaFileRepository).findByUrl("https://old-avatar.com");
         verify(dropboxStorageService).delete(oldAvatar.getDropboxPath());
         verify(mediaFileRepository).delete(oldAvatar);
+    }
+    
+    @Test
+    void findBirthdaysBetween_crossYearRange_queriesBothRanges() {
+        when(userRepository.findUsersWithBirthdaysBetween(12, 20, 12, 31)).thenReturn(List.of());
+        when(userRepository.findUsersWithBirthdaysBetween(1, 1, 1, 10)).thenReturn(List.of());
+        
+        userService.findByBirthdaysBetween("EMPLOYEE", "20-12", "10-01");
+        
+        verify(userRepository, times(1)).findUsersWithBirthdaysBetween(12, 20, 12, 31);
+        verify(userRepository, times(1)).findUsersWithBirthdaysBetween(1, 1, 1, 10);
+    }
+    
+    @Test
+    void findBirthdaysBetween_AdminUsers_returnsFullBirthDate() {
+        var user = new User();
+        user.setId(1);
+        user.setBirthDate(LocalDate.of(1990, 6, 15));
+
+        when(userRepository.findUsersWithBirthdaysBetween(6, 1, 6, 30)).thenReturn(List.of(user));
+
+        var result = userService.findByBirthdaysBetween(
+            "ADMIN",
+            "01-06",
+            "30-06"
+        );
+        
+        assertEquals(1, result.size());
+        assertEquals("15-06-1990", result.get(0).birthDate());
+    }
+    
+    @Test
+    void findBirthdaysBetween_invalidStartDate_throwsException() {
+        var exception = assertThrows(
+            InvalidMonthDayException.class,
+            () -> userService.findByBirthdaysBetween(
+                "EMPLOYEE",
+                "invalid",
+                "30-06"
+            )
+        );
+        assertEquals("Invalid month day: 'invalid'. Required format: dd-MM", exception.getReason());
+    }
+    
+    @Test
+    void findBirthdaysBetween_regularRange_queriesRepositoryOnce() {
+        when(userRepository.findUsersWithBirthdaysBetween(6, 1, 6, 30)).thenReturn(List.of());
+
+        userService.findByBirthdaysBetween("EMPLOYEE", "01-06", "30-06");
+
+        verify(userRepository, times(1)).findUsersWithBirthdaysBetween(6, 1, 6, 30);
+    }
+    
+    @Test
+    void findBirthdaysBetween_sameStartAndEndDate_queriesRepositoryOnce() {
+        when(userRepository.findUsersWithBirthdaysBetween(6, 15, 6, 15)).thenReturn(List.of());
+
+        userService.findByBirthdaysBetween("EMPLOYEE", "15-06", "15-06");
+
+        verify(userRepository, times(1)).findUsersWithBirthdaysBetween(6, 15, 6, 15);
     }
 }

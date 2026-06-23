@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -87,5 +88,16 @@ public class UserController {
     @ApiResponseOk
     public List<UserDateDto> findNewHires() {
         return userService.findNewHires();
+    }
+    
+    @GetMapping("/birthdays")
+    @ApiResponseOk
+    @ApiResponseBadRequest
+    public List<UserBirthdayDto> findBirthdays(@AuthenticationPrincipal Jwt jwt,
+                    @RequestParam @Parameter(description = "Start date in dd-MM format",
+                                    example = "01-06") String startDate,
+                    @RequestParam @Parameter(description = "End date in dd-MM format",
+                                    example = "30-06") String endDate) {
+        return userService.findByBirthdaysBetween(jwt.getClaimAsStringList("roles").get(0).replace("ROLE_", ""), startDate, endDate);
     }
 }
