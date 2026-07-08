@@ -1,11 +1,12 @@
 package com.ua.teamconnect.tracker.mapper;
 
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import org.springframework.stereotype.Component;
 import com.ua.teamconnect.tracker.model.dto.UserBirthdayDto;
 import com.ua.teamconnect.tracker.model.entity.User;
 import com.ua.teamconnect.tracker.model.pojo.UserRole;
+import org.springframework.stereotype.Component;
+
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Component
 public class MapUserBirthday {

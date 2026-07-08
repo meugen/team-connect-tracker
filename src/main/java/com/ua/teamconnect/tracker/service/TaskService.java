@@ -5,7 +5,6 @@ import com.ua.teamconnect.tracker.model.dto.TaskDto;
 import com.ua.teamconnect.tracker.model.dto.TaskRequestDto;
 import com.ua.teamconnect.tracker.model.entity.Task;
 import com.ua.teamconnect.tracker.repository.TaskRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

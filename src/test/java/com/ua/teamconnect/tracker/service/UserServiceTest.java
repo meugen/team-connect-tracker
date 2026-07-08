@@ -1,10 +1,6 @@
 package com.ua.teamconnect.tracker.service;
 
-import com.ua.teamconnect.tracker.mapper.MapUserBirthday;
-import com.ua.teamconnect.tracker.mapper.UserBirthdayMapper;
-import com.ua.teamconnect.tracker.mapper.UserDateMapper;
-import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
-import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
+import com.ua.teamconnect.tracker.mapper.*;
 import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.model.entity.Department;
 import com.ua.teamconnect.tracker.model.entity.MediaFile;

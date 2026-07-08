@@ -12,9 +12,6 @@ import com.ua.teamconnect.tracker.repository.UserRepository;
 import com.ua.teamconnect.tracker.repository.specification.user.position.UserPositionSpecificationBuilder;
 import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
 import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileFactory;
-
-import static com.ua.teamconnect.tracker.util.DateUtil.toDayMonthRanges;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,6 +25,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.ua.teamconnect.tracker.util.DateUtil.toDayMonthRanges;
 
 @Slf4j
 @Service
