@@ -6,12 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import static com.ua.teamconnect.tracker.repository.query.MonthDayQueryConditions.BIRTH_DATE_IN_RANGE;
-import static com.ua.teamconnect.tracker.repository.query.MonthDayQueryConditions.HIRE_DATE_IN_RANGE;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+
+import static com.ua.teamconnect.tracker.repository.query.MonthDayQueryConditions.BIRTH_DATE_IN_RANGE;
+import static com.ua.teamconnect.tracker.repository.query.MonthDayQueryConditions.HIRE_DATE_IN_RANGE;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {

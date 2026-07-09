@@ -1,9 +1,9 @@
 package com.ua.teamconnect.tracker.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import com.ua.teamconnect.tracker.model.dto.UserBirthdayDto;
 import com.ua.teamconnect.tracker.model.entity.User;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper
 public interface UserBirthdayMapper {

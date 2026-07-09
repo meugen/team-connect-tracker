@@ -52,4 +52,9 @@ public class MappersConfig {
     public UserBirthdayMapper userBirthdayMapper() {
         return Mappers.getMapper(UserBirthdayMapper.class);
     }
+
+    @Bean
+    public TaskMapper taskMapper() {
+        return Mappers.getMapper(TaskMapper.class);
+    }
 }
