@@ -4,7 +4,7 @@ import com.ua.teamconnect.tracker.mapper.TaskMapper;
 import com.ua.teamconnect.tracker.model.dto.TaskDto;
 import com.ua.teamconnect.tracker.model.dto.TaskRequestDto;
 import com.ua.teamconnect.tracker.model.entity.Task;
-import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
+import com.ua.teamconnect.tracker.model.exception.TaskNotFoundException;
 import com.ua.teamconnect.tracker.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class TaskService {
 
     public TaskDto update(Integer id, TaskRequestDto requestDto) {
         var entity = taskRepository.findById(id).orElseThrow(
-            () -> new UserNotFoundException(id)
+            () -> new TaskNotFoundException(id)
         );
         taskMapper.requestDtoToEntity(requestDto, entity);
         entity = taskRepository.save(entity);
