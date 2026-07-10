@@ -5,7 +5,7 @@ import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
-import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
+import com.ua.teamconnect.tracker.model.exception.NotFoundException;
 import com.ua.teamconnect.tracker.repository.MediaFileRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
@@ -47,7 +47,7 @@ public class UserService implements PageRequestService {
 
     public UserProfile findProfile(String email) {
         var user = userRepository.findByEmail(email).orElseThrow(
-            () -> new UserNotFoundException(email)
+            () -> NotFoundException.userByEmail(email)
         );
         return mapUserProfileFactory.full().entityToDto(user);
     }
@@ -67,14 +67,16 @@ public class UserService implements PageRequestService {
     public UserProfile findUserById(String email, Integer userId) {
         var role = userRepository.findRoleByEmail(email);
         var user = userRepository.findById(userId).orElseThrow(
-            () -> new UserNotFoundException(userId)
+            () -> NotFoundException.userById(userId)
         );
         return mapUserProfileFactory.byRole(role).entityToDto(user);
     }
 
     @Transactional
     public void updateProfile(String email, UserUpdateProfileDto dto) {
-        var user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
+        var user = userRepository.findByEmail(email).orElseThrow(
+            () -> NotFoundException.userByEmail(email)
+        );
         var oldAvatar = user.getAvatar();
 
         if (dto.avatar() != null && dto.avatar().isPresent()) {

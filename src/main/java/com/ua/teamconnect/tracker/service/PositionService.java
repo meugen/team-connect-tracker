@@ -3,7 +3,7 @@ package com.ua.teamconnect.tracker.service;
 import com.ua.teamconnect.tracker.mapper.PositionMapper;
 import com.ua.teamconnect.tracker.model.dto.PositionDto;
 import com.ua.teamconnect.tracker.model.entity.Position;
-import com.ua.teamconnect.tracker.model.exception.DepartmentNotFoundException;
+import com.ua.teamconnect.tracker.model.exception.NotFoundException;
 import com.ua.teamconnect.tracker.repository.DepartmentRepository;
 import com.ua.teamconnect.tracker.repository.PositionRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class PositionService {
 
     private List<Position> findAllByDepartmentId(Integer departmentId) {
         if (!departmentRepository.existsById(departmentId)) {
-            throw new DepartmentNotFoundException(departmentId);
+            throw NotFoundException.department(departmentId);
         }
         return positionRepository.findByDepartmentId(departmentId);
     }

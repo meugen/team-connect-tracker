@@ -7,7 +7,7 @@ import com.ua.teamconnect.tracker.model.dto.HolidayRequestDto;
 import com.ua.teamconnect.tracker.model.dto.api.calendarific.HolidaysList;
 import com.ua.teamconnect.tracker.model.entity.Holiday;
 import com.ua.teamconnect.tracker.model.exception.DuplicateHolidayException;
-import com.ua.teamconnect.tracker.model.exception.HolidayNotFoundException;
+import com.ua.teamconnect.tracker.model.exception.NotFoundException;
 import com.ua.teamconnect.tracker.repository.HolidayRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -91,7 +91,7 @@ public class HolidayService {
 
     public HolidayDto update(String holidayId, HolidayRequestDto dto) {
         var holiday = holidayRepository.findById(holidayId).orElseThrow(
-            () -> new HolidayNotFoundException(holidayId)
+            () -> NotFoundException.holiday(holidayId)
         );
         if (holidayRepository.existsByNameAndDateAndIdNot(dto.name(), dto.date(), holidayId)) {
             throw new DuplicateHolidayException();

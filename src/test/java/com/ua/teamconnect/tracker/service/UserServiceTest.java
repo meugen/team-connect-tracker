@@ -8,7 +8,7 @@ import com.ua.teamconnect.tracker.model.entity.Position;
 import com.ua.teamconnect.tracker.model.entity.User;
 import com.ua.teamconnect.tracker.model.entity.projection.UserDate;
 import com.ua.teamconnect.tracker.model.exception.InvalidMonthDayException;
-import com.ua.teamconnect.tracker.model.exception.UserNotFoundException;
+import com.ua.teamconnect.tracker.model.exception.NotFoundException;
 import com.ua.teamconnect.tracker.repository.MediaFileRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
@@ -94,7 +94,7 @@ class UserServiceTest {
     void findProfile_repositoryReturnsEmpty_throwsException() {
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> userService.findProfile("user@example.com"));
+        assertThrows(NotFoundException.class, () -> userService.findProfile("user@example.com"));
     }
 
     @Test
@@ -300,7 +300,7 @@ class UserServiceTest {
         when(userRepository.findRoleByEmail("user@example.com")).thenReturn("EMPLOYEE");
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> userService.findUserById("user@example.com", userId));
+        assertThrows(NotFoundException.class, () -> userService.findUserById("user@example.com", userId));
     }
 
     @Test
@@ -353,7 +353,7 @@ class UserServiceTest {
         var dto = mock(UserUpdateProfileDto.class);
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
-        assertThrows(UserNotFoundException.class, () -> userService.updateProfile(email, dto));
+        assertThrows(NotFoundException.class, () -> userService.updateProfile(email, dto));
 
         verify(userRepository, never()).save(any());
     }
