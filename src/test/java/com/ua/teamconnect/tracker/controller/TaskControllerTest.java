@@ -57,7 +57,7 @@ class TaskControllerTest extends AuthorizationControllerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"ENGINEER", "FINANCE"})
-    void create_invalidRole_isOk(String role) {
+    void create_invalidRole_isForbidden(String role) {
         setupValidToken("user@example.com", role);
 
         var body = """
@@ -73,6 +73,30 @@ class TaskControllerTest extends AuthorizationControllerTest {
             .bodyValue(body)
             .exchange()
             .expectStatus().isForbidden();
+    }
+
+    @Test
+    void create_duplicateTaskName_isBadRequest() {
+        setupValidToken("user@example.com", "HR");
+
+        var task = new Task();
+        task.setName("The task");
+        task.setDescription("Implement something useful");
+        taskRepository.save(task);
+
+        var body = """
+            {
+              "name": "The task",
+              "description": "Implement something other but still useful"
+            }
+            """;
+        var spec = buildClient(port).post()
+            .uri("/tasks")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange();
+        validateBadRequest(spec);
     }
 
     @Test
@@ -199,6 +223,31 @@ class TaskControllerTest extends AuthorizationControllerTest {
             .bodyValue(body)
             .exchange()
             .expectStatus().isForbidden();
+    }
+
+    @Test
+    void update_duplicateTaskName_isBadRequest() {
+        setupValidToken("user@example.com", "HR");
+        var id = createTaskToEdit();
+
+        var task = new Task();
+        task.setName("Another task");
+        task.setDescription("Implement something else");
+        taskRepository.save(task);
+
+        var body = """
+            {
+              "name": "Another task",
+              "description": "Updated description"
+            }
+            """;
+        var spec = buildClient(port).put()
+            .uri("/tasks/" + id)
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .exchange();
+        validateBadRequest(spec);
     }
 
     @Test

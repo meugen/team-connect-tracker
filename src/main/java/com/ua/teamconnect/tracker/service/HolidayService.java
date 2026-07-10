@@ -6,7 +6,7 @@ import com.ua.teamconnect.tracker.model.dto.HolidayDto;
 import com.ua.teamconnect.tracker.model.dto.HolidayRequestDto;
 import com.ua.teamconnect.tracker.model.dto.api.calendarific.HolidaysList;
 import com.ua.teamconnect.tracker.model.entity.Holiday;
-import com.ua.teamconnect.tracker.model.exception.DuplicateHolidayException;
+import com.ua.teamconnect.tracker.model.exception.DuplicateException;
 import com.ua.teamconnect.tracker.model.exception.NotFoundException;
 import com.ua.teamconnect.tracker.repository.HolidayRepository;
 import lombok.RequiredArgsConstructor;
@@ -82,7 +82,7 @@ public class HolidayService {
         var holiday = new Holiday();
         holiday.setId(UUID.randomUUID().toString());
         if (holidayRepository.existsByNameAndDate(dto.name(), dto.date())) {
-            throw new DuplicateHolidayException();
+            throw DuplicateException.holiday();
         }
         holidayMapper.dtoToEntity(dto, holiday);
         var savedHoliday = holidayRepository.save(holiday);
@@ -94,7 +94,7 @@ public class HolidayService {
             () -> NotFoundException.holiday(holidayId)
         );
         if (holidayRepository.existsByNameAndDateAndIdNot(dto.name(), dto.date(), holidayId)) {
-            throw new DuplicateHolidayException();
+            throw DuplicateException.holiday();
         }
         holidayMapper.dtoToEntity(dto, holiday);
         var savedHoliday = holidayRepository.save(holiday);
