@@ -5,10 +5,14 @@ import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.model.entity.Department;
 import com.ua.teamconnect.tracker.model.entity.MediaFile;
 import com.ua.teamconnect.tracker.model.entity.Position;
+import com.ua.teamconnect.tracker.model.entity.Project;
 import com.ua.teamconnect.tracker.model.entity.User;
+import com.ua.teamconnect.tracker.model.entity.UserProject;
 import com.ua.teamconnect.tracker.model.entity.projection.UserDate;
+import com.ua.teamconnect.tracker.model.exception.DuplicateRequestProjectsException;
 import com.ua.teamconnect.tracker.model.exception.InvalidMonthDayException;
 import com.ua.teamconnect.tracker.model.exception.NotFoundException;
+import com.ua.teamconnect.tracker.model.exception.ProjectNotFoundException;
 import com.ua.teamconnect.tracker.repository.MediaFileRepository;
 import com.ua.teamconnect.tracker.repository.ProjectRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
@@ -21,16 +25,19 @@ import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileStr
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
+import org.mockito.ArgumentCaptor;
 import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-
+import java.util.Set;
+import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -520,5 +527,155 @@ class UserServiceTest {
         userService.findByBirthdaysBetween("EMPLOYEE", "15-06", "15-06");
 
         verify(userRepository, times(1)).findUsersWithBirthdaysBetween(6, 15, 6, 15);
+    }
+    
+    @SuppressWarnings("unchecked")
+    void assignProject_validProjects_savesNewAssignments() {
+        var userId = 1;
+        var user = new User();
+        user.setId(userId);
+        var project1 = new Project();
+        project1.setId(10);
+        var project2 = new Project();
+        project2.setId(20);
+
+        when(projectRepository.findAllById(List.of(10, 20)))
+            .thenReturn(List.of(project1, project2));
+        when(userRepository.findById(userId))
+            .thenReturn(Optional.of(user));
+        when(userProjectRepository.findProjectIdsByUserId(userId))
+            .thenReturn(Set.of());
+
+        userService.assignProject(userId, List.of(10, 20));
+
+        var captor = ArgumentCaptor.forClass(Iterable.class);
+        verify(userProjectRepository).saveAll(captor.capture());
+        var assignments = new ArrayList<UserProject>();
+        ((Iterable<UserProject>) captor.getValue()).forEach(assignments::add);
+
+        assertEquals(2, assignments.size());
+        assertEquals(Set.of(10, 20), assignments.stream()
+            .map(it -> it.getProject().getId())
+            .collect(Collectors.toSet()));
+        assertTrue(assignments.stream()
+            .allMatch(it -> it.getUser().equals(user)));
+        assertTrue(assignments.stream()
+            .allMatch(it -> it.getStartDate().equals(LocalDate.now())));
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Test
+    void assignProject_projectAlreadyAssigned_doesNotSaveDuplicate() {
+        var userId = 1;
+        var user = new User();
+        user.setId(userId);
+        var assignedProject = new Project();
+        assignedProject.setId(10);
+        var newProject = new Project();
+        newProject.setId(20);
+
+        when(projectRepository.findAllById(List.of(10, 20)))
+            .thenReturn(List.of(assignedProject, newProject));
+        when(userRepository.findById(userId))
+            .thenReturn(Optional.of(user));
+        when(userProjectRepository.findProjectIdsByUserId(userId))
+            .thenReturn(Set.of(10));
+
+        userService.assignProject(userId, List.of(10, 20));
+
+        var captor = ArgumentCaptor.forClass(Iterable.class);
+
+        verify(userProjectRepository).saveAll(captor.capture());
+
+        var assignments = new ArrayList<UserProject>();
+        ((Iterable<UserProject>) captor.getValue()).forEach(assignments::add);
+
+        assertEquals(1, assignments.size());
+        assertEquals(20, assignments.get(0).getProject().getId());
+    }
+    
+    @Test
+    void assignProject_allProjectsAlreadyAssigned_savesEmptyCollection() {
+        var userId = 1;
+        var user = new User();
+        user.setId(userId);
+        var project = new Project();
+        project.setId(10);
+
+        when(projectRepository.findAllById(List.of(10)))
+            .thenReturn(List.of(project));
+        when(userRepository.findById(userId))
+            .thenReturn(Optional.of(user));
+        when(userProjectRepository.findProjectIdsByUserId(userId))
+            .thenReturn(Set.of(10));
+
+        userService.assignProject(userId, List.of(10));
+
+        verify(userProjectRepository).saveAll(argThat(assignments ->
+            !assignments.iterator().hasNext()
+        ));
+    }
+    
+    @Test
+    void assignProject_duplicateProjectId_throwsException() {
+        var exception = assertThrows(
+            DuplicateRequestProjectsException.class,
+            () -> userService.assignProject(1, List.of(10, 10))
+        );
+
+        assertEquals(
+            "Duplicate project id in request: 10",
+            exception.getMessage()
+        );
+
+        verifyNoInteractions(projectRepository);
+        verifyNoInteractions(userRepository);
+        verifyNoInteractions(userProjectRepository);
+    }
+    
+    @Test
+    void assignProject_projectDoesNotExist_throwsException() {
+        when(projectRepository.findAllById(List.of(10, 20)))
+            .thenReturn(List.of(createProject(10)));
+
+        var exception = assertThrows(
+            ProjectNotFoundException.class,
+            () -> userService.assignProject(1, List.of(10, 20))
+        );
+
+        assertEquals(
+            "One or more projects do not exist",
+            exception.getMessage()
+        );
+
+        verify(userRepository, never()).findById(any());
+        verify(userProjectRepository, never()).findProjectIdsByUserId(any());
+        verify(userProjectRepository, never()).saveAll(any());
+    }
+    
+    private Project createProject(Integer id) {
+        var project = new Project();
+        project.setId(id);
+        return project;
+    }
+    
+    @Test
+    void assignProject_userDoesNotExist_throwsException() {
+        var project = new Project();
+        project.setId(10);
+
+        when(projectRepository.findAllById(List.of(10)))
+            .thenReturn(List.of(project));
+
+        when(userRepository.findById(1))
+            .thenReturn(Optional.empty());
+
+        assertThrows(
+            NotFoundException.class,
+            () -> userService.assignProject(1, List.of(10))
+        );
+
+        verify(userProjectRepository, never()).findProjectIdsByUserId(any());
+        verify(userProjectRepository, never()).saveAll(any());
     }
 }
