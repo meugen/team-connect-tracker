@@ -6,8 +6,13 @@ import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
 import com.ua.teamconnect.tracker.model.exception.NotFoundException;
+import com.ua.teamconnect.tracker.model.entity.UserProject;
+import com.ua.teamconnect.tracker.model.exception.DuplicateRequestProjectsException;
+import com.ua.teamconnect.tracker.model.exception.ProjectNotFoundException;
 import com.ua.teamconnect.tracker.repository.MediaFileRepository;
+import com.ua.teamconnect.tracker.repository.ProjectRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
+import com.ua.teamconnect.tracker.repository.UserProjectRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
 import com.ua.teamconnect.tracker.repository.specification.user.position.UserPositionSpecificationBuilder;
 import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
@@ -20,11 +25,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.ua.teamconnect.tracker.util.DateUtil.toDayMonthRanges;
 
@@ -44,6 +51,8 @@ public class UserService implements PageRequestService {
     private final MediaFileRepository mediaFileRepository;
     private final DropboxStorageService dropboxStorageService;
     private final MapUserBirthday mapUserBirthday;
+    private final UserProjectRepository userProjectRepository;
+    private final ProjectRepository projectRepository;
 
     public UserProfile findProfile(String email) {
         var user = userRepository.findByEmail(email).orElseThrow(
@@ -160,5 +169,35 @@ public class UserService implements PageRequestService {
                 ).stream())
                 .toList();
         return mapUserBirthday.toDto(users, role);
+    }
+    
+    @Transactional
+    public void assignProject(Integer userId, List<Integer> projectIds) {
+        vaidateNoDuplicate(projectIds);
+        
+        var projects = StreamSupport.stream(projectRepository.findAllById(projectIds).spliterator(), false).toList();
+        if (projects.size() != projectIds.size()) {
+            throw new ProjectNotFoundException();
+        }
+       var user = userRepository.findById(userId).orElseThrow(() -> NotFoundException.userById(userId));
+       var assignProjectIds = userProjectRepository.findProjectIdsByUserId(userId);
+       
+       var newAssignments = projects.stream()
+           .filter(project -> !assignProjectIds.contains(project.getId()))
+           .map(project -> {
+               var userProject = UserProject.of(user, project);
+               userProject.setStartDate(LocalDate.now());
+               return userProject;
+           }).toList();
+      userProjectRepository.saveAll(newAssignments);
+    }
+    
+    private void vaidateNoDuplicate(List<Integer> projectIds) {
+        var uniqueProjectIds = new HashSet<Integer>();
+        for (var projectId : projectIds) {
+            if (!uniqueProjectIds.add(projectId)) {
+                throw new DuplicateRequestProjectsException(projectId);
+            }
+        }
     }
 }

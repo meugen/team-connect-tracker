@@ -10,7 +10,9 @@ import com.ua.teamconnect.tracker.model.entity.projection.UserDate;
 import com.ua.teamconnect.tracker.model.exception.InvalidMonthDayException;
 import com.ua.teamconnect.tracker.model.exception.NotFoundException;
 import com.ua.teamconnect.tracker.repository.MediaFileRepository;
+import com.ua.teamconnect.tracker.repository.ProjectRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
+import com.ua.teamconnect.tracker.repository.UserProjectRepository;
 import com.ua.teamconnect.tracker.repository.UserRepository;
 import com.ua.teamconnect.tracker.repository.specification.user.position.UserPositionSpecificationBuilder;
 import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
@@ -48,6 +50,8 @@ class UserServiceTest {
     private MediaFileRepository mediaFileRepository;
     private DropboxStorageService dropboxStorageService;
     private MapUserBirthday mapUserBirthday;
+    private UserProjectRepository userProjectRepository;
+    private ProjectRepository projectRepository;
 
     @BeforeEach
     void setupService() {
@@ -59,6 +63,8 @@ class UserServiceTest {
         userPositionRepository = mock(UserPositionRepository.class);
         mediaFileRepository = mock(MediaFileRepository.class);
         dropboxStorageService = mock(DropboxStorageService.class);
+        userProjectRepository = mock(UserProjectRepository.class);
+        projectRepository = mock(ProjectRepository.class);
         mapUserBirthday = new MapUserBirthday(Mappers.getMapper(UserBirthdayMapper.class));
         userService = new UserService(
             userRepository,
@@ -74,7 +80,9 @@ class UserServiceTest {
             Mappers.getMapper(UserPositionMapper.class),
             mediaFileRepository,
             dropboxStorageService,
-            mapUserBirthday
+            mapUserBirthday,
+            userProjectRepository,
+            projectRepository
         );
     }
 

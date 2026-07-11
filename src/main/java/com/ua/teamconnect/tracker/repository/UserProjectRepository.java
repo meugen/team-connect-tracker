@@ -2,8 +2,8 @@ package com.ua.teamconnect.tracker.repository;
 
 import com.ua.teamconnect.tracker.model.entity.UserProject;
 import com.ua.teamconnect.tracker.model.entity.id.UserProjectId;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 @Repository
-public interface UserProjectRepository extends CrudRepository<UserProject, UserProjectId> {
+public interface UserProjectRepository extends JpaRepository<UserProject, UserProjectId> {
 
     @Query("""
     select up from UserProject up join fetch up.project where up.id.userId=:userId
@@ -36,4 +36,9 @@ public interface UserProjectRepository extends CrudRepository<UserProject, UserP
         and up.startDate <= :now and (up.endDate is null or :now < up.endDate)
     """)
     Set<Integer> findProjectIdsByUserIdAndNow(Integer userId, LocalDate now);
+    
+    @Query("""
+    select up.project.id from UserProject up where up.user.id = :userId
+    """)
+    Set<Integer> findProjectIdsByUserId(Integer userId);
 }
