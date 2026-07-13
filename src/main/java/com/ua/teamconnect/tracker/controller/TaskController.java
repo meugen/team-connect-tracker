@@ -7,10 +7,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "/tasks", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -21,8 +19,16 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('PM', 'HR', 'ADMIN')")
     @Tag(name = "Create Task", description = "Creates a new task")
     public TaskDto create(@RequestBody @Valid TaskRequestDto requestDto) {
         return taskService.create(requestDto);
+    }
+
+    @PutMapping(path = "/{id}")
+    @PreAuthorize("hasAnyRole('PM', 'HR', 'ADMIN')")
+    @Tag(name = "Update Task", description = "Updates an existing task by ID")
+    public TaskDto update(@PathVariable Integer id, @RequestBody @Valid TaskRequestDto requestDto) {
+        return taskService.update(id, requestDto);
     }
 }

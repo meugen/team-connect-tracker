@@ -3,7 +3,7 @@ package com.ua.teamconnect.tracker.service;
 import com.ua.teamconnect.tracker.mapper.PositionMapper;
 import com.ua.teamconnect.tracker.model.dto.PositionDto;
 import com.ua.teamconnect.tracker.model.entity.Position;
-import com.ua.teamconnect.tracker.model.exception.DepartmentNotFoundException;
+import com.ua.teamconnect.tracker.model.exception.NotFoundException;
 import com.ua.teamconnect.tracker.repository.DepartmentRepository;
 import com.ua.teamconnect.tracker.repository.PositionRepository;
 import org.junit.jupiter.api.BeforeAll;
@@ -71,7 +71,7 @@ class PositionServiceTest {
     @Test
     void findAll_departmentIdIsNotNullAndNotExists_thrownException() {
         prepareMocks(false);
-        assertThrows(DepartmentNotFoundException.class,
+        assertThrows(NotFoundException.class,
             () -> positionService.findAll(1));
     }
 
