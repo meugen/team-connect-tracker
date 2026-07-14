@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.openapitools.jackson.nullable.JsonNullable;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
@@ -643,11 +644,9 @@ class UserServiceTest {
             () -> userService.assignProject(1, List.of(10, 20))
         );
 
-        assertEquals(
-            "One or more projects do not exist",
-            exception.getMessage()
-        );
-
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertEquals("projects do not exist", exception.getReason());
+        
         verify(userRepository, never()).findById(any());
         verify(userProjectRepository, never()).findProjectIdsByUserId(any());
         verify(userProjectRepository, never()).saveAll(any());

@@ -1023,7 +1023,7 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
     
     @Test
-    void assignProjects_projectNotFound_isBadRequest() {
+    void assignProjects_projectNotFound_isNotFound() {
         var userData = setupUser(UserParams.allDefaults());
         setupValidToken("user@example.com", ROLE_ADMIN);
 
@@ -1040,6 +1040,6 @@ class UserControllerTest extends AuthorizationControllerTest {
                 """.formatted(nonExistingProjectId))
             .exchange();
 
-        validateBadRequest(spec);
+        validateNotFound(spec);
     }
 }
