@@ -19,4 +19,12 @@ public interface UserProjectRepository extends CrudRepository<UserProject, UserP
         and up.startDate <= :now and (up.endDate is null or :now < up.endDate)
     """)
     List<UserProject> findByUserIdAndNow(Integer userId, LocalDate now);
+
+    @Query("""
+    select count(up) > 0 from UserProject up where up.id=:id
+        and up.id.projectId in (select p.id from Project p where p.startDate <= :now
+            and (p.endDate is null or :now < p.endDate))
+        and up.startDate <= :now and (up.endDate is null or :now < up.endDate)
+    """)
+    boolean existsByIdAndNow(UserProjectId id, LocalDate now);
 }
