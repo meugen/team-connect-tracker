@@ -25,6 +25,10 @@ public class NotFoundException extends ResponseStatusException {
         return new NotFoundException("User with email %s is not found".formatted(email));
     }
 
+    public static NotFoundException project(Integer id) {
+        return new NotFoundException("Project with ID %d not found".formatted(id));
+    }
+
     private NotFoundException(String message) {
         super(HttpStatus.NOT_FOUND, message);
     }
