@@ -12,7 +12,6 @@ import com.ua.teamconnect.tracker.model.entity.projection.UserDate;
 import com.ua.teamconnect.tracker.model.exception.DuplicateRequestProjectsException;
 import com.ua.teamconnect.tracker.model.exception.InvalidMonthDayException;
 import com.ua.teamconnect.tracker.model.exception.NotFoundException;
-import com.ua.teamconnect.tracker.model.exception.ProjectNotFoundException;
 import com.ua.teamconnect.tracker.repository.MediaFileRepository;
 import com.ua.teamconnect.tracker.repository.ProjectRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
@@ -640,12 +639,12 @@ class UserServiceTest {
             .thenReturn(List.of(createProject(10)));
 
         var exception = assertThrows(
-            ProjectNotFoundException.class,
+            NotFoundException.class,
             () -> userService.assignProject(1, List.of(10, 20))
         );
 
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
-        assertEquals("projects do not exist", exception.getReason());
+        assertEquals( "Projects with IDs [20] not found", exception.getReason());
         
         verify(userRepository, never()).findById(any());
         verify(userProjectRepository, never()).findProjectIdsByUserId(any());

@@ -5,10 +5,10 @@ import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
-import com.ua.teamconnect.tracker.model.exception.NotFoundException;
-import com.ua.teamconnect.tracker.model.entity.UserProject;
 import com.ua.teamconnect.tracker.model.exception.DuplicateRequestProjectsException;
-import com.ua.teamconnect.tracker.model.exception.ProjectNotFoundException;
+import com.ua.teamconnect.tracker.model.exception.NotFoundException;
+import com.ua.teamconnect.tracker.model.entity.Project;
+import com.ua.teamconnect.tracker.model.entity.UserProject;
 import com.ua.teamconnect.tracker.repository.MediaFileRepository;
 import com.ua.teamconnect.tracker.repository.ProjectRepository;
 import com.ua.teamconnect.tracker.repository.UserPositionRepository;
@@ -172,11 +172,18 @@ public class UserService implements PageRequestService {
     
     @Transactional
     public void assignProject(Integer userId, List<Integer> projectIds) {
-        vaidateNoDuplicate(projectIds);
+        validateNoDuplicate(projectIds);
         var projects = projectRepository.findAllById(projectIds);
-        if (projects.size() != projectIds.size()) {
-            throw new ProjectNotFoundException();
+        var existingProjectIds = projects.stream()
+            .map(Project::getId)
+            .collect(Collectors.toSet());
+        var missingProjectIds = projectIds.stream()
+            .filter(projectId -> !existingProjectIds.contains(projectId))
+            .toList();
+        if (!missingProjectIds.isEmpty()) {
+            throw NotFoundException.projects(missingProjectIds);
         }
+        
        var user = userRepository.findById(userId).orElseThrow(() -> NotFoundException.userById(userId));
        var assignProjectIds = userProjectRepository.findProjectIdsByUserId(userId);
        
@@ -190,7 +197,7 @@ public class UserService implements PageRequestService {
       userProjectRepository.saveAll(newAssignments);
     }
     
-    private void vaidateNoDuplicate(List<Integer> projectIds) {
+    private void validateNoDuplicate(List<Integer> projectIds) {
         var uniqueProjectIds = new HashSet<Integer>();
         for (var projectId : projectIds) {
             if (!uniqueProjectIds.add(projectId)) {
