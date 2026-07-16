@@ -57,4 +57,9 @@ public class MappersConfig {
     public TaskMapper taskMapper() {
         return Mappers.getMapper(TaskMapper.class);
     }
+
+    @Bean
+    public ProjectMapper projectMapper() {
+        return Mappers.getMapper(ProjectMapper.class);
+    }
 }
