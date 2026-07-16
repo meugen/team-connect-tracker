@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -98,5 +99,14 @@ public class UserController {
                     @RequestParam @Parameter(description = "End date in dd-MM format",
                                     example = "30-06") String endDate) {
         return userService.findByBirthdaysBetween(jwt.getClaimAsStringList("roles").get(0).replace("ROLE_", ""), startDate, endDate);
+    }
+    
+    @ApiResponseNoContent
+    @ApiResponseBadRequest
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PostMapping("/{userId}/projects")
+    @PreAuthorize("hasAnyRole('PM', 'HR', 'ADMIN')")
+    public void assignProjects(@PathVariable Integer userId, @Valid @RequestBody UserProjectRequestDto requestDto) {
+        userService.assignProject(userId, requestDto.projectIds());
     }
 }
