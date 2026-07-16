@@ -658,4 +658,114 @@ class UserServiceTest {
         verify(userProjectRepository, never()).findProjectIdsByUserId(any());
         verify(userProjectRepository, never()).saveAll(any());
     }
+    
+    @Test
+    void deleteProjects_assignedProjects_setsEndDateAndSaves() {
+        var userId = 1;
+        var projectIds = Set.of(10, 20);
+
+        var user = new User();
+        user.setId(userId);
+
+        var project1 = createProject(10);
+        var project2 = createProject(20);
+
+        var assignment1 = new UserProject();
+        assignment1.setProject(project1);
+        var assignment2 = new UserProject();
+        assignment2.setProject(project2);
+
+        when(projectRepository.findAllById(projectIds))
+            .thenReturn(List.of(project1, project2));
+        when(userRepository.findById(userId))
+            .thenReturn(Optional.of(user));
+        when(userProjectRepository.findActiveByUserIdAndProjectIds(
+            eq(userId),
+            eq(projectIds),
+            any(LocalDate.class)
+        )).thenReturn(List.of(assignment1, assignment2));
+
+        userService.deleteProjects(userId, projectIds);
+
+        assertEquals(LocalDate.now(), assignment1.getEndDate());
+        assertEquals(LocalDate.now(), assignment2.getEndDate());
+
+        verify(userProjectRepository)
+            .saveAll(List.of(assignment1, assignment2));
+    }
+    
+    @Test
+    void deleteProjects_projectsNotAssigned_savesEmptyCollection() {
+        var userId = 1;
+        var projectIds = Set.of(10);
+
+        var user = new User();
+        user.setId(userId);
+
+        var project = createProject(10);
+
+        when(projectRepository.findAllById(projectIds))
+            .thenReturn(List.of(project));
+
+        when(userRepository.findById(userId))
+            .thenReturn(Optional.of(user));
+
+        when(userProjectRepository.findActiveByUserIdAndProjectIds(
+            eq(userId),
+            eq(projectIds),
+            any(LocalDate.class)
+        )).thenReturn(List.of());
+
+        userService.deleteProjects(userId, projectIds);
+
+        verify(userProjectRepository).saveAll(argThat(assignments ->
+            !assignments.iterator().hasNext()
+        ));
+    }
+    
+    @Test
+    void deleteProjects_projectDoesNotExist_throwsException() {
+        var projectIds = Set.of(10, 20);
+
+        when(projectRepository.findAllById(projectIds))
+            .thenReturn(List.of(createProject(10)));
+
+        var exception = assertThrows(
+            NotFoundException.class,
+            () -> userService.deleteProjects(1, projectIds)
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertEquals(
+            "Projects with IDs [20] not found",
+            exception.getReason()
+        );
+
+        verify(userRepository, never()).findById(any());
+        verify(userProjectRepository, never())
+            .findActiveByUserIdAndProjectIds(any(), any(), any());
+        verify(userProjectRepository, never()).saveAll(any());
+    }
+    
+    @Test
+    void deleteProjects_userDoesNotExist_throwsException() {
+        var userId = 1;
+        var projectIds = Set.of(10);
+        var project = createProject(10);
+
+        when(projectRepository.findAllById(projectIds))
+            .thenReturn(List.of(project));
+
+        when(userRepository.findById(userId))
+            .thenReturn(Optional.empty());
+
+        assertThrows(
+            NotFoundException.class,
+            () -> userService.deleteProjects(userId, projectIds)
+        );
+
+        verify(userProjectRepository, never())
+            .findActiveByUserIdAndProjectIds(any(), any(), any());
+        verify(userProjectRepository, never()).saveAll(any());
+    }
 }

@@ -170,6 +170,32 @@ public class UserService implements PageRequestService {
     
     @Transactional
     public void assignProject(Integer userId, Set<Integer> projectIds) {
+        var projects = validProjects(projectIds);
+
+        var user = userRepository.findById(userId).orElseThrow(() -> NotFoundException.userById(userId));
+        var assignProjectIds = userProjectRepository.findProjectIdsByUserId(userId);
+       
+        var newAssignments = projects.stream()
+           .filter(project -> !assignProjectIds.contains(project.getId()))
+           .map(project -> {
+               var userProject = UserProject.of(user, project);
+               userProject.setStartDate(LocalDate.now());
+               return userProject;
+           }).toList();
+       userProjectRepository.saveAll(newAssignments);
+    }
+    
+    @Transactional
+    public void deleteProjects(Integer userId, Set<Integer> projectIds) {
+        validProjects(projectIds);
+        userRepository.findById(userId).orElseThrow(() -> NotFoundException.userById(userId));
+        var now = LocalDate.now();
+        var assignments = userProjectRepository.findActiveByUserIdAndProjectIds(userId, projectIds, now);
+        assignments.forEach(assignment -> assignment.setEndDate(now));
+        userProjectRepository.saveAll(assignments);
+    }
+    
+    private List<Project> validProjects(Set<Integer> projectIds) {
         var projects = projectRepository.findAllById(projectIds);
         var existingProjectIds = projects.stream()
             .map(Project::getId)
@@ -180,18 +206,7 @@ public class UserService implements PageRequestService {
         if (!missingProjectIds.isEmpty()) {
             throw NotFoundException.projects(missingProjectIds);
         }
-        
-       var user = userRepository.findById(userId).orElseThrow(() -> NotFoundException.userById(userId));
-       var assignProjectIds = userProjectRepository.findProjectIdsByUserId(userId);
-       
-       var newAssignments = projects.stream()
-           .filter(project -> !assignProjectIds.contains(project.getId()))
-           .map(project -> {
-               var userProject = UserProject.of(user, project);
-               userProject.setStartDate(LocalDate.now());
-               return userProject;
-           }).toList();
-      userProjectRepository.saveAll(newAssignments);
+        return projects;
     }
     
 }

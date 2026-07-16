@@ -41,4 +41,12 @@ public interface UserProjectRepository extends JpaRepository<UserProject, UserPr
     select up.project.id from UserProject up where up.user.id = :userId
     """)
     Set<Integer> findProjectIdsByUserId(Integer userId);
+    
+    @Query("""
+    select up from UserProject up where up.user.id = :userId 
+        and up.project.id in :projectIds 
+        and up.startDate <= :now 
+        and (up.endDate is null or :now < up.endDate)
+    """)
+    List<UserProject> findActiveByUserIdAndProjectIds(Integer userId, Set<Integer> projectIds, LocalDate now);
 }
