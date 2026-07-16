@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface UserProjectRepository extends CrudRepository<UserProject, UserProjectId> {
@@ -27,4 +28,12 @@ public interface UserProjectRepository extends CrudRepository<UserProject, UserP
         and up.startDate <= :now and (up.endDate is null or :now < up.endDate)
     """)
     boolean existsByIdAndNow(UserProjectId id, LocalDate now);
+
+    @Query("""
+    select distinct up.id.projectId from UserProject up where up.id.userId=:userId
+        and up.id.projectId in (select p.id from Project p where p.startDate <= :now
+            and (p.endDate is null or :now < p.endDate))
+        and up.startDate <= :now and (up.endDate is null or :now < up.endDate)
+    """)
+    Set<Integer> findProjectIdsByUserIdAndNow(Integer userId, LocalDate now);
 }
