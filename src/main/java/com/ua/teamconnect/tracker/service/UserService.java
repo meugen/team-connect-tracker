@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static com.ua.teamconnect.tracker.util.DateUtil.toDayMonthRanges;
 
@@ -174,8 +173,7 @@ public class UserService implements PageRequestService {
     @Transactional
     public void assignProject(Integer userId, List<Integer> projectIds) {
         vaidateNoDuplicate(projectIds);
-        
-        var projects = StreamSupport.stream(projectRepository.findAllById(projectIds).spliterator(), false).toList();
+        var projects = projectRepository.findAllById(projectIds);
         if (projects.size() != projectIds.size()) {
             throw new ProjectNotFoundException();
         }
