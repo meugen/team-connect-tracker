@@ -1,6 +1,6 @@
 package com.ua.teamconnect.tracker.model.exception;
 
-import java.util.List;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -30,7 +30,7 @@ public class NotFoundException extends ResponseStatusException {
         return new NotFoundException("Project with ID %d not found".formatted(id));
     }
     
-    public static NotFoundException projects(List<Integer> ids) {
+    public static NotFoundException projects(Set<Integer> ids) {
         return new NotFoundException("Projects with IDs %s not found".formatted(ids));
     }
     

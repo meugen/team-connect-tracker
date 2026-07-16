@@ -1,6 +1,6 @@
 package com.ua.teamconnect.tracker.model.dto;
 
-import java.util.List;
+import java.util.Set;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +12,7 @@ public record UserProjectRequestDto(
              description = "List of project IDs",
              example = "[1, 2, 3]")
           @NotEmpty
-          List<@NotNull Integer> projectIds
+          Set<@NotNull Integer> projectIds
                 
     ) {
 }

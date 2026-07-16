@@ -5,7 +5,6 @@ import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
-import com.ua.teamconnect.tracker.model.exception.DuplicateRequestProjectsException;
 import com.ua.teamconnect.tracker.model.exception.NotFoundException;
 import com.ua.teamconnect.tracker.model.entity.Project;
 import com.ua.teamconnect.tracker.model.entity.UserProject;
@@ -25,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -171,15 +169,14 @@ public class UserService implements PageRequestService {
     }
     
     @Transactional
-    public void assignProject(Integer userId, List<Integer> projectIds) {
-        validateNoDuplicate(projectIds);
+    public void assignProject(Integer userId, Set<Integer> projectIds) {
         var projects = projectRepository.findAllById(projectIds);
         var existingProjectIds = projects.stream()
             .map(Project::getId)
             .collect(Collectors.toSet());
         var missingProjectIds = projectIds.stream()
             .filter(projectId -> !existingProjectIds.contains(projectId))
-            .toList();
+            .collect(Collectors.toSet());
         if (!missingProjectIds.isEmpty()) {
             throw NotFoundException.projects(missingProjectIds);
         }
@@ -197,12 +194,4 @@ public class UserService implements PageRequestService {
       userProjectRepository.saveAll(newAssignments);
     }
     
-    private void validateNoDuplicate(List<Integer> projectIds) {
-        var uniqueProjectIds = new HashSet<Integer>();
-        for (var projectId : projectIds) {
-            if (!uniqueProjectIds.add(projectId)) {
-                throw new DuplicateRequestProjectsException(projectId);
-            }
-        }
-    }
 }

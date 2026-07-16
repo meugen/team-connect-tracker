@@ -9,7 +9,6 @@ import com.ua.teamconnect.tracker.model.entity.Project;
 import com.ua.teamconnect.tracker.model.entity.User;
 import com.ua.teamconnect.tracker.model.entity.UserProject;
 import com.ua.teamconnect.tracker.model.entity.projection.UserDate;
-import com.ua.teamconnect.tracker.model.exception.DuplicateRequestProjectsException;
 import com.ua.teamconnect.tracker.model.exception.InvalidMonthDayException;
 import com.ua.teamconnect.tracker.model.exception.NotFoundException;
 import com.ua.teamconnect.tracker.repository.MediaFileRepository;
@@ -539,14 +538,14 @@ class UserServiceTest {
         var project2 = new Project();
         project2.setId(20);
 
-        when(projectRepository.findAllById(List.of(10, 20)))
+        when(projectRepository.findAllById(Set.of(10, 20)))
             .thenReturn(List.of(project1, project2));
         when(userRepository.findById(userId))
             .thenReturn(Optional.of(user));
         when(userProjectRepository.findProjectIdsByUserId(userId))
             .thenReturn(Set.of());
 
-        userService.assignProject(userId, List.of(10, 20));
+        userService.assignProject(userId, Set.of(10, 20));
 
         var captor = ArgumentCaptor.forClass(Iterable.class);
         verify(userProjectRepository).saveAll(captor.capture());
@@ -574,14 +573,14 @@ class UserServiceTest {
         var newProject = new Project();
         newProject.setId(20);
 
-        when(projectRepository.findAllById(List.of(10, 20)))
+        when(projectRepository.findAllById(Set.of(10, 20)))
             .thenReturn(List.of(assignedProject, newProject));
         when(userRepository.findById(userId))
             .thenReturn(Optional.of(user));
         when(userProjectRepository.findProjectIdsByUserId(userId))
             .thenReturn(Set.of(10));
 
-        userService.assignProject(userId, List.of(10, 20));
+        userService.assignProject(userId, Set.of(10, 20));
 
         var captor = ArgumentCaptor.forClass(Iterable.class);
 
@@ -602,14 +601,14 @@ class UserServiceTest {
         var project = new Project();
         project.setId(10);
 
-        when(projectRepository.findAllById(List.of(10)))
+        when(projectRepository.findAllById(Set.of(10)))
             .thenReturn(List.of(project));
         when(userRepository.findById(userId))
             .thenReturn(Optional.of(user));
         when(userProjectRepository.findProjectIdsByUserId(userId))
             .thenReturn(Set.of(10));
 
-        userService.assignProject(userId, List.of(10));
+        userService.assignProject(userId, Set.of(10));
 
         verify(userProjectRepository).saveAll(argThat(assignments ->
             !assignments.iterator().hasNext()
@@ -617,30 +616,13 @@ class UserServiceTest {
     }
     
     @Test
-    void assignProject_duplicateProjectId_throwsException() {
-        var exception = assertThrows(
-            DuplicateRequestProjectsException.class,
-            () -> userService.assignProject(1, List.of(10, 10))
-        );
-
-        assertEquals(
-            "Duplicate project id in request: 10",
-            exception.getMessage()
-        );
-
-        verifyNoInteractions(projectRepository);
-        verifyNoInteractions(userRepository);
-        verifyNoInteractions(userProjectRepository);
-    }
-    
-    @Test
     void assignProject_projectDoesNotExist_throwsException() {
-        when(projectRepository.findAllById(List.of(10, 20)))
+        when(projectRepository.findAllById(Set.of(10, 20)))
             .thenReturn(List.of(createProject(10)));
 
         var exception = assertThrows(
             NotFoundException.class,
-            () -> userService.assignProject(1, List.of(10, 20))
+            () -> userService.assignProject(1, Set.of(10, 20))
         );
 
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
@@ -662,7 +644,7 @@ class UserServiceTest {
         var project = new Project();
         project.setId(10);
 
-        when(projectRepository.findAllById(List.of(10)))
+        when(projectRepository.findAllById(Set.of(10)))
             .thenReturn(List.of(project));
 
         when(userRepository.findById(1))
@@ -670,7 +652,7 @@ class UserServiceTest {
 
         assertThrows(
             NotFoundException.class,
-            () -> userService.assignProject(1, List.of(10))
+            () -> userService.assignProject(1, Set.of(10))
         );
 
         verify(userProjectRepository, never()).findProjectIdsByUserId(any());
