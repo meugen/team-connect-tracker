@@ -173,16 +173,33 @@ public class UserService implements PageRequestService {
         var projects = validProjects(projectIds);
 
         var user = userRepository.findById(userId).orElseThrow(() -> NotFoundException.userById(userId));
-        var assignProjectIds = userProjectRepository.findProjectIdsByUserId(userId);
-       
-        var newAssignments = projects.stream()
-           .filter(project -> !assignProjectIds.contains(project.getId()))
-           .map(project -> {
-               var userProject = UserProject.of(user, project);
-               userProject.setStartDate(LocalDate.now());
-               return userProject;
-           }).toList();
-       userProjectRepository.saveAll(newAssignments);
+        var existingAssignments = userProjectRepository.findByUserIdAndProjectIds(userId, projectIds);
+        var assignmentsByProjectId = existingAssignments.stream()
+            .collect(Collectors.toMap(
+                assignment -> assignment.getProject().getId(),
+                assignment -> assignment
+            ));
+        
+        LocalDate now = LocalDate.now();
+        var assignmentsToSave = projects.stream()
+            .map(project -> {
+                var existingAssignment = assignmentsByProjectId.get(project.getId());
+                if (existingAssignment == null) {
+                    var newAssignment = UserProject.of(user, project);
+                    newAssignment.setStartDate(now);
+                    return newAssignment;
+                }
+
+                if (existingAssignment.getEndDate() != null) {
+                   existingAssignment.setStartDate(now);
+                   existingAssignment.setEndDate(null);
+                   return existingAssignment;
+                }
+                return null;
+                })
+            .filter(Objects::nonNull)
+            .toList();
+       userProjectRepository.saveAll(assignmentsToSave);
     }
     
     @Transactional

@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -937,9 +938,12 @@ class UserControllerTest extends AuthorizationControllerTest {
     void assignProjects_alreadyAssignedProject_isIgnored() {
         var userData = setupUser(UserParams.allDefaults());
         setupValidToken("user@example.com", ROLE_ADMIN);
+        var assignedProjectId = userData.projectId();
 
-        var assignedProjectIdsBefore =
-            userProjectRepository.findProjectIdsByUserId(userData.userId());
+        var assignmentsBefore = userProjectRepository.findByUserIdAndProjectIds(
+            userData.userId(),
+            Set.of(assignedProjectId)
+        );
 
         buildClient(port).post()
             .uri("/users/" + userData.userId() + "/projects")
@@ -949,14 +953,20 @@ class UserControllerTest extends AuthorizationControllerTest {
                 {
                   "projectIds": [%d]
                 }
-                """.formatted(assignedProjectIdsBefore.iterator().next()))
+                """.formatted(assignedProjectId))
             .exchange()
             .expectStatus().isNoContent();
 
-        var assignedProjectIdsAfter =
-            userProjectRepository.findProjectIdsByUserId(userData.userId());
+        var assignmentsAfter =
+            userProjectRepository.findByUserIdAndProjectIds(userData.userId(), Set.of(assignedProjectId));
 
-        assertEquals(assignedProjectIdsBefore, assignedProjectIdsAfter);
+        assertEquals(1, assignmentsBefore.size());
+        assertEquals(1, assignmentsAfter.size());
+
+        var assignment = assignmentsAfter.iterator().next();
+
+        assertEquals(assignedProjectId, assignment.getProject().getId());
+        assertNull(assignment.getEndDate());
     }
     
     @Test
@@ -1004,8 +1014,8 @@ class UserControllerTest extends AuthorizationControllerTest {
             .exchange()
             .expectStatus().isNoContent();
 
-        assertEquals(2,
-            userProjectRepository.findProjectIdsByUserId(user.userId()).size());
+        assertEquals(1,
+            userProjectRepository.findByUserIdAndProjectIds(user.userId(), Set.of(project.getId())).size());
     }
 
     @Test

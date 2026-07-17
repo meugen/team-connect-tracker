@@ -542,7 +542,7 @@ class UserServiceTest {
             .thenReturn(List.of(project1, project2));
         when(userRepository.findById(userId))
             .thenReturn(Optional.of(user));
-        when(userProjectRepository.findProjectIdsByUserId(userId))
+        when(userProjectRepository.findByUserIdAndProjectIds(userId, Set.of(10, 20)))
             .thenReturn(Set.of());
 
         userService.assignProject(userId, Set.of(10, 20));
@@ -572,13 +572,14 @@ class UserServiceTest {
         assignedProject.setId(10);
         var newProject = new Project();
         newProject.setId(20);
+        var assignment = UserProject.of(user, assignedProject);
 
         when(projectRepository.findAllById(Set.of(10, 20)))
             .thenReturn(List.of(assignedProject, newProject));
         when(userRepository.findById(userId))
             .thenReturn(Optional.of(user));
-        when(userProjectRepository.findProjectIdsByUserId(userId))
-            .thenReturn(Set.of(10));
+        when(userProjectRepository.findByUserIdAndProjectIds(userId, Set.of(10, 20)))
+            .thenReturn(Set.of(assignment));
 
         userService.assignProject(userId, Set.of(10, 20));
 
@@ -598,15 +599,18 @@ class UserServiceTest {
         var userId = 1;
         var user = new User();
         user.setId(userId);
-        var project = new Project();
-        project.setId(10);
+        var project = createProject(10);
+        var projectIds = Set.of(10);
+        var existingAssignment = UserProject.of(user, project);
+        existingAssignment.setStartDate(LocalDate.now());
+        existingAssignment.setEndDate(null);
 
-        when(projectRepository.findAllById(Set.of(10)))
+        when(projectRepository.findAllById(projectIds))
             .thenReturn(List.of(project));
         when(userRepository.findById(userId))
             .thenReturn(Optional.of(user));
-        when(userProjectRepository.findProjectIdsByUserId(userId))
-            .thenReturn(Set.of(10));
+        when(userProjectRepository.findByUserIdAndProjectIds(userId, projectIds))
+            .thenReturn(Set.of(existingAssignment));
 
         userService.assignProject(userId, Set.of(10));
 
@@ -629,7 +633,7 @@ class UserServiceTest {
         assertEquals( "Projects with IDs [20] not found", exception.getReason());
         
         verify(userRepository, never()).findById(any());
-        verify(userProjectRepository, never()).findProjectIdsByUserId(any());
+        verify(userProjectRepository, never()).findByUserIdAndProjectIds(any(), any());
         verify(userProjectRepository, never()).saveAll(any());
     }
     
@@ -655,8 +659,34 @@ class UserServiceTest {
             () -> userService.assignProject(1, Set.of(10))
         );
 
-        verify(userProjectRepository, never()).findProjectIdsByUserId(any());
+        verify(userProjectRepository, never()).findByUserIdAndProjectIds(any(), any());
         verify(userProjectRepository, never()).saveAll(any());
+    }
+    
+    @Test
+    void assignProject_previouslyRemovedProject_reactivatesAssignment() {
+        var userId = 1;
+        var user = new User();
+        user.setId(userId);
+
+        var project = createProject(10);
+
+        var assignment = UserProject.of(user, project);
+        assignment.setEndDate(LocalDate.of(2026, 7, 1));
+
+        when(projectRepository.findAllById(Set.of(10)))
+            .thenReturn(List.of(project));
+        when(userRepository.findById(userId))
+            .thenReturn(Optional.of(user));
+        when(userProjectRepository.findByUserIdAndProjectIds(userId, Set.of(10)))
+            .thenReturn(Set.of(assignment));
+
+        userService.assignProject(userId, Set.of(10));
+
+        assertNull(assignment.getEndDate());
+        assertEquals(LocalDate.now(), assignment.getStartDate());
+
+        verify(userProjectRepository).saveAll(List.of(assignment));
     }
     
     @Test

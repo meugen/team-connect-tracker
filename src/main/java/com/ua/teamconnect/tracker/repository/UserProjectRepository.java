@@ -38,9 +38,10 @@ public interface UserProjectRepository extends JpaRepository<UserProject, UserPr
     Set<Integer> findProjectIdsByUserIdAndNow(Integer userId, LocalDate now);
     
     @Query("""
-    select up.project.id from UserProject up where up.user.id = :userId
+    select up from UserProject up where up.user.id = :userId
+    and up.project.id in :projectIds
     """)
-    Set<Integer> findProjectIdsByUserId(Integer userId);
+    Set<UserProject> findByUserIdAndProjectIds(Integer userId, Set<Integer> projectIds);
     
     @Query("""
     select up from UserProject up where up.user.id = :userId 
