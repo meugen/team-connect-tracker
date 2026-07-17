@@ -62,4 +62,7 @@ public class MappersConfig {
     public ProjectMapper projectMapper() {
         return Mappers.getMapper(ProjectMapper.class);
     }
+
+    @Bean
+    public TimeLogMapper timeLogMapper() { return Mappers.getMapper(TimeLogMapper.class); }
 }
