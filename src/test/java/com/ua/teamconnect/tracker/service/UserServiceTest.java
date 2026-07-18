@@ -512,7 +512,6 @@ class UserServiceTest {
         verify(userRepository, times(1)).findUsersWithBirthdaysBetween(6, 15, 6, 15);
     }
     
-    @SuppressWarnings("unchecked")
     @Test
     void assignProject_validProjects_savesNewAssignments() {
         var userId = 1;
