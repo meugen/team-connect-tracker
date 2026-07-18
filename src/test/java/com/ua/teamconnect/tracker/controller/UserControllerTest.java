@@ -15,17 +15,20 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
-
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.ua.teamconnect.tracker.util.TestUtil.buildClient;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -894,71 +897,6 @@ class UserControllerTest extends AuthorizationControllerTest {
     }
     
     @Test
-    void assignProjects_adminRole_isNoContent() {
-        var user = setupUser(UserParams.allDefaults());
-        setupValidToken("user@example.com", ROLE_ADMIN);
-
-        var project = new Project();
-        project.setName("New Project");
-        project.setStatus("ACTIVE");
-        project.setStartDate(LocalDate.now());
-        project.setIsBillable(false);
-        project = projectRepository.save(project);
-
-        buildClient(port).post()
-            .uri("/users/" + user.userId() + "/projects")
-            .header("Authorization", "Bearer " + VALID_TOKEN)
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue("""
-                {
-                  "projectIds":[%d]
-                }
-                """.formatted(project.getId()))
-            .exchange()
-            .expectStatus().isNoContent();
-
-        assertEquals(2,
-            userProjectRepository.findProjectIdsByUserId(user.userId()).size());
-    }
-
-    @Test
-    void assignProjects_employeeRole_isForbidden() {
-        var user = setupUser(UserParams.allDefaults());
-        setupValidToken("user@example.com", ROLE_EMPLOYEE);
-
-        buildClient(port).post()
-            .uri("/users/" + user.userId() + "/projects")
-            .header("Authorization", "Bearer " + VALID_TOKEN)
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue("""
-                {
-                  "projectIds": [%d]
-                }
-                """.formatted(user.projectId()))
-            .exchange()
-            .expectStatus().isForbidden();
-    }
-
-    @Test
-    void assignProjects_invalidToken_isUnauthorized() {
-        var user = setupUser(UserParams.allDefaults());
-        setupValidToken("user@example.com", ROLE_ADMIN);
-
-        var spec = buildClient(port).post()
-            .uri("/users/" + user.userId() + "/projects")
-            .header("Authorization", "Bearer " + INVALID_TOKEN)
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue("""
-                {
-                  "projectIds":[1]
-                }
-                """)
-            .exchange();
-
-        validateUnauthorized(spec);
-    }
-
-    @Test
     void assignProjects_emptyProjectIds_isBadRequest() {
         var user = setupUser(UserParams.allDefaults());
         setupValidToken("user@example.com", ROLE_ADMIN);
@@ -1000,9 +938,12 @@ class UserControllerTest extends AuthorizationControllerTest {
     void assignProjects_alreadyAssignedProject_isIgnored() {
         var userData = setupUser(UserParams.allDefaults());
         setupValidToken("user@example.com", ROLE_ADMIN);
+        var assignedProjectId = userData.projectId();
 
-        var assignedProjectIdsBefore =
-            userProjectRepository.findProjectIdsByUserId(userData.userId());
+        var assignmentsBefore = userProjectRepository.findByUserIdAndProjectIds(
+            userData.userId(),
+            Set.of(assignedProjectId)
+        );
 
         buildClient(port).post()
             .uri("/users/" + userData.userId() + "/projects")
@@ -1012,14 +953,20 @@ class UserControllerTest extends AuthorizationControllerTest {
                 {
                   "projectIds": [%d]
                 }
-                """.formatted(assignedProjectIdsBefore.iterator().next()))
+                """.formatted(assignedProjectId))
             .exchange()
             .expectStatus().isNoContent();
 
-        var assignedProjectIdsAfter =
-            userProjectRepository.findProjectIdsByUserId(userData.userId());
+        var assignmentsAfter =
+            userProjectRepository.findByUserIdAndProjectIds(userData.userId(), Set.of(assignedProjectId));
 
-        assertEquals(assignedProjectIdsBefore, assignedProjectIdsAfter);
+        assertEquals(1, assignmentsBefore.size());
+        assertEquals(1, assignmentsAfter.size());
+
+        var assignment = assignmentsAfter.iterator().next();
+
+        assertEquals(assignedProjectId, assignment.getProject().getId());
+        assertNull(assignment.getEndDate());
     }
     
     @Test
@@ -1041,5 +988,193 @@ class UserControllerTest extends AuthorizationControllerTest {
             .exchange();
 
         validateNotFound(spec);
+    }
+    
+    @Test
+    void assignProjects_adminRole_isNoContent() {
+        var user = setupUser(UserParams.allDefaults());
+        setupValidToken("user@example.com", ROLE_ADMIN);
+
+        var project = new Project();
+        project.setName("New Project");
+        project.setStatus("ACTIVE");
+        project.setStartDate(LocalDate.now());
+        project.setIsBillable(false);
+        project = projectRepository.save(project);
+
+        buildClient(port).post()
+            .uri("/users/" + user.userId() + "/projects")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("""
+                {
+                  "projectIds":[%d]
+                }
+                """.formatted(project.getId()))
+            .exchange()
+            .expectStatus().isNoContent();
+
+        assertEquals(1,
+            userProjectRepository.findByUserIdAndProjectIds(user.userId(), Set.of(project.getId())).size());
+    }
+
+    @Test
+    void assignProjects_employeeRole_isForbidden() {
+        var user = setupUser(UserParams.allDefaults());
+        setupValidToken("user@example.com", ROLE_EMPLOYEE);
+
+        buildClient(port).post()
+            .uri("/users/" + user.userId() + "/projects")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("""
+                {
+                  "projectIds": [%d]
+                }
+                """.formatted(user.projectId()))
+            .exchange()
+            .expectStatus().isForbidden();
+    }
+
+    @Test
+    void assignProjects_invalidToken_isUnauthorized() {
+        var user = setupUser(UserParams.allDefaults());
+        setupValidToken("user@example.com", ROLE_ADMIN);
+
+        var spec = buildClient(port).post()
+            .uri("/users/" + user.userId() + "/projects")
+            .header("Authorization", "Bearer " + INVALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("""
+                {
+                  "projectIds":[1]
+                }
+                """)
+            .exchange();
+
+        validateUnauthorized(spec);
+    }
+
+    @Test
+    void deleteProjects_emptyProjectIds_isBadRequest() {
+        var user = setupUser(UserParams.allDefaults());
+        setupValidToken("user@example.com", ROLE_ADMIN);
+
+        var spec = buildClient(port).method(HttpMethod.DELETE)
+            .uri("/users/" + user.userId() + "/projects")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("""
+                {
+                  "projectIds":[]
+                }
+                """)
+            .exchange();
+
+        validateBadRequest(spec);
+    }
+
+    @Test
+    void deleteProjects_nullProjectId_isBadRequest() {
+        var user = setupUser(UserParams.allDefaults());
+        setupValidToken("user@example.com", ROLE_ADMIN);
+
+        var spec = buildClient(port).method(HttpMethod.DELETE)
+            .uri("/users/" + user.userId() + "/projects")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("""
+                {
+                  "projectIds":[1,null]
+                }
+                """)
+            .exchange();
+
+        validateBadRequest(spec);
+    }
+    
+    @Test
+    void deleteProjects_projectNotFound_isNotFound() {
+        var userData = setupUser(UserParams.allDefaults());
+        setupValidToken("user@example.com", ROLE_ADMIN);
+
+        var nonExistingProjectId = 999999;
+
+        var spec = buildClient(port).method(HttpMethod.DELETE)
+            .uri("/users/" + userData.userId() + "/projects")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("""
+                {
+                  "projectIds": [%d]
+                }
+                """.formatted(nonExistingProjectId))
+            .exchange();
+
+        validateNotFound(spec);
+    }
+    
+    @Test
+    void deleteProjects_adminRole_isNoContent() {
+        var user = setupUser(UserParams.allDefaults());
+        setupValidToken("user@example.com", ROLE_ADMIN);
+
+        buildClient(port).method(HttpMethod.DELETE)
+            .uri("/users/" + user.userId() + "/projects")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("""
+                {
+                  "projectIds":[%d]
+                }
+                """.formatted(user.projectId()))
+            .exchange()
+            .expectStatus().isNoContent();
+
+        var assignment = userProjectRepository
+            .findActiveByUserIdAndProjectIds(
+              user.userId(),
+              Set.of(user.projectId()),
+              LocalDate.now()
+            );
+
+        assertTrue(assignment.isEmpty());
+    }
+
+    @Test
+    void deleteProjects_employeeRole_isForbidden() {
+        var user = setupUser(UserParams.allDefaults());
+        setupValidToken("user@example.com", ROLE_EMPLOYEE);
+
+        buildClient(port).method(HttpMethod.DELETE)
+            .uri("/users/" + user.userId() + "/projects")
+            .header("Authorization", "Bearer " + VALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("""
+                {
+                  "projectIds": [%d]
+                }
+                """.formatted(user.projectId()))
+            .exchange()
+            .expectStatus().isForbidden();
+    }
+
+    @Test
+    void deleteProjects_invalidToken_isUnauthorized() {
+        var user = setupUser(UserParams.allDefaults());
+        setupValidToken("user@example.com", ROLE_ADMIN);
+
+        var spec = buildClient(port).method(HttpMethod.DELETE)
+            .uri("/users/" + user.userId() + "/projects")
+            .header("Authorization", "Bearer " + INVALID_TOKEN)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue("""
+                {
+                  "projectIds":[1]
+                }
+                """)
+            .exchange();
+
+        validateUnauthorized(spec);
     }
 }

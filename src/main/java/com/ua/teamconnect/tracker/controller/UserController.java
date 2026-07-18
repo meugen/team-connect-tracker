@@ -109,4 +109,13 @@ public class UserController {
     public void assignProjects(@PathVariable Integer userId, @Valid @RequestBody UserProjectRequestDto requestDto) {
         userService.assignProject(userId, requestDto.projectIds());
     }
+    
+    @ApiResponseNoContent
+    @ApiResponseBadRequest
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{userId}/projects")
+    @PreAuthorize("hasAnyRole('PM', 'HR', 'ADMIN')")
+    public void deleteProjects(@PathVariable Integer userId, @Valid @RequestBody UserProjectRequestDto requestDto) {
+        userService.deleteProjects(userId, requestDto.projectIds());
+    }
 }

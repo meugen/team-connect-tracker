@@ -5,14 +5,10 @@ import com.ua.teamconnect.tracker.mapper.UserDateMapper;
 import com.ua.teamconnect.tracker.mapper.UserPositionMapper;
 import com.ua.teamconnect.tracker.mapper.UserRequestProfileMapper;
 import com.ua.teamconnect.tracker.model.dto.*;
-import com.ua.teamconnect.tracker.model.exception.NotFoundException;
 import com.ua.teamconnect.tracker.model.entity.Project;
 import com.ua.teamconnect.tracker.model.entity.UserProject;
-import com.ua.teamconnect.tracker.repository.MediaFileRepository;
-import com.ua.teamconnect.tracker.repository.ProjectRepository;
-import com.ua.teamconnect.tracker.repository.UserPositionRepository;
-import com.ua.teamconnect.tracker.repository.UserProjectRepository;
-import com.ua.teamconnect.tracker.repository.UserRepository;
+import com.ua.teamconnect.tracker.model.exception.NotFoundException;
+import com.ua.teamconnect.tracker.repository.*;
 import com.ua.teamconnect.tracker.repository.specification.user.position.UserPositionSpecificationBuilder;
 import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
 import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileFactory;
@@ -28,7 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.ua.teamconnect.tracker.util.DateUtil.toDayMonthRanges;
 
@@ -158,18 +156,59 @@ public class UserService implements PageRequestService {
     
     public List<UserBirthdayDto> findByBirthdaysBetween(String role, String startDate, String endDate) {
         var users = toDayMonthRanges(startDate, endDate).stream()
-                .flatMap(pair -> userRepository.findUsersWithBirthdaysBetween(
-                        pair.first().getMonthValue(),
-                        pair.first().getDayOfMonth(),
-                        pair.second().getMonthValue(),
-                        pair.second().getDayOfMonth()
-                ).stream())
-                .toList();
+            .flatMap(pair -> userRepository.findUsersWithBirthdaysBetween(
+                pair.first().getMonthValue(),
+                pair.first().getDayOfMonth(),
+                pair.second().getMonthValue(),
+                pair.second().getDayOfMonth()
+            ).stream())
+            .toList();
         return mapUserBirthday.toDto(users, role);
     }
     
     @Transactional
     public void assignProject(Integer userId, Set<Integer> projectIds) {
+        var projects = validProjects(projectIds);
+
+        var user = userRepository.findById(userId).orElseThrow(() -> NotFoundException.userById(userId));
+        var existingAssignments = userProjectRepository.findByUserIdAndProjectIds(userId, projectIds);
+        var assignmentsByProjectId = existingAssignments.stream()
+            .collect(Collectors.toMap(
+                assignment -> assignment.getProject().getId(),
+                Function.identity()
+            ));
+        
+        LocalDate now = LocalDate.now();
+        projects.stream()
+            .flatMap(project -> {
+                var existingAssignment = assignmentsByProjectId.get(project.getId());
+                if (existingAssignment == null) {
+                    var newAssignment = UserProject.of(user, project);
+                    newAssignment.setStartDate(now);
+                    return Stream.of(newAssignment);
+                }
+
+                if (existingAssignment.getEndDate() != null) {
+                   existingAssignment.setStartDate(now);
+                   existingAssignment.setEndDate(null);
+                   return Stream.of(existingAssignment);
+                }
+                return Stream.empty();
+            })
+            .forEach(userProjectRepository::save);
+    }
+    
+    @Transactional
+    public void deleteProjects(Integer userId, Set<Integer> projectIds) {
+        validProjects(projectIds);
+        userRepository.findById(userId).orElseThrow(() -> NotFoundException.userById(userId));
+        var now = LocalDate.now();
+        var assignments = userProjectRepository.findActiveByUserIdAndProjectIds(userId, projectIds, now);
+        assignments.forEach(assignment -> assignment.setEndDate(now));
+        userProjectRepository.saveAll(assignments);
+    }
+    
+    private List<Project> validProjects(Set<Integer> projectIds) {
         var projects = projectRepository.findAllById(projectIds);
         var existingProjectIds = projects.stream()
             .map(Project::getId)
@@ -180,18 +219,7 @@ public class UserService implements PageRequestService {
         if (!missingProjectIds.isEmpty()) {
             throw NotFoundException.projects(missingProjectIds);
         }
-        
-       var user = userRepository.findById(userId).orElseThrow(() -> NotFoundException.userById(userId));
-       var assignProjectIds = userProjectRepository.findProjectIdsByUserId(userId);
-       
-       var newAssignments = projects.stream()
-           .filter(project -> !assignProjectIds.contains(project.getId()))
-           .map(project -> {
-               var userProject = UserProject.of(user, project);
-               userProject.setStartDate(LocalDate.now());
-               return userProject;
-           }).toList();
-      userProjectRepository.saveAll(newAssignments);
+        return projects;
     }
     
 }
