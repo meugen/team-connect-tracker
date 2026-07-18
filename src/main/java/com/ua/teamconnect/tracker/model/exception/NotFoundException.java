@@ -1,8 +1,9 @@
 package com.ua.teamconnect.tracker.model.exception;
 
-import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Set;
 
 public class NotFoundException extends ResponseStatusException {
 

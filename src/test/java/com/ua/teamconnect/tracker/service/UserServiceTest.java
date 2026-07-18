@@ -2,20 +2,11 @@ package com.ua.teamconnect.tracker.service;
 
 import com.ua.teamconnect.tracker.mapper.*;
 import com.ua.teamconnect.tracker.model.dto.*;
-import com.ua.teamconnect.tracker.model.entity.Department;
-import com.ua.teamconnect.tracker.model.entity.MediaFile;
-import com.ua.teamconnect.tracker.model.entity.Position;
-import com.ua.teamconnect.tracker.model.entity.Project;
-import com.ua.teamconnect.tracker.model.entity.User;
-import com.ua.teamconnect.tracker.model.entity.UserProject;
+import com.ua.teamconnect.tracker.model.entity.*;
 import com.ua.teamconnect.tracker.model.entity.projection.UserDate;
 import com.ua.teamconnect.tracker.model.exception.InvalidMonthDayException;
 import com.ua.teamconnect.tracker.model.exception.NotFoundException;
-import com.ua.teamconnect.tracker.repository.MediaFileRepository;
-import com.ua.teamconnect.tracker.repository.ProjectRepository;
-import com.ua.teamconnect.tracker.repository.UserPositionRepository;
-import com.ua.teamconnect.tracker.repository.UserProjectRepository;
-import com.ua.teamconnect.tracker.repository.UserRepository;
+import com.ua.teamconnect.tracker.repository.*;
 import com.ua.teamconnect.tracker.repository.specification.user.position.UserPositionSpecificationBuilder;
 import com.ua.teamconnect.tracker.service.storage.DropboxStorageService;
 import com.ua.teamconnect.tracker.service.strategy.userprofile.MapUserProfileFactory;
@@ -30,13 +21,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -51,11 +38,8 @@ class UserServiceTest {
     private MapUserProfileStrategy shortUserProfileStrategy;
     private MapUserProfileStrategy fullUserProfileStrategy;
     private UserService userService;
-    private UserPositionSpecificationBuilder userPositionSpecificationBuilder;
-    private UserPositionRepository userPositionRepository;
     private MediaFileRepository mediaFileRepository;
     private DropboxStorageService dropboxStorageService;
-    private MapUserBirthday mapUserBirthday;
     private UserProjectRepository userProjectRepository;
     private ProjectRepository projectRepository;
 
@@ -65,13 +49,13 @@ class UserServiceTest {
         shortUserProfileStrategy = mock(MapUserProfileStrategy.class);
         fullUserProfileStrategy = mock(MapUserProfileStrategy.class);
         passwordEncoder = mock(PasswordEncoder.class);
-        userPositionSpecificationBuilder = mock(UserPositionSpecificationBuilder.class);
-        userPositionRepository = mock(UserPositionRepository.class);
+        UserPositionSpecificationBuilder userPositionSpecificationBuilder = mock(UserPositionSpecificationBuilder.class);
+        UserPositionRepository userPositionRepository = mock(UserPositionRepository.class);
         mediaFileRepository = mock(MediaFileRepository.class);
         dropboxStorageService = mock(DropboxStorageService.class);
         userProjectRepository = mock(UserProjectRepository.class);
         projectRepository = mock(ProjectRepository.class);
-        mapUserBirthday = new MapUserBirthday(Mappers.getMapper(UserBirthdayMapper.class));
+        MapUserBirthday mapUserBirthday = new MapUserBirthday(Mappers.getMapper(UserBirthdayMapper.class));
         userService = new UserService(
             userRepository,
             passwordEncoder,
@@ -529,6 +513,7 @@ class UserServiceTest {
     }
     
     @SuppressWarnings("unchecked")
+    @Test
     void assignProject_validProjects_savesNewAssignments() {
         var userId = 1;
         var user = new User();
@@ -547,11 +532,10 @@ class UserServiceTest {
 
         userService.assignProject(userId, Set.of(10, 20));
 
-        var captor = ArgumentCaptor.forClass(Iterable.class);
-        verify(userProjectRepository).saveAll(captor.capture());
-        var assignments = new ArrayList<UserProject>();
-        ((Iterable<UserProject>) captor.getValue()).forEach(assignments::add);
+        var captor = ArgumentCaptor.forClass(UserProject.class);
+        verify(userProjectRepository, times(2)).save(captor.capture());
 
+        var assignments = captor.getAllValues();
         assertEquals(2, assignments.size());
         assertEquals(Set.of(10, 20), assignments.stream()
             .map(it -> it.getProject().getId())
@@ -562,7 +546,6 @@ class UserServiceTest {
             .allMatch(it -> it.getStartDate().equals(LocalDate.now())));
     }
     
-    @SuppressWarnings("unchecked")
     @Test
     void assignProject_projectAlreadyAssigned_doesNotSaveDuplicate() {
         var userId = 1;
@@ -583,13 +566,11 @@ class UserServiceTest {
 
         userService.assignProject(userId, Set.of(10, 20));
 
-        var captor = ArgumentCaptor.forClass(Iterable.class);
+        var captor = ArgumentCaptor.forClass(UserProject.class);
 
-        verify(userProjectRepository).saveAll(captor.capture());
+        verify(userProjectRepository).save(captor.capture());
 
-        var assignments = new ArrayList<UserProject>();
-        ((Iterable<UserProject>) captor.getValue()).forEach(assignments::add);
-
+        var assignments = captor.getAllValues();
         assertEquals(1, assignments.size());
         assertEquals(20, assignments.get(0).getProject().getId());
     }
@@ -614,9 +595,7 @@ class UserServiceTest {
 
         userService.assignProject(userId, Set.of(10));
 
-        verify(userProjectRepository).saveAll(argThat(assignments ->
-            !assignments.iterator().hasNext()
-        ));
+        verify(userProjectRepository, never()).save(any());
     }
     
     @Test
@@ -686,7 +665,7 @@ class UserServiceTest {
         assertNull(assignment.getEndDate());
         assertEquals(LocalDate.now(), assignment.getStartDate());
 
-        verify(userProjectRepository).saveAll(List.of(assignment));
+        verify(userProjectRepository).save(assignment);
     }
     
     @Test

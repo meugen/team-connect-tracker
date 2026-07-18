@@ -1,9 +1,10 @@
 package com.ua.teamconnect.tracker.model.dto;
 
-import java.util.Set;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.Set;
 
 @Schema(name = "User Project", description = "Project IDs for the user")
 public record UserProjectRequestDto(
